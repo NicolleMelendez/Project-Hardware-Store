@@ -23,7 +23,7 @@ USE `hardware_store`;
 CREATE TABLE IF NOT EXISTS `client` (
   `id` bigint NOT NULL AUTO_INCREMENT,
   `name` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci DEFAULT NULL,
-  `phone` varchar(50) DEFAULT NULL,
+  `phone` varchar(15) DEFAULT NULL,
   `address` varchar(200) DEFAULT NULL,
   `email` varchar(80) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci DEFAULT NULL,
   `date_client` date DEFAULT NULL,
@@ -178,7 +178,7 @@ CREATE TABLE IF NOT EXISTS `sale_detail` (
 CREATE TABLE IF NOT EXISTS `supplier` (
   `id` bigint NOT NULL AUTO_INCREMENT,
   `name` varchar(150) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci DEFAULT NULL,
-  `phone` bigint DEFAULT NULL,
+  `phone` varchar(15) DEFAULT NULL,
   `supplied_product` varchar(200) DEFAULT NULL,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
@@ -194,3 +194,4 @@ INSERT INTO `supplier` (`id`, `name`, `phone`, `supplied_product`) VALUES
 /*!40014 SET FOREIGN_KEY_CHECKS=IFNULL(@OLD_FOREIGN_KEY_CHECKS, 1) */;
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
 /*!40111 SET SQL_NOTES=IFNULL(@OLD_SQL_NOTES, 1) */;
+
