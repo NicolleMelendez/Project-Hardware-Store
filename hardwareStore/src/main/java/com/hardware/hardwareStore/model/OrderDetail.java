@@ -5,23 +5,41 @@ import jakarta.persistence.*;
 @Entity
 @Table(name = "order_detail")
 public class OrderDetail {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
 
     @ManyToOne
-    @JoinColumn(name = "id_order_buy")
+    @JoinColumn(name = "id_order_buy", nullable = false)
     private OrderBuy orderBuy;
 
     @ManyToOne
-    @JoinColumn(name = "id_inventory")
+    @JoinColumn(name = "id_inventory", nullable = false)
     private Inventory inventory;
 
+    @Column(name = "amount", nullable = false)
     private Integer amount;
 
-    @Column(name = "price_unit")
+    @Column(name = "price_unit", nullable = false)
     private Float priceUnit;
 
     public OrderDetail() {}
+
+    public OrderDetail(OrderBuy orderBuy, Inventory inventory, Integer amount, Float priceUnit) {
+        this.orderBuy = orderBuy;
+        this.inventory = inventory;
+        this.amount = amount;
+        this.priceUnit = priceUnit;
+    }
+
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
 
     public OrderBuy getOrderBuy() {
         return orderBuy;
