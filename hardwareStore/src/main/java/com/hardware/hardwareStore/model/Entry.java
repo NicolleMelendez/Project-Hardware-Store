@@ -31,6 +31,14 @@ public class Entry {
 
     public Entry() {}
 
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
     public Inventory getInventory() {
         return inventory;
     }
