@@ -1,0 +1,11 @@
+package com.hardware.hardwareStore.Controller;
+
+
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.GetMapping;
+
+@Controller
+public class ViewController {
+
+
+}
