@@ -7,6 +7,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 @Controller
 public class ViewController {
 
+<<<<<<< Updated upstream
     // Ruta: http://localhost:8080/
     @GetMapping("/")
     public String home() {
@@ -28,4 +29,7 @@ public class ViewController {
         return "pages-profile";
     }
 
+=======
+//rutas vistas
+>>>>>>> Stashed changes
 }
