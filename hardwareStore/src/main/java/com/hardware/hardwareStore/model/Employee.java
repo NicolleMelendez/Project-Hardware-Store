@@ -10,7 +10,7 @@ public class Employee {
 
     private String name;
     private String position;
-    private Float salary;
+    private Integer salary;
 
     public Employee() {}
 
@@ -38,11 +38,11 @@ public class Employee {
         this.position = position;
     }
 
-    public Float getSalary() {
+    public Integer getSalary() {
         return salary;
     }
 
-    public void setSalary(Float salary) {
+    public void setSalary(Integer salary) {
         this.salary = salary;
     }
 }

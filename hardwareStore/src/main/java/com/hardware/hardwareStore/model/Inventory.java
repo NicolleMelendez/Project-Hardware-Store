@@ -10,7 +10,7 @@ public class Inventory {
 
     private String name;
     private String category;
-    private Float price;
+    private Integer price;
     private Integer stock;
 
     @ManyToOne
@@ -46,11 +46,11 @@ public class Inventory {
         this.category = category;
     }
 
-    public Float getPrice() {
+    public Integer getPrice() {
         return price;
     }
 
-    public void setPrice(Float price) {
+    public void setPrice(Integer price) {
         this.price = price;
     }
 
