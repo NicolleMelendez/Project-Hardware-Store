@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="layouts/layout-sidenav-light :: layout-sidenav-light">
+<head>
+  <title>Lista de Empleados</title>
+</head>
+<body>
+<section main-content>
+  <h1 class="mt-4">Gestión de Empleados</h1>
+  <ol class="breadcrumb mb-4">
+    <li class="breadcrumb-item"><a th:href="@{/}">Dashboard</a></li>
+    <li class="breadcrumb-item active">Empleados</li>
+  </ol>
+
+  <div class="card mb-4">
+    <div class="card-header">
+      <i class="fas fa-user-tie me-1"></i>
+      Lista de Empleados
+      <a th:href="@{/employee/new}" class="btn btn-primary btn-sm float-end">Nuevo Empleado</a>
+    </div>
+    <div class="card-body">
+      <table class="table table-bordered">
+        <thead>
+        <tr>
+          <th>ID</th>
+          <th>Nombre</th>
+          <th>Cargo</th>
+          <th>Salario</th>
+          <th>Acciones</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="employee : ${employees}">
+          <td th:text="${employee.id}"></td>
+          <td th:text="${employee.name}"></td>
+          <td th:text="${employee.position}"></td>
+          <td th:text="${employee.salary}"></td>
+          <td>
+            <a th:href="@{/employee/edit/{id}(id=${employee.id})}" class="btn btn-sm btn-warning">Editar</a>
+            <a th:href="@{/employee/delete/{id}(id=${employee.id})}" class="btn btn-sm btn-danger">Eliminar</a>
+          </td>
+        </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+</body>
+</html>

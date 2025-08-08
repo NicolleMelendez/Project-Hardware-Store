@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="layouts/layout-sidenav-light :: layout-sidenav-light">
+<head>
+  <title>Editar Salida</title>
+</head>
+<body>
+<section main-content>
+  <h1 class="mt-4">Editar Salida</h1>
+  <ol class="breadcrumb mb-4">
+    <li class="breadcrumb-item"><a th:href="@{/}">Dashboard</a></li>
+    <li class="breadcrumb-item"><a th:href="@{/issue}">Salidas</a></li>
+    <li class="breadcrumb-item active">Editar</li>
+  </ol>
+
+  <form th:action="@{/issue/update/{id}(id=${issue.id})}"
+        th:object="${issue}" method="post" class="card card-body">
+    <input type="hidden" th:field="*{id}"/>
+
+    <div class="mb-3">
+      <label class="form-label">Inventario</label>
+      <select class="form-select" th:field="*{inventory}" required>
+        <option th:each="inv : ${inventories}" th:value="${inv}"
+                th:text="${inv.name}"
+                th:selected="${inv.id == issue.inventory.id}"></option>
+      </select>
+    </div>
+
+    <div class="mb-3">
+      <label for="amount" class="form-label">Cantidad</label>
+      <input type="number" id="amount" th:field="*{amount}" class="form-control" required>
+    </div>
+
+    <div class="mb-3">
+      <label for="reason" class="form-label">Razón</label>
+      <input type="text" id="reason" th:field="*{reason}" class="form-control" required>
+    </div>
+
+    <div class="mb-3">
+      <label for="dateIssue" class="form-label">Fecha</label>
+      <input type="date" id="dateIssue" th:field="*{dateIssue}" class="form-control" required>
+    </div>
+
+    <div class="mb-3">
+      <label class="form-label">Empleado</label>
+      <select class="form-select" th:field="*{employee}" required>
+        <option th:each="emp : ${employees}" th:value="${emp}"
+                th:text="${emp.name}"
+                th:selected="${emp.id == issue.employee.id}"></option>
+      </select>
+    </div>
+
+    <div class="mb-3">
+      <label for="observation" class="form-label">Observación</label>
+      <input type="text" id="observation" th:field="*{observation}" class="form-control">
+    </div>
+
+    <button type="submit" class="btn btn-primary">Actualizar</button>
+    <a th:href="@{/issue}" class="btn btn-secondary">Cancelar</a>
+  </form>
+</section>
+</body>
+</html>

@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="layouts/layout-sidenav-light :: layout-sidenav-light">
+<head>
+    <title>Registrar Proveedor</title>
+</head>
+<body>
+<section main-content>
+    <h1 class="mt-4">Registrar Proveedor</h1>
+    <ol class="breadcrumb mb-4">
+        <li class="breadcrumb-item"><a th:href="@{/}">Dashboard</a></li>
+        <li class="breadcrumb-item"><a th:href="@{/supplier}">Proveedores</a></li>
+        <li class="breadcrumb-item active">Nuevo</li>
+    </ol>
+    <form th:action="@{/supplier/save}" th:object="${supplier}" method="post" class="card card-body">
+        <div class="mb-3">
+            <label for="name" class="form-label">Nombre</label>
+            <input type="text" id="name" th:field="*{name}" class="form-control" required>
+        </div>
+        <div class="mb-3">
+            <label for="phone" class="form-label">Teléfono</label>
+            <input type="text" id="phone" th:field="*{phone}" class="form-control" required>
+        </div>
+        <div class="mb-3">
+            <label for="suppliedProduct" class="form-label">Producto Suministrado</label>
+            <input type="text" id="suppliedProduct" th:field="*{suppliedProduct}" class="form-control" required>
+        </div>
+        <button type="submit" class="btn btn-success">Guardar</button>
+        <a th:href="@{/supplier}" class="btn btn-secondary">Cancelar</a>
+    </form>
+</section>
+</body>
+</html>

@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="layouts/layout-sidenav-light :: layout-sidenav-light">
+<head>
+    <title>Editar Detalle de Venta</title>
+</head>
+<body>
+<section main-content>
+    <h1 class="mt-4">Editar Detalle de Venta</h1>
+    <ol class="breadcrumb mb-4">
+        <li class="breadcrumb-item"><a th:href="@{/}">Dashboard</a></li>
+        <li class="breadcrumb-item"><a th:href="@{/saledetail}">Detalles de Venta</a></li>
+        <li class="breadcrumb-item active">Editar</li>
+    </ol>
+
+    <form th:action="@{/saledetail/update/{id}(id=${saleDetail.id})}"
+          th:object="${saleDetail}" method="post" class="card card-body">
+        <input type="hidden" th:field="*{id}"/>
+
+        <div class="mb-3">
+            <label class="form-label">Venta</label>
+            <select class="form-select" th:field="*{sale}" required>
+                <option th:each="s : ${sales}" th:value="${s}"
+                        th:text="${s.id}"
+                        th:selected="${s.id == saleDetail.sale.id}"></option>
+            </select>
+        </div>
+        <div class="mb-3">
+            <label class="form-label">Inventario</label>
+            <select class="form-select" th:field="*{inventory}" required>
+                <option th:each="inv : ${inventories}" th:value="${inv}"
+                        th:text="${inv.name}"
+                        th:selected="${inv.id == saleDetail.inventory.id}"></option>
+            </select>
+        </div>
+        <div class="mb-3">
+            <label for="amount" class="form-label">Cantidad</label>
+            <input type="number" id="amount" th:field="*{amount}" class="form-control" required>
+        </div>
+        <div class="mb-3">
+            <label for="priceUnit" class="form-label">Precio Unitario</label>
+            <input type="number" id="priceUnit" th:field="*{priceUnit}" class="form-control" required>
+        </div>
+
+        <button type="submit" class="btn btn-primary">Actualizar</button>
+        <a th:href="@{/saledetail}" class="btn btn-secondary">Cancelar</a>
+    </form>
+</section>
+</body>
+</html>

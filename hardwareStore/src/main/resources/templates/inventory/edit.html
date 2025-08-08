@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="layouts/layout-sidenav-light :: layout-sidenav-light">
+<head>
+  <title>Editar Inventario</title>
+</head>
+<body>
+<section main-content>
+  <h1 class="mt-4">Editar Ítem de Inventario</h1>
+  <ol class="breadcrumb mb-4">
+    <li class="breadcrumb-item"><a th:href="@{/}">Dashboard</a></li>
+    <li class="breadcrumb-item"><a th:href="@{/inventory}">Inventario</a></li>
+    <li class="breadcrumb-item active">Editar</li>
+  </ol>
+
+  <form th:action="@{/inventory/update/{id}(id=${inventory.id})}"
+        th:object="${inventory}" method="post" class="card card-body">
+    <input type="hidden" th:field="*{id}"/>
+
+    <div class="mb-3">
+      <label for="name" class="form-label">Nombre</label>
+      <input type="text" id="name" th:field="*{name}" class="form-control" required>
+    </div>
+    <div class="mb-3">
+      <label for="category" class="form-label">Categoría</label>
+      <input type="text" id="category" th:field="*{category}" class="form-control" required>
+    </div>
+    <div class="mb-3">
+      <label for="price" class="form-label">Precio</label>
+      <input type="number" id="price" th:field="*{price}" class="form-control" required>
+    </div>
+    <div class="mb-3">
+      <label for="stock" class="form-label">Stock</label>
+      <input type="number" id="stock" th:field="*{stock}" class="form-control" required>
+    </div>
+    <div class="mb-3">
+      <label class="form-label">Proveedor</label>
+      <select class="form-select" th:field="*{supplier}" required>
+        <option th:each="sup : ${suppliers}" th:value="${sup}"
+                th:text="${sup.name}"
+                th:selected="${sup.id == inventory.supplier.id}"></option>
+      </select>
+    </div>
+    <div class="mb-3">
+      <label for="minStock" class="form-label">Stock Mínimo</label>
+      <input type="number" id="minStock" th:field="*{minStock}" class="form-control" required>
+    </div>
+
+    <button type="submit" class="btn btn-primary">Actualizar</button>
+    <a th:href="@{/inventory}" class="btn btn-secondary">Cancelar</a>
+  </form>
+</section>
+</body>
+</html>

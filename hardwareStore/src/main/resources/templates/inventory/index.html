@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="layouts/layout-sidenav-light :: layout-sidenav-light">
+<head>
+  <title>Inventario</title>
+</head>
+<body>
+<section main-content>
+  <h1 class="mt-4">Gestión de Inventario</h1>
+  <ol class="breadcrumb mb-4">
+    <li class="breadcrumb-item"><a th:href="@{/}">Dashboard</a></li>
+    <li class="breadcrumb-item active">Inventario</li>
+  </ol>
+
+  <div class="card mb-4">
+    <div class="card-header">
+      <i class="fas fa-warehouse me-1"></i>
+      Lista de Inventario
+      <a th:href="@{/inventory/new}" class="btn btn-primary btn-sm float-end">Nuevo Ítem</a>
+    </div>
+    <div class="card-body">
+      <table class="table table-bordered">
+        <thead>
+        <tr>
+          <th>ID</th>
+          <th>Nombre</th>
+          <th>Categoría</th>
+          <th>Precio</th>
+          <th>Stock</th>
+          <th>Proveedor</th>
+          <th>Stock Mínimo</th>
+          <th>Acciones</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="inv : ${inventories}">
+          <td th:text="${inv.id}"></td>
+          <td th:text="${inv.name}"></td>
+          <td th:text="${inv.category}"></td>
+          <td th:text="${inv.price}"></td>
+          <td th:text="${inv.stock}"></td>
+          <td th:text="${inv.supplier.name}"></td>
+          <td th:text="${inv.minStock}"></td>
+          <td>
+            <a th:href="@{/inventory/edit/{id}(id=${inv.id})}"
+               class="btn btn-sm btn-warning">Editar</a>
+            <a th:href="@{/inventory/delete/{id}(id=${inv.id})}"
+               class="btn btn-sm btn-danger">Eliminar</a>
+          </td>
+        </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+</body>
+</html>
