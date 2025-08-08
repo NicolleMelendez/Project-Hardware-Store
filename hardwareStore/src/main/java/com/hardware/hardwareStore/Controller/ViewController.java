@@ -12,10 +12,12 @@ import java.util.List;
 @Controller
 public class ViewController {
 
+    // Ruta: http://localhost:8080/
     @GetMapping({"/", "/index"})
     public String home() {
         return "index";
     }
+
 
 
 

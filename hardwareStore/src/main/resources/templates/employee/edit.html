@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="layouts/layout-sidenav-light :: layout-sidenav-light">
+<head>
+  <title>Editar Empleado</title>
+</head>
+<body>
+<section main-content>
+  <h1 class="mt-4">Editar Empleado</h1>
+  <ol class="breadcrumb mb-4">
+    <li class="breadcrumb-item"><a th:href="@{/}">Dashboard</a></li>
+    <li class="breadcrumb-item"><a th:href="@{/employee}">Empleados</a></li>
+    <li class="breadcrumb-item active">Editar</li>
+  </ol>
+
+  <form th:action="@{/employee/update/{id}(id=${employee.id})}" method="post" class="card card-body">
+    <input type="hidden" th:field="*{id}"/>
+
+    <div class="mb-3">
+      <label for="name" class="form-label">Nombre</label>
+      <input type="text" class="form-control" id="name" th:field="*{name}" required>
+    </div>
+
+    <div class="mb-3">
+      <label for="position" class="form-label">Cargo</label>
+      <input type="text" class="form-control" id="position" th:field="*{position}" required>
+    </div>
+
+    <div class="mb-3">
+      <label for="salary" class="form-label">Salario</label>
+      <input type="number" class="form-control" id="salary" th:field="*{salary}" required>
+    </div>
+
+    <button type="submit" class="btn btn-primary">Actualizar</button>
+    <a th:href="@{/employee}" class="btn btn-secondary">Cancelar</a>
+  </form>
+</section>
+</body>
+</html>

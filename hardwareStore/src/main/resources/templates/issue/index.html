@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="layouts/layout-sidenav-light :: layout-sidenav-light">
+<head>
+  <title>Lista de Salidas</title>
+</head>
+<body>
+<section main-content>
+  <h1 class="mt-4">Gestión de Salidas</h1>
+  <ol class="breadcrumb mb-4">
+    <li class="breadcrumb-item"><a th:href="@{/}">Dashboard</a></li>
+    <li class="breadcrumb-item active">Salidas</li>
+  </ol>
+
+  <div class="card mb-4">
+    <div class="card-header">
+      <i class="fas fa-exclamation-triangle me-1"></i>
+      Lista de Salidas
+      <a th:href="@{/issue/new}" class="btn btn-primary btn-sm float-end">Nueva Salida</a>
+    </div>
+    <div class="card-body">
+      <table class="table table-bordered">
+        <thead>
+        <tr>
+          <th>ID</th>
+          <th>Inventario</th>
+          <th>Cantidad</th>
+          <th>Razón</th>
+          <th>Fecha</th>
+          <th>Empleado</th>
+          <th>Observación</th>
+          <th>Acciones</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="issue : ${issues}">
+          <td th:text="${issue.id}"></td>
+          <td th:text="${issue.inventory.name}"></td>
+          <td th:text="${issue.amount}"></td>
+          <td th:text="${issue.reason}"></td>
+          <td th:text="${#dates.format(issue.dateIssue,'dd/MM/yyyy')}"></td>
+          <td th:text="${issue.employee.name}"></td>
+          <td th:text="${issue.observation}"></td>
+          <td>
+            <a th:href="@{/issue/edit/{id}(id=${issue.id})}"
+               class="btn btn-sm btn-warning">Editar</a>
+            <a th:href="@{/issue/delete/{id}(id=${issue.id})}"
+               class="btn btn-sm btn-danger">Eliminar</a>
+          </td>
+        </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+</body>
+</html>
