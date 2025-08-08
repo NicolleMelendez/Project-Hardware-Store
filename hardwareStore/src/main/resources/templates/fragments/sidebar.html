@@ -1,10 +1,11 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Title</title>
-</head>
-<body>
-
-</body>
-</html>
+<div th:fragment="sidebar" id="layoutSidenav_nav" xmlns:th="http://www.w3.org/1999/xhtml">
+  <nav class="sb-sidenav accordion sb-sidenav-dark">
+    <div class="sb-sidenav-menu">
+      <div class="nav">
+        <a class="nav-link" th:href="@{/}"><i class="fas fa-home"></i> Dashboard</a>
+        <a class="nav-link" th:href="@{/client}"><i class="fas fa-users"></i> Clientes</a>
+        <!-- Agrega más enlaces aquí -->
+      </div>
+    </div>
+  </nav>
+</div>

@@ -22,11 +22,11 @@ public class OrderDetail {
     private Integer amount;
 
     @Column(name = "price_unit", nullable = false)
-    private Float priceUnit;
+    private Integer priceUnit;
 
     public OrderDetail() {}
 
-    public OrderDetail(OrderBuy orderBuy, Inventory inventory, Integer amount, Float priceUnit) {
+    public OrderDetail(OrderBuy orderBuy, Inventory inventory, Integer amount, Integer priceUnit) {
         this.orderBuy = orderBuy;
         this.inventory = inventory;
         this.amount = amount;
@@ -65,11 +65,11 @@ public class OrderDetail {
         this.amount = amount;
     }
 
-    public Float getPriceUnit() {
+    public Integer getPriceUnit() {
         return priceUnit;
     }
 
-    public void setPriceUnit(Float priceUnit) {
+    public void setPriceUnit(Integer priceUnit) {
         this.priceUnit = priceUnit;
     }
 }
