@@ -20,7 +20,7 @@ public class Entry {
     private Integer amount;
 
     @Column(name = "price_buy")
-    private Float priceBuy;
+    private Integer priceBuy;
 
     @Column(name = "date_entry")
     private Date dateEntry;
@@ -63,11 +63,11 @@ public class Entry {
         this.amount = amount;
     }
 
-    public Float getPriceBuy() {
+    public Integer getPriceBuy() {
         return priceBuy;
     }
 
-    public void setPriceBuy(Float priceBuy) {
+    public void setPriceBuy(Integer priceBuy) {
         this.priceBuy = priceBuy;
     }
 

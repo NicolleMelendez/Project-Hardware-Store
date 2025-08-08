@@ -20,7 +20,7 @@ public class OrderBuy {
     @Column(name = "date_order")
     private Date dateOrder;
 
-    private Float total;
+    private Integer total;
     private String status;
 
     public OrderBuy() {}
@@ -57,11 +57,11 @@ public class OrderBuy {
         this.dateOrder = dateOrder;
     }
 
-    public Float getTotal() {
+    public Integer getTotal() {
         return total;
     }
 
-    public void setTotal(Float total) {
+    public void setTotal(Integer total) {
         this.total = total;
     }
 
