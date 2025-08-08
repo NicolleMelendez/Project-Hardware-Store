@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="layouts/layout-sidenav-light :: layout-sidenav-light">
+<head>
+  <title>Órdenes de Compra</title>
+</head>
+<body>
+<section main-content>
+  <h1 class="mt-4">Gestión de Órdenes de Compra</h1>
+  <ol class="breadcrumb mb-4">
+    <li class="breadcrumb-item"><a th:href="@{/}">Dashboard</a></li>
+    <li class="breadcrumb-item active">Órdenes</li>
+  </ol>
+
+  <div class="card mb-4">
+    <div class="card-header">
+      <i class="fas fa-shopping-cart me-1"></i>
+      Lista de Órdenes
+      <a th:href="@{/orderbuy/new}" class="btn btn-primary btn-sm float-end">Nueva Orden</a>
+    </div>
+    <div class="card-body">
+      <table class="table table-bordered">
+        <thead>
+        <tr>
+          <th>ID</th>
+          <th>Cliente</th>
+          <th>Empleado</th>
+          <th>Fecha</th>
+          <th>Total</th>
+          <th>Estado</th>
+          <th>Acciones</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="order : ${orders}">
+          <td th:text="${order.id}"></td>
+          <td th:text="${order.client.name}"></td>
+          <td th:text="${order.employee.name}"></td>
+          <td th:text="${#dates.format(order.dateOrder,'dd/MM/yyyy')}"></td>
+          <td th:text="${order.total}"></td>
+          <td th:text="${order.status}"></td>
+          <td>
+            <a th:href="@{/orderbuy/edit/{id}(id=${order.id})}"
+               class="btn btn-sm btn-warning">Editar</a>
+            <a th:href="@{/orderbuy/delete/{id}(id=${order.id})}"
+               class="btn btn-sm btn-danger">Eliminar</a>
+          </td>
+        </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+</body>
+</html>

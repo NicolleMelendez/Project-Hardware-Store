@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="layouts/layout-sidenav-light :: layout-sidenav-light">
+<head>
+  <title>Lista de Entradas</title>
+</head>
+<body>
+<section main-content>
+  <h1 class="mt-4">Gestión de Entradas</h1>
+  <ol class="breadcrumb mb-4">
+    <li class="breadcrumb-item"><a th:href="@{/}">Dashboard</a></li>
+    <li class="breadcrumb-item active">Entradas</li>
+  </ol>
+
+  <div class="card mb-4">
+    <div class="card-header">
+      <i class="fas fa-boxes me-1"></i>
+      Lista de Entradas
+      <a th:href="@{/entry/new}" class="btn btn-primary btn-sm float-end">Nueva Entrada</a>
+    </div>
+    <div class="card-body">
+      <table class="table table-bordered">
+        <thead>
+        <tr>
+          <th>ID</th>
+          <th>Inventario</th>
+          <th>Proveedor</th>
+          <th>Cantidad</th>
+          <th>Precio Compra</th>
+          <th>Fecha Entrada</th>
+          <th>Empleado</th>
+          <th>Acciones</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="entry : ${entries}">
+          <td th:text="${entry.id}"></td>
+          <td th:text="${entry.inventory.name}"></td>
+          <td th:text="${entry.supplier.name}"></td>
+          <td th:text="${entry.amount}"></td>
+          <td th:text="${entry.priceBuy}"></td>
+          <td th:text="${#dates.format(entry.dateEntry, 'dd/MM/yyyy')}"></td>
+          <td th:text="${entry.employee.name}"></td>
+          <td>
+            <a th:href="@{/entry/edit/{id}(id=${entry.id})}" class="btn btn-sm btn-warning">Editar</a>
+            <a th:href="@{/entry/delete/{id}(id=${entry.id})}" class="btn btn-sm btn-danger">Eliminar</a>
+          </td>
+        </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+</body>
+</html>

@@ -12,13 +12,8 @@ import java.util.List;
 @Controller
 public class ViewController {
 
-<<<<<<< HEAD
-<<<<<<< Updated upstream
     // Ruta: http://localhost:8080/
-    @GetMapping("/")
-=======
     @GetMapping({"/", "/index"})
->>>>>>> origin/sebastian
     public String home() {
         return "index";
     }
@@ -28,7 +23,5 @@ public class ViewController {
 
 
 
-=======
-//rutas vistas
->>>>>>> Stashed changes
+
 }

@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="layouts/layout-sidenav-light :: layout-sidenav-light">
+<head>
+  <title>Lista de Proveedores</title>
+</head>
+<body>
+<section main-content>
+  <h1 class="mt-4">Gestión de Proveedores</h1>
+  <ol class="breadcrumb mb-4">
+    <li class="breadcrumb-item"><a th:href="@{/}">Dashboard</a></li>
+    <li class="breadcrumb-item active">Proveedores</li>
+  </ol>
+  <div class="card mb-4">
+    <div class="card-header">
+      <i class="fas fa-truck me-1"></i>
+      Lista de Proveedores
+      <a th:href="@{/supplier/new}" class="btn btn-primary btn-sm float-end">Nuevo Proveedor</a>
+    </div>
+    <div class="card-body">
+      <table class="table table-bordered">
+        <thead>
+        <tr>
+          <th>ID</th>
+          <th>Nombre</th>
+          <th>Teléfono</th>
+          <th>Producto Suministrado</th>
+          <th>Acciones</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="supplier : ${suppliers}">
+          <td th:text="${supplier.id}"></td>
+          <td th:text="${supplier.name}"></td>
+          <td th:text="${supplier.phone}"></td>
+          <td th:text="${supplier.suppliedProduct}"></td>
+          <td>
+            <a th:href="@{/supplier/edit/{id}(id=${supplier.id})}" class="btn btn-sm btn-warning">Editar</a>
+            <a th:href="@{/supplier/delete/{id}(id=${supplier.id})}" class="btn btn-sm btn-danger">Eliminar</a>
+          </td>
+        </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+</body>
+</html>

@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="layouts/layout-sidenav-light :: layout-sidenav-light">
+<head>
+  <title>Detalles de Venta</title>
+</head>
+<body>
+<section main-content>
+  <h1 class="mt-4">Gestión de Detalles de Venta</h1>
+  <ol class="breadcrumb mb-4">
+    <li class="breadcrumb-item"><a th:href="@{/}">Dashboard</a></li>
+    <li class="breadcrumb-item active">Detalles de Venta</li>
+  </ol>
+
+  <div class="card mb-4">
+    <div class="card-header">
+      <i class="fas fa-receipt me-1"></i>
+      Lista de Detalles
+      <a th:href="@{/saledetail/new}" class="btn btn-primary btn-sm float-end">Nuevo Detalle</a>
+    </div>
+    <div class="card-body">
+      <table class="table table-bordered">
+        <thead>
+        <tr>
+          <th>ID</th>
+          <th>Venta</th>
+          <th>Inventario</th>
+          <th>Cantidad</th>
+          <th>Precio Unitario</th>
+          <th>Acciones</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="d : ${details}">
+          <td th:text="${d.id}"></td>
+          <td th:text="${d.sale.id}"></td>
+          <td th:text="${d.inventory.name}"></td>
+          <td th:text="${d.amount}"></td>
+          <td th:text="${d.priceUnit}"></td>
+          <td>
+            <a th:href="@{/saledetail/edit/{id}(id=${d.id})}" class="btn btn-sm btn-warning">Editar</a>
+            <a th:href="@{/saledetail/delete/{id}(id=${d.id})}" class="btn btn-sm btn-danger">Eliminar</a>
+          </td>
+        </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+</body>
+</html>
