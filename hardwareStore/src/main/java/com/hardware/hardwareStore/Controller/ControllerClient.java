@@ -3,6 +3,7 @@ package com.hardware.hardwareStore.Controller;
 import com.hardware.hardwareStore.model.Client;
 import com.hardware.hardwareStore.Repository.ClientRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -15,13 +16,10 @@ public class ControllerClient {
     @Autowired
     private ClientRepository clientRepository;
 
-    // Obtener todos los clientes
     @GetMapping
     public List<Client> getAllClients() {
         return clientRepository.findAll();
     }
-
-
 
     // Obtener cliente por ID
     @GetMapping("/{id}")
