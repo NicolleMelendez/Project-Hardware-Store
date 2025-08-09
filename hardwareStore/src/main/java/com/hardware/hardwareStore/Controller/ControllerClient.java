@@ -17,9 +17,11 @@ public class ControllerClient {
     private ClientRepository clientRepository;
 
     @GetMapping
-    public List<Client> getAllClients() {
-        return clientRepository.findAll();
+    public String listClients(Model model) {
+        model.addAttribute("clients", clientRepository.findAll());
+        return "clients/index";
     }
+
 
     // Obtener cliente por ID
     @GetMapping("/{id}")
