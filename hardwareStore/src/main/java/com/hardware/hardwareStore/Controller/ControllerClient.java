@@ -21,6 +21,8 @@ public class ControllerClient {
         return clientRepository.findAll();
     }
 
+
+
     // Obtener cliente por ID
     @GetMapping("/{id}")
     public Client getClientById(@PathVariable Long id) {
