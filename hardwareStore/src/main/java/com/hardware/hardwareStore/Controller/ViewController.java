@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 
+import java.util.Date;
 import java.util.List;
 
 @Controller
@@ -28,28 +29,31 @@ public class ViewController {
     @GetMapping("/client")
     public String clientPage(Model model) {
         model.addAttribute("clients", clientRepository.findAll());
-        model.addAttribute("client", new Client()); // para el modal
         return "client/index";
     }
 
-    @PostMapping("/save")
+    @PostMapping("/clients/save")
     public String saveClient(@ModelAttribute Client client) {
+        // Si es nuevo cliente, establecer fecha actual
+        if(client.getId() == null) {
+            client.setDateClient(new Date());
+        } else {
+            // Si es edición, mantener la fecha original
+            Client existing = clientRepository.findById(client.getId()).orElse(null);
+            if(existing != null) {
+                client.setDateClient(existing.getDateClient());
+            }
+        }
         clientRepository.save(client);
-        return "redirect:/client"; // aquí el cambio
+        return "redirect:/client";
     }
 
     @PostMapping("/delete/{id}")
     public String deleteClient(@PathVariable Long id) {
         clientRepository.deleteById(id);
-        return "redirect:/client"; // aquí el cambio
+        return "redirect:/client";
     }
 
-    @GetMapping("/edit/{id}")
-    public String editClient(@PathVariable Long id, Model model) {
-        model.addAttribute("clients", clientRepository.findAll());
-        model.addAttribute("client", clientRepository.findById(id).orElse(new Client()));
-        return "client/index"; // este está bien, no es redirect
-    }
 
     @GetMapping("/employee")
     public String showEmployeePage() {
