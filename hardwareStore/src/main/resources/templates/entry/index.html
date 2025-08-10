@@ -1,55 +1,186 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org"
-      th:replace="layouts/layout-sidenav-light :: layout-sidenav-light">
-<head>
-  <title>Lista de Entradas</title>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/head :: head('Entradas')}">
+  <meta charset="UTF-8">
 </head>
-<body>
-<section main-content>
-  <h1 class="mt-4">Gestión de Entradas</h1>
-  <ol class="breadcrumb mb-4">
-    <li class="breadcrumb-item"><a th:href="@{/}">Dashboard</a></li>
-    <li class="breadcrumb-item active">Entradas</li>
-  </ol>
+<body class="sb-nav-fixed">
+<!-- Navbar -->
+<div th:replace="~{fragments/navbar :: navbar}"></div>
 
-  <div class="card mb-4">
-    <div class="card-header">
-      <i class="fas fa-boxes me-1"></i>
-      Lista de Entradas
-      <a th:href="@{/entry/new}" class="btn btn-primary btn-sm float-end">Nueva Entrada</a>
-    </div>
-    <div class="card-body">
-      <table class="table table-bordered">
-        <thead>
-        <tr>
-          <th>ID</th>
-          <th>Inventario</th>
-          <th>Proveedor</th>
-          <th>Cantidad</th>
-          <th>Precio Compra</th>
-          <th>Fecha Entrada</th>
-          <th>Empleado</th>
-          <th>Acciones</th>
-        </tr>
-        </thead>
-        <tbody>
-        <tr th:each="entry : ${entries}">
-          <td th:text="${entry.id}"></td>
-          <td th:text="${entry.inventory.name}"></td>
-          <td th:text="${entry.supplier.name}"></td>
-          <td th:text="${entry.amount}"></td>
-          <td th:text="${entry.priceBuy}"></td>
-          <td th:text="${#dates.format(entry.dateEntry, 'dd/MM/yyyy')}"></td>
-          <td th:text="${entry.employee.name}"></td>
-          <td>
-            <a th:href="@{/entry/edit/{id}(id=${entry.id})}" class="btn btn-sm btn-warning">Editar</a>
-            <a th:href="@{/entry/delete/{id}(id=${entry.id})}" class="btn btn-sm btn-danger">Eliminar</a>
-          </td>
-        </tr>
-        </tbody>
-      </table>
-    </div>
+<div id="layoutSidenav">
+  <!-- Sidebar -->
+  <div th:replace="~{fragments/sidebar :: sidebar}"></div>
+
+  <div id="layoutSidenav_content">
+    <main>
+      <div class="container-fluid px-4">
+        <h1 class="mt-4">Registro de Entradas</h1>
+        <ol class="breadcrumb mb-4">
+          <li class="breadcrumb-item"><a th:href="@{/}">Dashboard</a></li>
+          <li class="breadcrumb-item active">Entradas</li>
+        </ol>
+
+        <div class="card mb-4">
+          <div class="card-header">
+            <i class="fas fa-truck me-1"></i>
+            Entradas registradas
+          </div>
+          <div class="card-body">
+            <div class="mb-3">
+              <button type="button" class="btn btn-primary" data-bs-toggle="modal"
+                      data-bs-target="#entryModal" onclick="prepareNewEntry()">
+                <i class="fas fa-plus me-1"></i> Nueva Entrada
+              </button>
+            </div>
+
+            <!-- Modal para formulario -->
+            <div class="modal fade" id="entryModal" tabindex="-1" aria-hidden="true">
+              <div class="modal-dialog">
+                <div class="modal-content">
+                  <form id="entryForm" th:action="@{/entries/save}" method="post">
+                    <input type="hidden" name="id" id="entryId">
+                    <div class="modal-header">
+                      <h5 class="modal-title" id="modalTitle">Nueva Entrada</h5>
+                      <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                      <div class="mb-3">
+                        <label class="form-label">Inventario</label>
+                        <select class="form-select" name="inventory.id" required>
+                          <option th:each="inventory : ${inventories}" th:value="${inventory.id}" th:text="${inventory.name}"></option>
+                        </select>
+                      </div>
+                      <div class="mb-3">
+                        <label class="form-label">Proveedor</label>
+                        <select class="form-select" name="supplier.id" required>
+                          <option th:each="supplier : ${suppliers}" th:value="${supplier.id}" th:text="${supplier.name}"></option>
+                        </select>
+                      </div>
+                      <div class="mb-3">
+                        <label class="form-label">Cantidad</label>
+                        <input type="number" class="form-control" name="amount" required min="1">
+                      </div>
+                      <div class="mb-3">
+                        <label class="form-label">Precio Compra (S/.)</label>
+                        <input type="number" class="form-control" name="priceBuy" required min="0">
+                      </div>
+                      <div class="mb-3">
+                        <label class="form-label">Fecha</label>
+                        <input type="date" class="form-control" name="dateEntry">
+                      </div>
+                      <div class="mb-3">
+                        <label class="form-label">Empleado</label>
+                        <select class="form-select" name="employee.id" required>
+                          <option th:each="employee : ${employees}" th:value="${employee.id}" th:text="${employee.name}"></option>
+                        </select>
+                      </div>
+                    </div>
+                    <div class="modal-footer">
+                      <button type="submit" class="btn btn-primary">Guardar</button>
+                      <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    </div>
+                  </form>
+                </div>
+              </div>
+            </div>
+
+            <!-- Tabla de entradas -->
+            <div class="table-responsive">
+              <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
+                <thead>
+                <tr>
+                  <th>ID</th>
+                  <th>Producto</th>
+                  <th>Proveedor</th>
+                  <th>Cantidad</th>
+                  <th>Precio</th>
+                  <th>Fecha</th>
+                  <th>Empleado</th>
+                  <th>Acciones</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="entry : ${entries}">
+                  <td th:text="${entry.id}"></td>
+                  <td th:text="${entry.inventory.name}"></td>
+                  <td th:text="${entry.supplier.name}"></td>
+                  <td th:text="${entry.amount}"></td>
+                  <td th:text="'S/. ' + ${entry.priceBuy}"></td>
+                  <td th:text="${#temporals.format(entry.dateEntry, 'dd/MM/yyyy')}"></td>
+                  <td th:text="${entry.employee.name}"></td>
+                  <td class="text-center">
+                    <button class="btn btn-warning btn-sm me-1"
+                            th:data-id="${entry.id}" onclick="prepareEditEntry(this)">
+                      <i class="fas fa-edit"></i>
+                    </button>
+                    <form th:action="@{'/delete/entry/' + ${entry.id}}" method="post" style="display:inline;">
+                      <button type="submit" class="btn btn-danger btn-sm"
+                              onclick="return confirm('¿Está seguro de eliminar esta entrada?')">
+                        <i class="fas fa-trash-alt"></i>
+                      </button>
+                    </form>
+                  </td>
+                </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <!-- Footer -->
+    <footer th:replace="~{fragments/footer :: footer}"></footer>
   </div>
-</section>
+</div>
+
+<!-- Bootstrap JS -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
+<!-- DataTables JS -->
+<script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
+
+<script>
+  // Inicializar DataTable
+  $(document).ready(function () {
+      $('#dataTable').DataTable({
+          language: {
+              url: '//cdn.datatables.net/plug-ins/1.13.6/i18n/es-ES.json'
+          }
+      });
+  });
+
+  // Preparar formulario para nueva entrada
+  function prepareNewEntry() {
+      document.getElementById('modalTitle').textContent = 'Nueva Entrada';
+      document.getElementById('entryId').value = '';
+      document.getElementById('entryForm').reset();
+      document.querySelector('input[name="dateEntry"]').value = new Date().toISOString().split('T')[0];
+  }
+
+  // Preparar formulario para editar entrada
+  function prepareEditEntry(button) {
+      const entryId = button.getAttribute('data-id');
+      fetch(`/api/entries/${entryId}`)
+          .then(response => response.json())
+          .then(entry => {
+              document.getElementById('modalTitle').textContent = 'Editar Entrada';
+              document.getElementById('entryId').value = entry.id;
+
+              // Llenar los campos del formulario
+              const form = document.getElementById('entryForm');
+              form.querySelector('select[name="inventory.id"]').value = entry.inventory.id;
+              form.querySelector('select[name="supplier.id"]').value = entry.supplier.id;
+              form.querySelector('input[name="amount"]').value = entry.amount;
+              form.querySelector('input[name="priceBuy"]').value = entry.priceBuy;
+              form.querySelector('input[name="dateEntry"]').value = entry.dateEntry.split('T')[0];
+              form.querySelector('select[name="employee.id"]').value = entry.employee.id;
+
+              // Mostrar modal
+              const modal = new bootstrap.Modal(document.getElementById('entryModal'));
+              modal.show();
+          });
+  }
+</script>
 </body>
 </html>
