@@ -1,94 +1,184 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
-<head th:replace="~{fragments/head :: head('Salidas')}">
+<head th:replace="~{fragments/head :: head('Incidentes')}">
   <meta charset="UTF-8">
 </head>
 <body class="sb-nav-fixed">
+<!-- Navbar -->
 <div th:replace="~{fragments/navbar :: navbar}"></div>
+
 <div id="layoutSidenav">
+  <!-- Sidebar -->
   <div th:replace="~{fragments/sidebar :: sidebar}"></div>
+
   <div id="layoutSidenav_content">
     <main>
       <div class="container-fluid px-4">
-        <h1 class="mt-4">Salidas</h1>
-        <ol class="breadcrumb mb-4"><li class="breadcrumb-item"><a th:href="@{/}">Dashboard</a></li><li class="breadcrumb-item active">Salidas</li></ol>
+        <h1 class="mt-4">Registro de Salidas</h1>
+        <ol class="breadcrumb mb-4">
+          <li class="breadcrumb-item"><a th:href="@{/}">Dashboard</a></li>
+          <li class="breadcrumb-item active">Salidas</li>
+        </ol>
 
         <div class="card mb-4">
-          <div class="card-header d-flex align-items-center justify-content-between">
-            <div>
-              <i class="fas fa-user-tie me-1"></i>
-              Salidas Registradas
-            </div>
-            <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#newIssueModal">
-              <i class="fas fa-plus me-1"></i> Nueva Salida
-            </button>
+          <div class="card-header">
+            <i class="fas fa-exclamation-triangle me-1"></i>
+            Salidas reportadas
           </div>
-
           <div class="card-body">
-            <div class="modal fade" id="newIssueModal" tabindex="-1" aria-hidden="true">
-              <div class="modal-dialog"><div class="modal-content">
-                <form th:action="@{/issue/save}" th:object="${issue}" method="post">
-                  <input type="hidden" th:field="*{id}" />
-                  <div class="modal-header">
-                    <h5 class="modal-title" th:text="${issue.id} != null ? 'Editar Salida' : 'Registrar Nueva Salida'"></h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                  </div>
-                  <div class="modal-body">
-                    <div class="mb-3"><label class="form-label">Inventario</label>
-                      <select class="form-select" th:field="*{inventory}" required>
-                        <option th:each="inv : ${inventories}" th:value="${inv}" th:text="${inv.name}"></option>
-                      </select>
-                    </div>
-                    <div class="mb-3"><label class="form-label">Cantidad</label><input type="number" class="form-control" th:field="*{amount}" required></div>
-                    <div class="mb-3"><label class="form-label">Razón</label><input type="text" class="form-control" th:field="*{reason}" required></div>
-                    <div class="mb-3"><label class="form-label">Fecha</label><input type="date" class="form-control" th:field="*{dateIssue}" required></div>
-                    <div class="mb-3"><label class="form-label">Empleado</label>
-                      <select class="form-select" th:field="*{employee}" required>
-                        <option th:each="emp : ${employees}" th:value="${emp}" th:text="${emp.name}"></option>
-                      </select>
-                    </div>
-                    <div class="mb-3"><label class="form-label">Observación</label><input type="text" class="form-control" th:field="*{observation}"></div>
-                  </div>
-                  <div class="modal-footer"><button type="submit" class="btn btn-primary">Guardar</button><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button></div>
-                </form>
-              </div></div>
+            <div class="mb-3">
+              <button type="button" class="btn btn-primary" data-bs-toggle="modal"
+                      data-bs-target="#issueModal" onclick="prepareNewIssue()">
+                <i class="fas fa-plus me-1"></i> Nuevo Incidente
+              </button>
             </div>
 
+            <!-- Modal para formulario -->
+            <div class="modal fade" id="issueModal" tabindex="-1" aria-hidden="true">
+              <div class="modal-dialog">
+                <div class="modal-content">
+                  <form id="issueForm" th:action="@{/issues/save}" method="post">
+                    <input type="hidden" name="id" id="issueId">
+                    <div class="modal-header">
+                      <h5 class="modal-title" id="modalTitle">Nuevo Incidente</h5>
+                      <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                      <div class="mb-3">
+                        <label class="form-label">Producto</label>
+                        <select class="form-select" name="inventory.id" required>
+                          <option th:each="inventory : ${inventories}" th:value="${inventory.id}" th:text="${inventory.name}"></option>
+                        </select>
+                      </div>
+                      <div class="mb-3">
+                        <label class="form-label">Cantidad</label>
+                        <input type="number" class="form-control" name="amount" required min="1">
+                      </div>
+                      <div class="mb-3">
+                        <label class="form-label">Motivo</label>
+                        <input type="text" class="form-control" name="reason" required>
+                      </div>
+                      <div class="mb-3">
+                        <label class="form-label">Fecha</label>
+                        <input type="date" class="form-control" name="dateIssue">
+                      </div>
+                      <div class="mb-3">
+                        <label class="form-label">Empleado</label>
+                        <select class="form-select" name="employee.id" required>
+                          <option th:each="employee : ${employees}" th:value="${employee.id}" th:text="${employee.name}"></option>
+                        </select>
+                      </div>
+                      <div class="mb-3">
+                        <label class="form-label">Observaciones</label>
+                        <textarea class="form-control" name="observation" rows="3"></textarea>
+                      </div>
+                    </div>
+                    <div class="modal-footer">
+                      <button type="submit" class="btn btn-primary">Guardar</button>
+                      <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    </div>
+                  </form>
+                </div>
+              </div>
+            </div>
+
+            <!-- Tabla de incidentes -->
             <div class="table-responsive">
               <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
-                <thead><tr><th>ID</th><th>Producto</th><th>Cantidad</th><th>Razón</th><th>Fecha</th><th>Empleado</th><th>Observación</th><th>Acciones</th></tr></thead>
+                <thead>
+                <tr>
+                  <th>ID</th>
+                  <th>Producto</th>
+                  <th>Cantidad</th>
+                  <th>Motivo</th>
+                  <th>Fecha</th>
+                  <th>Empleado</th>
+                  <th>Observaciones</th>
+                  <th>Acciones</th>
+                </tr>
+                </thead>
                 <tbody>
-                <tr th:each="it : ${issues}">
-                  <td th:text="${it.id}"></td>
-                  <td th:text="${it.inventory.name}"></td>
-                  <td th:text="${it.amount}"></td>
-                  <td th:text="${it.reason}"></td>
-                  <td th:text="${#dates.format(it.dateIssue,'dd/MM/yyyy')}"></td>
-                  <td th:text="${it.employee.name}"></td>
-                  <td th:text="${it.observation}"></td>
+                <tr th:each="issue : ${issues}">
+                  <td th:text="${issue.id}"></td>
+                  <td th:text="${issue.inventory.name}"></td>
+                  <td th:text="${issue.amount}"></td>
+                  <td th:text="${issue.reason}"></td>
+                  <td th:text="${#temporals.format(issue.dateIssue, 'dd/MM/yyyy')}"></td>
+                  <td th:text="${issue.employee.name}"></td>
+                  <td th:text="${issue.observation}"></td>
                   <td class="text-center">
-                    <a th:href="@{/issue/edit/{id}(id=${it.id})}" class="btn btn-warning btn-sm me-1"><i class="fas fa-edit"></i></a>
-                    <form th:action="@{/issue/delete/{id}(id=${it.id})}" method="post" style="display:inline;">
-                      <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('¿Eliminar esta salida?')"><i class="fas fa-trash-alt"></i></button>
+                    <button class="btn btn-warning btn-sm me-1"
+                            th:data-id="${issue.id}" onclick="prepareEditIssue(this)">
+                      <i class="fas fa-edit"></i>
+                    </button>
+                    <form th:action="@{'/delete/issue/' + ${issue.id}}" method="post" style="display:inline;">
+                      <button type="submit" class="btn btn-danger btn-sm"
+                              onclick="return confirm('¿Está seguro de eliminar este incidente?')">
+                        <i class="fas fa-trash-alt"></i>
+                      </button>
                     </form>
                   </td>
                 </tr>
                 </tbody>
               </table>
             </div>
-
           </div>
         </div>
       </div>
     </main>
+
+    <!-- Footer -->
     <footer th:replace="~{fragments/footer :: footer}"></footer>
   </div>
 </div>
 
+<!-- Bootstrap JS -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<!-- DataTables JS -->
 <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
 <script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
-<script>$(document).ready(function(){ $('#dataTable').DataTable({ language:{ url:'//cdn.datatables.net/plug-ins/1.13.6/i18n/es-ES.json' } });}); document.addEventListener("DOMContentLoaded", function () { let id = /*[[${issue.id}]]*/ null; if (id) { let modal = new bootstrap.Modal(document.getElementById('newIssueModal')); modal.show(); } });</script>
+
+<script>
+  // Inicializar DataTable
+  $(document).ready(function () {
+      $('#dataTable').DataTable({
+          language: {
+              url: '//cdn.datatables.net/plug-ins/1.13.6/i18n/es-ES.json'
+          }
+      });
+  });
+
+  // Preparar formulario para nuevo incidente
+  function prepareNewIssue() {
+      document.getElementById('modalTitle').textContent = 'Nuevo Incidente';
+      document.getElementById('issueId').value = '';
+      document.getElementById('issueForm').reset();
+      document.querySelector('input[name="dateIssue"]').value = new Date().toISOString().split('T')[0];
+  }
+
+  // Preparar formulario para editar incidente
+  function prepareEditIssue(button) {
+      const issueId = button.getAttribute('data-id');
+      fetch(`/api/issues/${issueId}`)
+          .then(response => response.json())
+          .then(issue => {
+              document.getElementById('modalTitle').textContent = 'Editar Incidente';
+              document.getElementById('issueId').value = issue.id;
+
+              // Llenar los campos del formulario
+              const form = document.getElementById('issueForm');
+              form.querySelector('select[name="inventory.id"]').value = issue.inventory.id;
+              form.querySelector('input[name="amount"]').value = issue.amount;
+              form.querySelector('input[name="reason"]').value = issue.reason;
+              form.querySelector('input[name="dateIssue"]').value = issue.dateIssue.split('T')[0];
+              form.querySelector('select[name="employee.id"]').value = issue.employee.id;
+              form.querySelector('textarea[name="observation"]').value = issue.observation || '';
+
+              // Mostrar modal
+              const modal = new bootstrap.Modal(document.getElementById('issueModal'));
+              modal.show();
+          });
+  }
+</script>
 </body>
 </html>
