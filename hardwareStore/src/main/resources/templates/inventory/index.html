@@ -4,65 +4,72 @@
   <meta charset="UTF-8">
 </head>
 <body class="sb-nav-fixed">
+<!-- Navbar -->
 <div th:replace="~{fragments/navbar :: navbar}"></div>
+
 <div id="layoutSidenav">
+  <!-- Sidebar -->
   <div th:replace="~{fragments/sidebar :: sidebar}"></div>
+
   <div id="layoutSidenav_content">
     <main>
       <div class="container-fluid px-4">
-        <h1 class="mt-4">Productos</h1>
+        <h1 class="mt-4">Control de Inventario</h1>
         <ol class="breadcrumb mb-4">
           <li class="breadcrumb-item"><a th:href="@{/}">Dashboard</a></li>
-          <li class="breadcrumb-item active">Productos</li>
+          <li class="breadcrumb-item active">Inventario</li>
         </ol>
 
         <div class="card mb-4">
-          <div class="card-header d-flex align-items-center justify-content-between">
-          <div>
-            <i class="fas fa-user-tie me-1"></i>
-            Productos
+          <div class="card-header">
+            <i class="fas fa-warehouse me-1"></i>
+            Productos en inventario
           </div>
-          <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#newInventoryModal">
-            <i class="fas fa-plus me-1"></i> Nuevo Producto
-          </button>
-        </div>
-
           <div class="card-body">
-            <div class="modal fade" id="newInventoryModal" tabindex="-1" aria-hidden="true">
+            <div class="mb-3">
+              <button type="button" class="btn btn-primary" data-bs-toggle="modal"
+                      data-bs-target="#inventoryModal" onclick="prepareNewInventory()">
+                <i class="fas fa-plus me-1"></i> Nuevo Producto
+              </button>
+            </div>
+
+            <!-- Modal para formulario -->
+            <div class="modal fade" id="inventoryModal" tabindex="-1" aria-hidden="true">
               <div class="modal-dialog">
                 <div class="modal-content">
-                  <form th:action="@{/inventory/save}" th:object="${inventory}" method="post">
-                    <input type="hidden" th:field="*{id}" />
+                  <form id="inventoryForm" th:action="@{/inventory/save}" method="post">
+                    <input type="hidden" name="id" id="inventoryId">
                     <div class="modal-header">
-                      <h5 class="modal-title" th:text="${inventory.id} != null ? 'Editar Producto' : 'Registrar Nuevo Producto'"></h5>
-                      <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                      <h5 class="modal-title" id="modalTitle">Nuevo Producto</h5>
+                      <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                     </div>
                     <div class="modal-body">
                       <div class="mb-3">
                         <label class="form-label">Nombre</label>
-                        <input type="text" class="form-control" th:field="*{name}" required>
+                        <input type="text" class="form-control" name="name" required>
                       </div>
                       <div class="mb-3">
                         <label class="form-label">Categoría</label>
-                        <input type="text" class="form-control" th:field="*{category}" required>
+                        <input type="text" class="form-control" name="category" required>
                       </div>
                       <div class="mb-3">
-                        <label class="form-label">Precio</label>
-                        <input type="number" class="form-control" th:field="*{price}" required>
+                        <label class="form-label">Precio Venta (S/.)</label>
+                        <input type="number" class="form-control" name="price" required min="0">
                       </div>
                       <div class="mb-3">
-                        <label class="form-label">Stock</label>
-                        <input type="number" class="form-control" th:field="*{stock}" required>
+                        <label class="form-label">Stock Actual</label>
+                        <input type="number" class="form-control" name="stock" required min="0">
                       </div>
                       <div class="mb-3">
                         <label class="form-label">Proveedor</label>
-                        <select class="form-select" th:field="*{supplier}" required>
-                          <option th:each="sup : ${suppliers}" th:value="${sup}" th:text="${sup.name}"></option>
+                        <select class="form-select" name="supplier.id">
+                          <option value="">Seleccione proveedor</option>
+                          <option th:each="supplier : ${suppliers}" th:value="${supplier.id}" th:text="${supplier.name}"></option>
                         </select>
                       </div>
                       <div class="mb-3">
-                        <label class="form-label">Min Stock</label>
-                        <input type="number" class="form-control" th:field="*{minStock}" required>
+                        <label class="form-label">Stock Mínimo</label>
+                        <input type="number" class="form-control" name="minStock" min="0">
                       </div>
                     </div>
                     <div class="modal-footer">
@@ -74,48 +81,102 @@
               </div>
             </div>
 
+            <!-- Tabla de inventario -->
             <div class="table-responsive">
               <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
                 <thead>
                 <tr>
-                  <th>ID</th><th>Nombre</th><th>Categoría</th><th>Precio</th><th>Stock</th><th>Proveedor</th><th>Min Stock</th><th>Acciones</th>
+                  <th>ID</th>
+                  <th>Nombre</th>
+                  <th>Categoría</th>
+                  <th>Precio</th>
+                  <th>Stock</th>
+                  <th>Proveedor</th>
+                  <th>Stock Mín</th>
+                  <th>Acciones</th>
                 </tr>
                 </thead>
                 <tbody>
-                <tr th:each="inv : ${inventories}">
-                  <td th:text="${inv.id}"></td>
-                  <td th:text="${inv.name}"></td>
-                  <td th:text="${inv.category}"></td>
-                  <td th:text="${inv.price}"></td>
-                  <td th:text="${inv.stock}"></td>
-                  <td th:text="${inv.supplier.name}"></td>
-                  <td th:text="${inv.minStock}"></td>
+                <tr th:each="inventory : ${inventories}">
+                  <td th:text="${inventory.id}"></td>
+                  <td th:text="${inventory.name}"></td>
+                  <td th:text="${inventory.category}"></td>
+                  <td th:text="'S/. ' + ${inventory.price}"></td>
+                  <td th:text="${inventory.stock}"></td>
+                  <td th:text="${inventory.supplier?.name ?: 'N/A'}"></td>
+                  <td th:text="${inventory.minStock}"></td>
                   <td class="text-center">
-                    <a th:href="@{/inventory/edit/{id}(id=${inv.id})}" class="btn btn-warning btn-sm me-1"><i class="fas fa-edit"></i></a>
-                    <form th:action="@{/inventory/delete/{id}(id=${inv.id})}" method="post" style="display:inline;">
-                      <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('¿Eliminar este producto?')"><i class="fas fa-trash-alt"></i></button>
+                    <button class="btn btn-warning btn-sm me-1"
+                            th:data-id="${inventory.id}" onclick="prepareEditInventory(this)">
+                      <i class="fas fa-edit"></i>
+                    </button>
+                    <form th:action="@{'/delete/inventory/' + ${inventory.id}}" method="post" style="display:inline;">
+                      <button type="submit" class="btn btn-danger btn-sm"
+                              onclick="return confirm('¿Está seguro de eliminar este producto?')">
+                        <i class="fas fa-trash-alt"></i>
+                      </button>
                     </form>
                   </td>
                 </tr>
                 </tbody>
               </table>
             </div>
-
           </div>
         </div>
       </div>
     </main>
+
+    <!-- Footer -->
     <footer th:replace="~{fragments/footer :: footer}"></footer>
   </div>
 </div>
 
+<!-- Bootstrap JS -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<!-- DataTables JS -->
 <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
 <script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
+
 <script>
-  $(document).ready(function() { $('#dataTable').DataTable({ language: { url: '//cdn.datatables.net/plug-ins/1.13.6/i18n/es-ES.json' } }); });
-  document.addEventListener("DOMContentLoaded", function () { let invId = /*[[${inventory.id}]]*/ null; if (invId) { let modal = new bootstrap.Modal(document.getElementById('newInventoryModal')); modal.show(); } });
+  // Inicializar DataTable
+  $(document).ready(function () {
+      $('#dataTable').DataTable({
+          language: {
+              url: '//cdn.datatables.net/plug-ins/1.13.6/i18n/es-ES.json'
+          }
+      });
+  });
+
+  // Preparar formulario para nuevo producto
+  function prepareNewInventory() {
+      document.getElementById('modalTitle').textContent = 'Nuevo Producto';
+      document.getElementById('inventoryId').value = '';
+      document.getElementById('inventoryForm').reset();
+  }
+
+  // Preparar formulario para editar producto
+  function prepareEditInventory(button) {
+      const inventoryId = button.getAttribute('data-id');
+      fetch(`/api/inventory/${inventoryId}`)
+          .then(response => response.json())
+          .then(inventory => {
+              document.getElementById('modalTitle').textContent = 'Editar Producto';
+              document.getElementById('inventoryId').value = inventory.id;
+
+              // Llenar los campos del formulario
+              const form = document.getElementById('inventoryForm');
+              form.querySelector('input[name="name"]').value = inventory.name || '';
+              form.querySelector('input[name="category"]').value = inventory.category || '';
+              form.querySelector('input[name="price"]').value = inventory.price || '';
+              form.querySelector('input[name="stock"]').value = inventory.stock || '';
+              form.querySelector('select[name="supplier.id"]').value = inventory.supplier?.id || '';
+              form.querySelector('input[name="minStock"]').value = inventory.minStock || '';
+
+              // Mostrar modal
+              const modal = new bootstrap.Modal(document.getElementById('inventoryModal'));
+              modal.show();
+          });
+  }
 </script>
 </body>
 </html>
