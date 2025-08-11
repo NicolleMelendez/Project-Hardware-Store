@@ -83,15 +83,15 @@
                   <td th:text="${employee.id}"></td>
                   <td th:text="${employee.name}"></td>
                   <td th:text="${employee.position}"></td>
-                  <td th:text="${employee.salary}"></td>
+                  <td th:text="${employee.salary != null ? '$' + #numbers.formatInteger(employee.salary, 0, 'POINT') : ''}"></td>
                   <td class="text-center">
                     <button class="btn btn-warning btn-sm me-1"
                             th:data-id="${employee.id}" onclick="prepareEditEmployee(this)">
                       <i class="fas fa-edit"></i>
                     </button>
                     <form th:action="@{'/delete/employee/' + ${employee.id}}" method="post" style="display:inline;">
-                      <button type="submit" class="btn btn-danger btn-sm"
-                              onclick="return confirm('¿Está seguro de eliminar este empleado?')">
+                      <button type="button" class="btn btn-danger btn-sm"
+                              onclick="confirmDelete(this)">
                         <i class="fas fa-trash-alt"></i>
                       </button>
                     </form>
@@ -110,11 +110,33 @@
   </div>
 </div>
 
+<!-- SweetAlert2 -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<!-- JS -->
+<script>
+  function confirmDelete(button) {
+      Swal.fire({
+          title: '¿Estás seguro?',
+          text: "No podrás revertir esta acción",
+          icon: 'warning',
+          showCancelButton: true,
+          confirmButtonColor: '#d33',
+          cancelButtonColor: '#3085d6',
+          confirmButtonText: 'Sí, eliminar',
+          cancelButtonText: 'Cancelar'
+      }).then((result) => {
+          if (result.isConfirmed) {
+              button.closest('form').submit();
+          }
+      });
+  }
+</script>
 <!-- Bootstrap JS -->
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js  "></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
 <!-- DataTables JS -->
-<script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js  "></script>
-<script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js  "></script>
+<script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
 
 <script>
   // Inicializar DataTable
@@ -122,8 +144,16 @@
       $('#dataTable').DataTable({
           language: {
               url: '//cdn.datatables.net/plug-ins/1.13.6/i18n/es-ES.json'
-          }
+          },
+          columnDefs: [{
+              targets: 3, // Columna de salario
+              render: function(data) {
+                  if (!data) return '';
+                  return '$' + parseInt(data).toLocaleString('es-CO');
+              }
+          }]
       });
+  });
 
   // Preparar formulario para nuevo empleado
   function prepareNewEmployee() {

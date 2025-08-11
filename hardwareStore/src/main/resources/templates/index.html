@@ -15,22 +15,24 @@
         <main>
             <div class="container-fluid px-4">
                 <h1 class="mt-4">Dashboard</h1>
+                <ol class="breadcrumb mb-4">
+                    <li class="breadcrumb-item active">Resumen General</li>
+                </ol>
 
                 <!-- Resumen -->
                 <div class="row">
+                    <!-- Clientes -->
                     <div class="col-xl-3 col-md-6">
                         <div class="card bg-primary text-white mb-4">
-                            <div class="card-body">
-                                <div class="d-flex justify-content-between align-items-center">
-                                    <div>
-                                        <h2 class="mb-0" th:text="${totalClientes}">125</h2>
-                                        <div>Clientes</div>
-                                    </div>
-                                    <i class="fas fa-users fa-2x"></i>
+                            <div class="card-body d-flex justify-content-between align-items-center">
+                                <div>
+                                    <h2 class="mb-0" th:text="${totalClientes}">3</h2>
+                                    <div>Clientes</div>
                                 </div>
+                                <i class="fas fa-users fa-2x"></i>
                             </div>
                             <div class="card-footer d-flex align-items-center justify-content-between">
-                                <a class="small text-white stretched-link" th:href="@{/clients}">
+                                <a class="small text-white stretched-link" th:href="@{/client}">
                                     Ver detalles
                                 </a>
                                 <div class="small text-white">
@@ -39,19 +41,95 @@
                             </div>
                         </div>
                     </div>
-                    <!-- Puedes agregar más tarjetas aquí -->
+
+                    <!-- Proveedores -->
+                    <div class="col-xl-3 col-md-6">
+                        <div class="card bg-success text-white mb-4">
+                            <div class="card-body d-flex justify-content-between align-items-center">
+                                <div>
+                                    <h2 class="mb-0" th:text="${totalProveedores}">3</h2>
+                                    <div>Proveedores</div>
+                                </div>
+                                <i class="fas fa-truck fa-2x"></i>
+                            </div>
+                            <div class="card-footer d-flex align-items-center justify-content-between">
+                                <a class="small text-white stretched-link" th:href="@{/supplier}">
+                                    Ver detalles
+                                </a>
+                                <div class="small text-white">
+                                    <i class="fas fa-angle-right"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Empleados -->
+                    <div class="col-xl-3 col-md-6">
+                        <div class="card bg-warning text-dark mb-4">
+                            <div class="card-body d-flex justify-content-between align-items-center">
+                                <div>
+                                    <h2 class="mb-0" th:text="${totalEmpleados}">3</h2>
+                                    <div>Empleados</div>
+                                </div>
+                                <i class="fas fa-user-tie fa-2x"></i>
+                            </div>
+                            <div class="card-footer d-flex align-items-center justify-content-between">
+                                <a class="small text-dark stretched-link" th:href="@{/employee}">
+                                    Ver detalles
+                                </a>
+                                <div class="small text-dark">
+                                    <i class="fas fa-angle-right"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Productos en Inventario -->
+                    <div class="col-xl-3 col-md-6">
+                        <div class="card bg-danger text-white mb-4">
+                            <div class="card-body d-flex justify-content-between align-items-center">
+                                <div>
+                                    <h2 class="mb-0" th:text="${totalProductos}">5</h2>
+                                    <div>Productos en Inventario</div>
+                                </div>
+                                <i class="fas fa-boxes-stacked fa-2x"></i>
+                            </div>
+                            <div class="card-footer d-flex align-items-center justify-content-between">
+                                <a class="small text-white stretched-link" th:href="@{/inventory}">
+                                    Ver detalles
+                                </a>
+                                <div class="small text-white">
+                                    <i class="fas fa-angle-right"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
 
-                <!-- Gráfico -->
+                <!-- Gráficos -->
                 <div class="row">
+                    <!-- Gráfico de Ventas Mensuales -->
                     <div class="col-xl-6">
                         <div class="card mb-4">
                             <div class="card-header">
                                 <i class="fas fa-chart-area me-1"></i>
-                                Ventas mensuales
+                                Ventas Mensuales
                             </div>
                             <div class="card-body">
-                                <canvas id="myAreaChart" width="100%" height="40"></canvas>
+                                <canvas id="salesChart" width="100%" height="40"></canvas>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Gráfico de Inventario por Categoría -->
+                    <div class="col-xl-6">
+                        <div class="card mb-4">
+                            <div class="card-header">
+                                <i class="fas fa-chart-bar me-1"></i>
+                                Inventario por Categoría
+                            </div>
+                            <div class="card-body">
+                                <canvas id="inventoryChart" width="100%" height="40"></canvas>
                             </div>
                         </div>
                     </div>
@@ -69,5 +147,47 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.8.0/Chart.min.js"></script>
 <script th:src="@{/js/scripts.js}"></script>
 <script th:src="@{/js/chart-area-demo.js}"></script>
+<script>
+    // Gráfico de Ventas Mensuales
+    const salesData = {
+        labels: ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun'],
+        datasets: [{
+            label: 'Ventas',
+            data: [1000, 1500, 1200, 2000, 1800, 2200],
+            backgroundColor: 'rgba(75, 192, 192, 0.2)',
+            borderColor: 'rgba(75, 192, 192, 1)',
+            borderWidth: 1
+        }]
+    };
+    const salesConfig = {
+        type: 'line',
+        data: salesData,
+        options: {
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            }
+        }
+    };
+    const salesChart = new Chart(document.getElementById('salesChart'), salesConfig);
+
+    // Gráfico de Inventario por Categoría
+    const inventoryData = {
+        labels: ['Herramientas', 'Pinturas', 'Construcción'],
+        datasets: [{
+            label: 'Inventario',
+            data: [25, 50, 100],
+            backgroundColor: ['#FF6384', '#36A2EB', '#FFCE56'],
+            hoverOffset: 4
+        }]
+    };
+    const inventoryConfig = {
+        type: 'pie',
+        data: inventoryData,
+        options: {}
+    };
+    const inventoryChart = new Chart(document.getElementById('inventoryChart'), inventoryConfig);
+</script>
 </body>
 </html>

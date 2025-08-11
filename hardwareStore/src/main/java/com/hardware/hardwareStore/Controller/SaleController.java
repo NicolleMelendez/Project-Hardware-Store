@@ -19,6 +19,8 @@ public class SaleController {
         return repository.findAll();
     }
 
+
+    
     @GetMapping("/{id}")
     public Sale getById(@PathVariable Long id) {
         return repository.findById(id).orElse(null);
