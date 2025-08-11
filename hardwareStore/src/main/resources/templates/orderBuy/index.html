@@ -16,7 +16,7 @@
       <div class="container-fluid px-4">
         <h1 class="mt-4">Gestión de Pedidos</h1>
         <ol class="breadcrumb mb-4">
-          <li class="breadcrumb-item"><a th:href="@{/}">Dashboard</a></li>
+          <li class="breadcrumb-item"><a th:href="@{/}">Inicio</a></li>
           <li class="breadcrumb-item active">Pedidos</li>
         </ol>
 
@@ -24,66 +24,12 @@
           <div class="card-header">
             <i class="fas fa-shopping-cart me-1"></i>
             Pedidos registrados
+            <button type="button" class="btn btn-primary float-end" data-bs-toggle="modal"
+                    data-bs-target="#orderModal" onclick="prepareNewOrder()">
+              <i class="fas fa-plus me-1"></i> Nuevo Pedido
+            </button>
           </div>
           <div class="card-body">
-            <div class="mb-3">
-              <button type="button" class="btn btn-primary" data-bs-toggle="modal"
-                      data-bs-target="#orderModal" onclick="prepareNewOrder()">
-                <i class="fas fa-plus me-1"></i> Nuevo Pedido
-              </button>
-            </div>
-
-            <!-- Modal para formulario -->
-            <div class="modal fade" id="orderModal" tabindex="-1" aria-hidden="true">
-              <div class="modal-dialog">
-                <div class="modal-content">
-                  <form id="orderForm" th:action="@{/orderbuy/save}" method="post">
-                    <input type="hidden" name="id" id="orderId">
-                    <div class="modal-header">
-                      <h5 class="modal-title" id="modalTitle">Nuevo Pedido</h5>
-                      <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                    </div>
-                    <div class="modal-body">
-                      <div class="mb-3">
-                        <label class="form-label">Cliente</label>
-                        <select class="form-select" name="client.id" required>
-                          <option th:each="client : ${clients}" th:value="${client.id}" th:text="${client.name}"></option>
-                        </select>
-                      </div>
-                      <div class="mb-3">
-                        <label class="form-label">Empleado</label>
-                        <select class="form-select" name="employee.id" required>
-                          <option th:each="employee : ${employees}" th:value="${employee.id}" th:text="${employee.name}"></option>
-                        </select>
-                      </div>
-                      <div class="mb-3">
-                        <label class="form-label">Fecha</label>
-                        <input type="date" class="form-control" name="dateOrder">
-                      </div>
-                      <div class="mb-3">
-                        <label class="form-label">Total (S/.)</label>
-                        <input type="number" class="form-control" name="total" required min="0">
-                      </div>
-                      <div class="mb-3">
-                        <label class="form-label">Estado</label>
-                        <select class="form-select" name="status" required>
-                          <option value="PENDIENTE">PENDIENTE</option>
-                          <option value="PROCESADO">PROCESADO</option>
-                          <option value="ENVIADO">ENVIADO</option>
-                          <option value="ENTREGADO">ENTREGADO</option>
-                          <option value="CANCELADO">CANCELADO</option>
-                        </select>
-                      </div>
-                    </div>
-                    <div class="modal-footer">
-                      <button type="submit" class="btn btn-primary">Guardar</button>
-                      <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                    </div>
-                  </form>
-                </div>
-              </div>
-            </div>
-
             <!-- Tabla de pedidos -->
             <div class="table-responsive">
               <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
@@ -101,16 +47,17 @@
                 <tbody>
                 <tr th:each="order : ${orders}">
                   <td th:text="${order.id}"></td>
-                  <td th:text="${order.client.name}"></td>
-                  <td th:text="${order.employee.name}"></td>
-                  <td th:text="${#temporals.format(order.dateOrder, 'dd/MM/yyyy')}"></td>
-                  <td th:text="'S/. ' + ${order.total}"></td>
+                  <td th:text="${order.client?.name ?: 'No especificado'}"></td>
+                  <td th:text="${order.employee?.name ?: 'No especificado'}"></td>
+                  <td th:text="${order.dateOrder != null ? #dates.format(order.dateOrder, 'dd/MM/yyyy') : 'Sin fecha'}"></td>
+                  <td th:text="${order.total != null ? '$' + #numbers.formatInteger(order.total, 0, 'POINT') : '$0'}"></td>
                   <td>
-                    <span th:if="${order.status == 'PENDIENTE'}" class="badge bg-warning text-dark" th:text="${order.status}"></span>
-                    <span th:if="${order.status == 'PROCESADO'}" class="badge bg-info" th:text="${order.status}"></span>
-                    <span th:if="${order.status == 'ENVIADO'}" class="badge bg-primary" th:text="${order.status}"></span>
-                    <span th:if="${order.status == 'ENTREGADO'}" class="badge bg-success" th:text="${order.status}"></span>
-                    <span th:if="${order.status == 'CANCELADO'}" class="badge bg-danger" th:text="${order.status}"></span>
+                    <span th:class="${order.status == 'PENDIENTE' ? 'badge bg-warning text-dark' :
+                                   order.status == 'PROCESADO' ? 'badge bg-info' :
+                                   order.status == 'ENVIADO' ? 'badge bg-primary' :
+                                   order.status == 'ENTREGADO' ? 'badge bg-success' :
+                                   'badge bg-danger'}"
+                          th:text="${order.status ?: 'SIN ESTADO'}"></span>
                   </td>
                   <td class="text-center">
                     <button class="btn btn-warning btn-sm me-1"
@@ -133,6 +80,66 @@
       </div>
     </main>
 
+    <!-- Modal para formulario -->
+    <div class="modal fade" id="orderModal" tabindex="-1" aria-hidden="true">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <form id="orderForm" th:action="@{/orderbuy/save}" method="post">
+            <input type="hidden" name="id" id="orderId">
+            <div class="modal-header">
+              <h5 class="modal-title" id="modalTitle">Nuevo Pedido</h5>
+              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+            </div>
+            <div class="modal-body">
+              <div class="mb-3">
+                <label class="form-label">Cliente</label>
+                <select class="form-select" name="client.id" required>
+                  <option value="">Seleccione un cliente</option>
+                  <option th:each="client : ${clients}"
+                          th:value="${client.id}"
+                          th:text="${client.name}"></option>
+                </select>
+              </div>
+              <div class="mb-3">
+                <label class="form-label">Empleado</label>
+                <select class="form-select" name="employee.id" required>
+                  <option value="">Seleccione un empleado</option>
+                  <option th:each="employee : ${employees}"
+                          th:value="${employee.id}"
+                          th:text="${employee.name}"></option>
+                </select>
+              </div>
+              <div class="mb-3">
+                <label class="form-label">Fecha del pedido</label>
+                <input type="date" class="form-control" name="dateOrder" id="dateOrderInput" required>
+              </div>
+              <div class="mb-3">
+                <label class="form-label">Total</label>
+                <div class="input-group">
+                  <span class="input-group-text">$</span>
+                  <input type="number" class="form-control" name="total" required min="0" step="1" placeholder="0">
+                </div>
+              </div>
+              <div class="mb-3">
+                <label class="form-label">Estado del pedido</label>
+                <select class="form-select" name="status" required>
+                  <option value="PENDIENTE">PENDIENTE</option>
+                  <option value="PROCESADO">PROCESADO</option>
+                  <option value="ENVIADO">ENVIADO</option>
+                  <option value="ENTREGADO">ENTREGADO</option>
+                  <option value="CANCELADO">CANCELADO</option>
+                </select>
+              </div>
+            </div>
+            <div class="modal-footer">
+              <button type="submit" class="btn btn-primary">Guardar cambios</button>
+              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+
     <!-- Footer -->
     <footer th:replace="~{fragments/footer :: footer}"></footer>
   </div>
@@ -150,38 +157,76 @@
       $('#dataTable').DataTable({
           language: {
               url: '//cdn.datatables.net/plug-ins/1.13.6/i18n/es-ES.json'
-          }
+          },
+          columnDefs: [{
+              targets: 4, // Columna de total
+              render: function(data, type) {
+                  if (type === 'display' && data) {
+                      return '$' + parseInt(data).toLocaleString('es-CO');
+                  }
+                  return data;
+              }
+          }]
       });
   });
 
-  // Preparar formulario para nuevo pedido
+  /// Preparar formulario para nuevo pedido
   function prepareNewOrder() {
       document.getElementById('modalTitle').textContent = 'Nuevo Pedido';
       document.getElementById('orderId').value = '';
       document.getElementById('orderForm').reset();
-      document.querySelector('input[name="dateOrder"]').value = new Date().toISOString().split('T')[0];
+
+      // Establecer fecha actual en formato YYYY-MM-DD
+      const today = new Date();
+      const formattedDate = today.toISOString().split('T')[0];
+      document.getElementById('dateOrderInput').value = formattedDate;
+
+      document.querySelector('select[name="status"]').value = 'PENDIENTE';
   }
 
   // Preparar formulario para editar pedido
   function prepareEditOrder(button) {
       const orderId = button.getAttribute('data-id');
       fetch(`/api/orders/${orderId}`)
-          .then(response => response.json())
+          .then(response => {
+              if (!response.ok) {
+                  throw new Error('Error al obtener los datos del pedido');
+              }
+              return response.json();
+          })
           .then(order => {
               document.getElementById('modalTitle').textContent = 'Editar Pedido';
               document.getElementById('orderId').value = order.id;
 
-              // Llenar los campos del formulario
               const form = document.getElementById('orderForm');
-              form.querySelector('select[name="client.id"]').value = order.client.id;
-              form.querySelector('select[name="employee.id"]').value = order.employee.id;
-              form.querySelector('input[name="dateOrder"]').value = order.dateOrder.split('T')[0];
-              form.querySelector('input[name="total"]').value = order.total;
-              form.querySelector('select[name="status"]').value = order.status;
+              form.querySelector('select[name="client.id"]').value = order.client?.id || '';
+              form.querySelector('select[name="employee.id"]').value = order.employee?.id || '';
+
+              // Formatear fecha correctamente
+              const dateInput = document.getElementById('dateOrderInput');
+              if (order.dateOrder) {
+                  // Si la fecha viene como string ISO (de la API)
+                  if (typeof order.dateOrder === 'string') {
+                      dateInput.value = order.dateOrder.split('T')[0];
+                  }
+                  // Si viene como timestamp
+                  else if (order.dateOrder instanceof Date || (typeof order.dateOrder === 'object' && order.dateOrder.getDate)) {
+                      dateInput.value = order.dateOrder.toISOString().split('T')[0];
+                  }
+              } else {
+                  dateInput.value = new Date().toISOString().split('T')[0];
+              }
+
+              form.querySelector('input[name="total"]').value = order.total || '0';
+              form.querySelector('select[name="status"]').value = order.status || 'PENDIENTE';
 
               // Mostrar modal
               const modal = new bootstrap.Modal(document.getElementById('orderModal'));
               modal.show();
+          })
+          .catch(error => {
+              console.error('Error:', error);
+              alert('Error al cargar los datos del pedido. Por favor intente nuevamente.');
           });
   }
 </script>

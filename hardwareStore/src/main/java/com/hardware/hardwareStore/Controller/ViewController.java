@@ -4,10 +4,8 @@ import com.hardware.hardwareStore.Repository.*;
 import com.hardware.hardwareStore.model.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.ModelAttribute;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.*;
+
 import java.util.Date;
 import org.springframework.ui.Model;
 
@@ -212,8 +210,25 @@ public class ViewController {
         return "sale/index";
     }
 
+    @GetMapping("/api/sale/{id}")
+    @ResponseBody
+    public Sale getSaleById(@PathVariable Long id) {
+        return saleRepository.findById(id).orElse(null);
+    }
+
     @PostMapping("/sales/save")
     public String saveSale(@ModelAttribute Sale sale) {
+        // Si es nueva venta, establecer fecha actual si no viene
+        if(sale.getId() == null && sale.getDateSale() == null) {
+            sale.setDateSale(new Date());
+        } else if(sale.getId() != null) {
+            // Si es edición, mantener la fecha original si no se cambió
+            Sale existing = saleRepository.findById(sale.getId()).orElse(null);
+            if(existing != null && sale.getDateSale() == null) {
+                sale.setDateSale(existing.getDateSale());
+            }
+        }
+
         saleRepository.save(sale);
         return "redirect:/sale";
     }
@@ -223,6 +238,7 @@ public class ViewController {
         saleRepository.deleteById(id);
         return "redirect:/sale";
     }
+
 
     /* -------------------- SALEDETAIL -------------------- */
     @GetMapping("/sale-detail")

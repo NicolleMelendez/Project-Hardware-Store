@@ -61,8 +61,11 @@
                         <input type="number" class="form-control" name="amount" required min="1">
                       </div>
                       <div class="mb-3">
-                        <label class="form-label">Precio Compra (S/.)</label>
-                        <input type="number" class="form-control" name="priceBuy" required min="0">
+                        <label class="form-label">Precio Compra</label>
+                        <div class="input-group">
+                          <span class="input-group-text">$</span>
+                          <input type="number" class="form-control" name="priceBuy" required min="0" step="1">
+                        </div>
                       </div>
                       <div class="mb-3">
                         <label class="form-label">Fecha</label>
@@ -105,7 +108,7 @@
                   <td th:text="${entry.inventory.name}"></td>
                   <td th:text="${entry.supplier.name}"></td>
                   <td th:text="${entry.amount}"></td>
-                  <td th:text="'S/. ' + ${entry.priceBuy}"></td>
+                  <td th:text="${entry.priceBuy != null ? '$' + #numbers.formatInteger(entry.priceBuy, 0, 'POINT') : ''}"></td>
                   <td th:text="${#temporals.format(entry.dateEntry, 'dd/MM/yyyy')}"></td>
                   <td th:text="${entry.employee.name}"></td>
                   <td class="text-center">
@@ -146,7 +149,14 @@
       $('#dataTable').DataTable({
           language: {
               url: '//cdn.datatables.net/plug-ins/1.13.6/i18n/es-ES.json'
-          }
+          },
+          columnDefs: [{
+              targets: 4, // Columna de precio
+              render: function(data) {
+                  if (!data) return '';
+                  return '$' + parseInt(data).toLocaleString('es-CO');
+              }
+          }]
       });
   });
 

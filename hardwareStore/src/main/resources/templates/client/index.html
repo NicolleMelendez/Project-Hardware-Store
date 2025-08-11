@@ -51,7 +51,9 @@
                                             </div>
                                             <div class="mb-3">
                                                 <label class="form-label">Teléfono</label>
-                                                <input type="text" class="form-control" name="phone" required>
+                                                <input type="text" class="form-control" name="phone" required
+                                                       oninput="formatPhoneInput(this)"
+                                                       maxlength="10" placeholder="Ej: 320-222-2222">
                                             </div>
                                             <div class="mb-3">
                                                 <label class="form-label">Dirección</label>
@@ -89,7 +91,10 @@
                                 <tr th:each="client : ${clients}">
                                     <td th:text="${client.id}"></td>
                                     <td th:text="${client.name}"></td>
-                                    <td th:text="${client.phone}"></td>
+                                    <td th:text="${#strings.length(client.phone) == 10 ?
+                                                  #strings.substring(client.phone,0,3) + '-' +
+                                                  #strings.substring(client.phone,3,6) + '-' +
+                                                  #strings.substring(client.phone,6) : client.phone}"></td>
                                     <td th:text="${client.address}"></td>
                                     <td th:text="${client.email}"></td>
                                     <td th:text="${#dates.format(client.dateClient, 'dd/MM/yyyy')}"></td>
@@ -126,12 +131,36 @@
 <script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
 
 <script>
+    // Función para formatear el input de teléfono
+    function formatPhoneInput(input) {
+        // Eliminar todo excepto números
+        let phone = input.value.replace(/\D/g,'');
+
+        // Aplicar formato cuando tenga 10 dígitos
+        if(phone.length >= 10) {
+            input.value = phone.replace(/(\d{3})(\d{3})(\d{4})/, '$1-$2-$3');
+        } else {
+            input.value = phone;
+        }
+    }
+
     // Inicializar DataTable
     $(document).ready(function() {
         $('#dataTable').DataTable({
             language: {
                 url: '//cdn.datatables.net/plug-ins/1.13.6/i18n/es-ES.json'
-            }
+            },
+            columnDefs: [
+                {
+                    targets: 2, // Columna de teléfono
+                    render: function(data, type, row) {
+                        if (type === 'display' && data && data.length === 10) {
+                            return data.replace(/(\d{3})(\d{3})(\d{4})/, '$1-$2-$3');
+                        }
+                        return data;
+                    }
+                }
+            ]
         });
     });
 
@@ -156,7 +185,15 @@
                 // Llenar los campos del formulario
                 const form = document.getElementById('clientForm');
                 form.querySelector('input[name="name"]').value = client.name || '';
-                form.querySelector('input[name="phone"]').value = client.phone || '';
+
+                // Formatear teléfono para mostrar en edición
+                let phone = client.phone || '';
+                phone = phone.replace(/\D/g, '');
+                if(phone.length >= 10) {
+                    phone = phone.replace(/(\d{3})(\d{3})(\d{4})/, '$1-$2-$3');
+                }
+                form.querySelector('input[name="phone"]').value = phone;
+
                 form.querySelector('input[name="address"]').value = client.address || '';
                 form.querySelector('input[name="email"]').value = client.email || '';
 

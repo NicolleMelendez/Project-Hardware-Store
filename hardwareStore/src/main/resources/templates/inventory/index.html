@@ -53,8 +53,11 @@
                         <input type="text" class="form-control" name="category" required>
                       </div>
                       <div class="mb-3">
-                        <label class="form-label">Precio Venta (S/.)</label>
-                        <input type="number" class="form-control" name="price" required min="0">
+                        <label class="form-label">Precio Venta</label>
+                        <div class="input-group">
+                          <span class="input-group-text">$</span>
+                          <input type="number" class="form-control" name="price" required min="0" step="1">
+                        </div>
                       </div>
                       <div class="mb-3">
                         <label class="form-label">Stock Actual</label>
@@ -101,7 +104,7 @@
                   <td th:text="${inventory.id}"></td>
                   <td th:text="${inventory.name}"></td>
                   <td th:text="${inventory.category}"></td>
-                  <td th:text="'S/. ' + ${inventory.price}"></td>
+                  <td th:text="${inventory.price != null ? '$' + #numbers.formatInteger(inventory.price, 0, 'POINT') : ''}"></td>
                   <td th:text="${inventory.stock}"></td>
                   <td th:text="${inventory.supplier?.name ?: 'N/A'}"></td>
                   <td th:text="${inventory.minStock}"></td>
@@ -143,7 +146,14 @@
       $('#dataTable').DataTable({
           language: {
               url: '//cdn.datatables.net/plug-ins/1.13.6/i18n/es-ES.json'
-          }
+          },
+          columnDefs: [{
+              targets: 3, // Columna de precio
+              render: function(data) {
+                  if (!data) return '';
+                  return '$' + parseInt(data).toLocaleString('es-CO');
+              }
+          }]
       });
   });
 
