@@ -1,5 +1,7 @@
 package com.hardware.hardwareStore.model;
 import jakarta.persistence.*;
+import org.springframework.format.annotation.DateTimeFormat;
+
 import java.util.Date;
 
 @Entity
@@ -18,6 +20,8 @@ public class OrderBuy {
     private Employee employee;
 
     @Column(name = "date_order")
+    @Temporal(TemporalType.DATE)
+    @DateTimeFormat(pattern = "yyyy-MM-dd")
     private Date dateOrder;
 
     private Integer total;

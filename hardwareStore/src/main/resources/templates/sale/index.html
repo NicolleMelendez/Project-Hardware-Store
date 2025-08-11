@@ -22,66 +22,14 @@
 
         <div class="card mb-4">
           <div class="card-header">
-            <i class="fas fa-cash-register me-1"></i>
+            <i class="fas fa-shopping-cart me-1"></i>
             Ventas registradas
+            <button type="button" class="btn btn-primary float-end" data-bs-toggle="modal"
+                    data-bs-target="#saleModal" onclick="prepareNewSale()">
+              <i class="fas fa-plus me-1"></i> Nueva Venta
+            </button>
           </div>
           <div class="card-body">
-            <div class="mb-3">
-              <button type="button" class="btn btn-primary" data-bs-toggle="modal"
-                      data-bs-target="#saleModal" onclick="prepareNewSale()">
-                <i class="fas fa-plus me-1"></i> Nueva Venta
-              </button>
-            </div>
-
-            <!-- Modal para formulario -->
-            <div class="modal fade" id="saleModal" tabindex="-1" aria-hidden="true">
-              <div class="modal-dialog">
-                <div class="modal-content">
-                  <form id="saleForm" th:action="@{/sales/save}" method="post">
-                    <input type="hidden" name="id" id="saleId">
-                    <div class="modal-header">
-                      <h5 class="modal-title" id="modalTitle">Nueva Venta</h5>
-                      <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                    </div>
-                    <div class="modal-body">
-                      <div class="mb-3">
-                        <label class="form-label">Cliente</label>
-                        <select class="form-select" name="client.id" required>
-                          <option th:each="client : ${clients}" th:value="${client.id}" th:text="${client.name}"></option>
-                        </select>
-                      </div>
-                      <div class="mb-3">
-                        <label class="form-label">Empleado</label>
-                        <select class="form-select" name="employee.id" required>
-                          <option th:each="employee : ${employees}" th:value="${employee.id}" th:text="${employee.name}"></option>
-                        </select>
-                      </div>
-                      <div class="mb-3">
-                        <label class="form-label">Fecha</label>
-                        <input type="date" class="form-control" name="dateSale">
-                      </div>
-                      <div class="mb-3">
-                        <label class="form-label">Total (S/.)</label>
-                        <input type="number" class="form-control" name="total" required min="0">
-                      </div>
-                      <div class="mb-3">
-                        <label class="form-label">Estado</label>
-                        <select class="form-select" name="status" required>
-                          <option value="COMPLETADO">COMPLETADO</option>
-                          <option value="PENDIENTE">PENDIENTE</option>
-                          <option value="CANCELADO">CANCELADO</option>
-                        </select>
-                      </div>
-                    </div>
-                    <div class="modal-footer">
-                      <button type="submit" class="btn btn-primary">Guardar</button>
-                      <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                    </div>
-                  </form>
-                </div>
-              </div>
-            </div>
-
             <!-- Tabla de ventas -->
             <div class="table-responsive">
               <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
@@ -99,14 +47,15 @@
                 <tbody>
                 <tr th:each="sale : ${sales}">
                   <td th:text="${sale.id}"></td>
-                  <td th:text="${sale.client.name}"></td>
-                  <td th:text="${sale.employee.name}"></td>
-                  <td th:text="${#temporals.format(sale.dateSale, 'dd/MM/yyyy')}"></td>
-                  <td th:text="'S/. ' + ${sale.total}"></td>
+                  <td th:text="${sale.client?.name ?: 'N/A'}"></td>
+                  <td th:text="${sale.employee?.name ?: 'N/A'}"></td>
+                  <td th:text="${sale.dateSale != null ? #dates.format(sale.dateSale, 'dd/MM/yyyy') : 'Sin fecha'}"></td>
+                  <td th:text="${sale.total != null ? '$' + #numbers.formatInteger(sale.total, 0, 'POINT') : ''}"></td>
                   <td>
-                    <span th:if="${sale.status == 'COMPLETADO'}" class="badge bg-success" th:text="${sale.status}"></span>
-                    <span th:if="${sale.status == 'PENDIENTE'}" class="badge bg-warning text-dark" th:text="${sale.status}"></span>
-                    <span th:if="${sale.status == 'CANCELADO'}" class="badge bg-danger" th:text="${sale.status}"></span>
+                    <span th:class="${sale.status == 'COMPLETADA' ? 'badge bg-success' :
+                                   sale.status == 'PENDIENTE' ? 'badge bg-warning text-dark' :
+                                   'badge bg-danger'}"
+                          th:text="${sale.status ?: 'SIN ESTADO'}"></span>
                   </td>
                   <td class="text-center">
                     <button class="btn btn-warning btn-sm me-1"
@@ -114,8 +63,8 @@
                       <i class="fas fa-edit"></i>
                     </button>
                     <form th:action="@{'/delete/sale/' + ${sale.id}}" method="post" style="display:inline;">
-                      <button type="submit" class="btn btn-danger btn-sm"
-                              onclick="return confirm('¿Está seguro de eliminar esta venta?')">
+                      <button type="button" class="btn btn-danger btn-sm"
+                              onclick="confirmDelete(this)">
                         <i class="fas fa-trash-alt"></i>
                       </button>
                     </form>
@@ -129,11 +78,93 @@
       </div>
     </main>
 
+    <!-- Modal para formulario -->
+    <div class="modal fade" id="saleModal" tabindex="-1" aria-hidden="true">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <form id="saleForm" th:action="@{/sales/save}" method="post">
+            <input type="hidden" name="id" id="saleId">
+            <div class="modal-header">
+              <h5 class="modal-title" id="modalTitle">Nueva Venta</h5>
+              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+              <div class="mb-3">
+                <label class="form-label">Cliente</label>
+                <select class="form-select" name="client.id" required>
+                  <option value="">Seleccione cliente</option>
+                  <option th:each="client : ${clients}"
+                          th:value="${client.id}"
+                          th:text="${client.name}"></option>
+                </select>
+              </div>
+              <div class="mb-3">
+                <label class="form-label">Empleado</label>
+                <select class="form-select" name="employee.id" required>
+                  <option value="">Seleccione empleado</option>
+                  <option th:each="employee : ${employees}"
+                          th:value="${employee.id}"
+                          th:text="${employee.name}"></option>
+                </select>
+              </div>
+              <div class="mb-3">
+                <label class="form-label">Fecha</label>
+                <input type="date" class="form-control" name="dateSale" id="dateSaleInput" required>
+              </div>
+              <div class="mb-3">
+                <label class="form-label">Total</label>
+                <div class="input-group">
+                  <span class="input-group-text">$</span>
+                  <input type="number" class="form-control" name="total" required min="0" step="1">
+                </div>
+              </div>
+              <div class="mb-3">
+                <label class="form-label">Estado</label>
+                <select class="form-select" name="status" required>
+                  <option value="COMPLETADA">COMPLETADA</option>
+                  <option value="PENDIENTE">PENDIENTE</option>
+                  <option value="CANCELADA">CANCELADA</option>
+                </select>
+              </div>
+            </div>
+            <div class="modal-footer">
+              <button type="submit" class="btn btn-primary">Guardar</button>
+              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+
     <!-- Footer -->
     <footer th:replace="~{fragments/footer :: footer}"></footer>
   </div>
 </div>
 
+
+
+<!-- SweetAlert2 -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<!-- JS -->
+<script>
+  function confirmDelete(button) {
+      Swal.fire({
+          title: '¿Estás seguro?',
+          text: "No podrás revertir esta acción",
+          icon: 'warning',
+          showCancelButton: true,
+          confirmButtonColor: '#d33',
+          cancelButtonColor: '#3085d6',
+          confirmButtonText: 'Sí, eliminar',
+          cancelButtonText: 'Cancelar'
+      }).then((result) => {
+          if (result.isConfirmed) {
+              button.closest('form').submit();
+          }
+      });
+  }
+</script>
 <!-- Bootstrap JS -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
 <!-- DataTables JS -->
@@ -146,7 +177,16 @@
       $('#dataTable').DataTable({
           language: {
               url: '//cdn.datatables.net/plug-ins/1.13.6/i18n/es-ES.json'
-          }
+          },
+          columnDefs: [{
+              targets: 4, // Columna de total
+              render: function(data, type) {
+                  if (type === 'display' && data) {
+                      return '$' + parseInt(data).toLocaleString('es-CO');
+                  }
+                  return data;
+              }
+          }]
       });
   });
 
@@ -155,29 +195,47 @@
       document.getElementById('modalTitle').textContent = 'Nueva Venta';
       document.getElementById('saleId').value = '';
       document.getElementById('saleForm').reset();
-      document.querySelector('input[name="dateSale"]').value = new Date().toISOString().split('T')[0];
+      document.getElementById('dateSaleInput').valueAsDate = new Date();
+      document.querySelector('select[name="status"]').value = 'COMPLETADA';
   }
 
   // Preparar formulario para editar venta
   function prepareEditSale(button) {
       const saleId = button.getAttribute('data-id');
-      fetch(`/api/sales/${saleId}`)
-          .then(response => response.json())
+      fetch(`/api/sale/${saleId}`)
+          .then(response => {
+              if (!response.ok) {
+                  throw new Error('Error al obtener los datos');
+              }
+              return response.json();
+          })
           .then(sale => {
               document.getElementById('modalTitle').textContent = 'Editar Venta';
               document.getElementById('saleId').value = sale.id;
 
-              // Llenar los campos del formulario
               const form = document.getElementById('saleForm');
-              form.querySelector('select[name="client.id"]').value = sale.client.id;
-              form.querySelector('select[name="employee.id"]').value = sale.employee.id;
-              form.querySelector('input[name="dateSale"]').value = sale.dateSale.split('T')[0];
-              form.querySelector('input[name="total"]').value = sale.total;
-              form.querySelector('select[name="status"]').value = sale.status;
+              form.querySelector('select[name="client.id"]').value = sale.client?.id || '';
+              form.querySelector('select[name="employee.id"]').value = sale.employee?.id || '';
+
+              // Manejo seguro de fechas
+              const dateInput = document.getElementById('dateSaleInput');
+              if (sale.dateSale) {
+                  const date = new Date(sale.dateSale);
+                  dateInput.valueAsDate = date;
+              } else {
+                  dateInput.valueAsDate = new Date();
+              }
+
+              form.querySelector('input[name="total"]').value = sale.total || '';
+              form.querySelector('select[name="status"]').value = sale.status || 'COMPLETADA';
 
               // Mostrar modal
               const modal = new bootstrap.Modal(document.getElementById('saleModal'));
               modal.show();
+          })
+          .catch(error => {
+              console.error('Error:', error);
+              alert('Error al cargar los datos de la venta');
           });
   }
 </script>

@@ -1,25 +1,48 @@
 <div th:fragment="sidebar" id="layoutSidenav_nav" xmlns:th="http://www.w3.org/1999/xhtml">
   <nav class="sb-sidenav accordion sb-sidenav-dark">
     <div class="sb-sidenav-menu">
-      <div class="nav" style="text-center">
-        <img th:src="@{/assets/img/logo.png}" alt="Logo" style="width: 80px; height: 80px; border-radius: 50%; object-fit: cover; display: block; margin: 0 auto;">
+      <!-- Encabezado con ícono y título -->
+      <div class="sb-sidenav-header text-center py-3">
+        <i class="fas fa-tools fa-2x mb-2"></i>
+        <h4 class="text-white mb-0">Ferretería</h4>
+      </div>
 
+      <div class="nav" style="text-center">
         <div class="sb-sidenav-menu-heading">Principal</div>
-        <a class="nav-link" th:href="@{/}"><i class="fas fa-home"></i> Dashboard</a>
+        <a class="nav-link" th:href="@{/}">
+          <i class="fas fa-home me-1"></i> Dashboard
+        </a>
         <div class="sb-sidenav-menu-heading">Gestión de personas</div>
-        <a class="nav-link" th:href="@{/client}"><i class="fas fa-users"></i> Clientes</a>
-        <a class="nav-link" th:href="@{/supplier}"><i class="fas fa-truck me-1"></i> Proveedores</a>
-        <a class="nav-link" th:href="@{/employee}"><i class="fas fa-user-tie me-1"></i>Empleados</a>
+        <a class="nav-link" th:href="@{/client}">
+          <i class="fas fa-users me-1"></i> Clientes
+        </a>
+        <a class="nav-link" th:href="@{/supplier}">
+          <i class="fas fa-truck me-1"></i> Proveedores
+        </a>
+        <a class="nav-link" th:href="@{/employee}">
+          <i class="fas fa-user-tie me-1"></i> Empleados
+        </a>
         <div class="sb-sidenav-menu-heading">Inventario</div>
-        <a class="nav-link" th:href="@{/inventory}"><i class="fas fa-warehouse me-1"></i> Productos</a>
-        <a class="nav-link" th:href="@{/entry}"><i class="fas fa-truck me-1"></i> Entradas</a>
-        <a class="nav-link" th:href="@{/issue}"><i class="fas fa-exclamation-triangle me-1"></i> Salidas</a>
+        <a class="nav-link" th:href="@{/inventory}">
+          <i class="fas fa-warehouse me-1"></i> Productos
+        </a>
+        <a class="nav-link" th:href="@{/entry}">
+          <i class="fas fa-truck me-1"></i> Entradas
+        </a>
+        <a class="nav-link" th:href="@{/issue}">
+          <i class="fas fa-exclamation-triangle me-1"></i> Salidas
+        </a>
         <div class="sb-sidenav-menu-heading">Operaciones</div>
-        <a class="nav-link" th:href="@{/sale}"><i class="fas fa-cash-register me-1"></i> Ventas</a>
-        <a class="nav-link" th:href="@{/orderbuy}"><i class="fas fa-shopping-cart me-1"></i>Órdenes de compra</a>
+        <a class="nav-link" th:href="@{/sale}">
+          <i class="fas fa-cash-register me-1"></i> Ventas
+        </a>
+        <a class="nav-link" th:href="@{/orderbuy}">
+          <i class="fas fa-shopping-cart me-1"></i> Órdenes de compra
+        </a>
         <div class="sb-sidenav-menu-heading">Reportes</div>
-        <a class="nav-link" th:href="@{/}"><i class="fas fa-users"></i> Reporte</a>
-        <!-- Agrega más enlaces aquí -->
+        <a class="nav-link" th:href="@{/}">
+          <i class="fas fa-chart-bar me-1"></i> Reporte
+        </a>
       </div>
     </div>
   </nav>
