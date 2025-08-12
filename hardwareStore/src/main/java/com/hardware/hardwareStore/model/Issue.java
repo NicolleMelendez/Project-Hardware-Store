@@ -1,5 +1,7 @@
 package com.hardware.hardwareStore.model;
 import jakarta.persistence.*;
+import org.springframework.format.annotation.DateTimeFormat;
+
 import java.util.Date;
 
 @Entity
@@ -14,9 +16,11 @@ public class Issue {
     private Inventory inventory;
 
     private Integer amount;
-    private String  reason;
+    private String reason;
 
     @Column(name = "date_issue")
+    @Temporal(TemporalType.DATE)
+    @DateTimeFormat(pattern = "yyyy-MM-dd")
     private Date dateIssue;
 
     @ManyToOne
@@ -25,7 +29,8 @@ public class Issue {
 
     private String observation;
 
-    public Issue() {}
+    public Issue() {
+    }
 
     public Long getId() {
         return id;
@@ -51,20 +56,20 @@ public class Issue {
         this.amount = amount;
     }
 
-    public String getReason() {
-        return reason;
-    }
-
-    public void setReason(String reason) {
-        this.reason = reason;
-    }
-
     public Date getDateIssue() {
         return dateIssue;
     }
 
     public void setDateIssue(Date dateIssue) {
         this.dateIssue = dateIssue;
+    }
+
+    public String getReason() {
+        return reason;
+    }
+
+    public void setReason(String reason) {
+        this.reason = reason;
     }
 
     public Employee getEmployee() {
