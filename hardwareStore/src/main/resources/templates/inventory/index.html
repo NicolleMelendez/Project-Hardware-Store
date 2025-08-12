@@ -49,8 +49,12 @@
                         <input type="text" class="form-control" name="name" required>
                       </div>
                       <div class="mb-3">
+                        <!-- CORREGIDO: Categoría como select con opciones reales -->
                         <label class="form-label">Categoría</label>
-                        <input type="text" class="form-control" name="category" required>
+                        <select class="form-select" name="category" required>
+                          <option value="">Seleccionar Categoría</option>
+                          <option th:each="inventory : ${inventories}" th:value="${inventory.category}" th:text="${inventory.category}"></option>
+                        </select>
                       </div>
                       <div class="mb-3">
                         <label class="form-label">Precio Venta</label>
@@ -72,7 +76,7 @@
                       </div>
                       <div class="mb-3">
                         <label class="form-label">Stock Mínimo</label>
-                        <input type="number" class="form-control" name="minStock" min="0">
+                        <input type="number" class="form-control" name="minStock" min="0" value="10" readonly>
                       </div>
                     </div>
                     <div class="modal-footer">
@@ -134,8 +138,6 @@
   </div>
 </div>
 
-
-
 <!-- SweetAlert2 -->
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
@@ -186,13 +188,20 @@
       document.getElementById('modalTitle').textContent = 'Nuevo Producto';
       document.getElementById('inventoryId').value = '';
       document.getElementById('inventoryForm').reset();
+      document.getElementById('inventoryForm').querySelector('input[name="minStock"]').value = '10';
   }
 
-  // Preparar formulario para editar producto
+  // Preparar formulario para editar producto (CORREGIDO)
   function prepareEditInventory(button) {
       const inventoryId = button.getAttribute('data-id');
-      fetch(`/api/inventory/${inventoryId}`)
-          .then(response => response.json())
+      // CORREGIDO: URL con "s" al final (inventories)
+      fetch(`/api/inventories/${inventoryId}`)
+          .then(response => {
+              if (!response.ok) {
+                  throw new Error('Error al cargar el producto');
+              }
+              return response.json();
+          })
           .then(inventory => {
               document.getElementById('modalTitle').textContent = 'Editar Producto';
               document.getElementById('inventoryId').value = inventory.id;
@@ -200,15 +209,43 @@
               // Llenar los campos del formulario
               const form = document.getElementById('inventoryForm');
               form.querySelector('input[name="name"]').value = inventory.name || '';
-              form.querySelector('input[name="category"]').value = inventory.category || '';
+
+              // Manejar el select de categoría con seguridad
+              const categorySelect = form.querySelector('select[name="category"]');
+              const categoryValue = inventory.category || '';
+
+              // Buscar y seleccionar la categoría correcta
+              for (let i = 0; i < categorySelect.options.length; i++) {
+                  if (categorySelect.options[i].value === categoryValue) {
+                      categorySelect.selectedIndex = i;
+                      break;
+                  }
+              }
+
               form.querySelector('input[name="price"]').value = inventory.price || '';
               form.querySelector('input[name="stock"]').value = inventory.stock || '';
-              form.querySelector('select[name="supplier.id"]').value = inventory.supplier?.id || '';
-              form.querySelector('input[name="minStock"]').value = inventory.minStock || '';
+
+              // Manejar el select de proveedor con seguridad
+              const supplierSelect = form.querySelector('select[name="supplier.id"]');
+              if (inventory.supplier && inventory.supplier.id) {
+                  supplierSelect.value = inventory.supplier.id;
+              } else {
+                  supplierSelect.value = '';
+              }
+
+              form.querySelector('input[name="minStock"]').value = inventory.minStock || '10';
 
               // Mostrar modal
               const modal = new bootstrap.Modal(document.getElementById('inventoryModal'));
               modal.show();
+          })
+          .catch(error => {
+              console.error('Error:', error);
+              Swal.fire({
+                  icon: 'error',
+                  title: 'Error',
+                  text: 'No se pudo cargar el producto para editar'
+              });
           });
   }
 </script>
