@@ -1,9 +1,9 @@
 package com.hardware.hardwareStore.Controller;
 
+
+import com.hardware.hardwareStore.Service.ClientService;
 import com.hardware.hardwareStore.model.Client;
-import com.hardware.hardwareStore.Repository.ClientRepository;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -12,39 +12,36 @@ import java.util.List;
 @RequestMapping("/api/clients")
 public class ControllerClient {
 
-
     @Autowired
-    private ClientRepository clientRepository;
+    private ClientService clientService;
 
+    // GET /api/clients
     @GetMapping
-    public String listClients(Model model) {
-        model.addAttribute("clients", clientRepository.findAll());
-        return "clients/index";
+    public List<Client> listClients() {
+        return clientService.findAll();
     }
 
-
-    // Obtener cliente por ID
+    // GET /api/clients/{id}
     @GetMapping("/{id}")
-    public Client getClientById(@PathVariable Long id) {
-        return clientRepository.findById(id).orElse(null);
+    public Client getClient(@PathVariable Long id) {
+        return clientService.findById(id);
     }
 
-    // Crear nuevo cliente
+    // POST /api/clients
     @PostMapping
     public Client createClient(@RequestBody Client client) {
-        return clientRepository.save(client);
+        return clientService.create(client);
     }
 
-    // Actualizar cliente existente
+    // PUT /api/clients/{id}
     @PutMapping("/{id}")
     public Client updateClient(@PathVariable Long id, @RequestBody Client client) {
-        client.setId(id);
-        return clientRepository.save(client);
+        return clientService.update(id, client);
     }
 
-    // Eliminar cliente
+    // DELETE /api/clients/{id}
     @DeleteMapping("/{id}")
     public void deleteClient(@PathVariable Long id) {
-        clientRepository.deleteById(id);
+        clientService.delete(id);
     }
 }
