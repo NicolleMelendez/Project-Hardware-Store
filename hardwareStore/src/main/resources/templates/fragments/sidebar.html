@@ -7,41 +7,65 @@
         <h4 class="text-white mb-0">Ferretería</h4>
       </div>
 
-      <div class="nav" style="text-center">
-        <div class="sb-sidenav-menu-heading">Principal</div>
-        <a class="nav-link" th:href="@{/}">
-          <i class="fas fa-home me-1"></i> Dashboard
+      <div class="nav" style="text-align: left;">
+        <!-- Dashboard -->
+        <a class="nav-link d-flex align-items-center" th:href="@{/}">
+          <i class="fas fa-home me-2"></i> <!-- Separación ajustada -->
+          <span>Dashboard</span>
         </a>
-        <div class="sb-sidenav-menu-heading">Gestión de personas</div>
-        <a class="nav-link" th:href="@{/client}">
-          <i class="fas fa-users me-1"></i> Clientes
+
+        <!-- Clientes -->
+        <a class="nav-link d-flex align-items-center" th:href="@{/client}">
+          <i class="fas fa-users me-2"></i>
+          <span>Clientes</span>
         </a>
-        <a class="nav-link" th:href="@{/supplier}">
-          <i class="fas fa-truck me-1"></i> Proveedores
+
+        <!-- Proveedores -->
+        <a class="nav-link d-flex align-items-center" th:href="@{/supplier}">
+          <i class="fas fa-truck me-2"></i>
+          <span>Proveedores</span>
         </a>
-        <a class="nav-link" th:href="@{/employee}">
-          <i class="fas fa-user-tie me-1"></i> Empleados
+
+        <!-- Empleados -->
+        <a class="nav-link d-flex align-items-center" th:href="@{/employee}">
+          <i class="fas fa-user-tie me-2"></i>
+          <span>Empleados</span>
         </a>
-        <div class="sb-sidenav-menu-heading">Inventario</div>
-        <a class="nav-link" th:href="@{/inventory}">
-          <i class="fas fa-warehouse me-1"></i> Productos
+
+        <!-- Productos -->
+        <a class="nav-link d-flex align-items-center" th:href="@{/inventory}">
+          <i class="fas fa-boxes me-2"></i> <!-- Cambiado a "cajas" para representar productos -->
+          <span>Productos</span>
         </a>
-        <a class="nav-link" th:href="@{/entry}">
-          <i class="fas fa-truck me-1"></i> Entradas
+
+        <!-- Entradas -->
+        <a class="nav-link d-flex align-items-center" th:href="@{/entry}">
+          <i class="fas fa-sign-in-alt me-2"></i> <!-- Cambiado a "flecha hacia adentro" para representar entradas -->
+          <span>Entradas</span>
         </a>
-        <a class="nav-link" th:href="@{/issue}">
-          <i class="fas fa-exclamation-triangle me-1"></i> Salidas
+
+        <!-- Salidas -->
+        <a class="nav-link d-flex align-items-center" th:href="@{/issue}">
+          <i class="fas fa-sign-out-alt me-2"></i> <!-- Cambiado a "flecha hacia afuera" para representar salidas -->
+          <span>Salidas</span>
         </a>
-        <div class="sb-sidenav-menu-heading">Operaciones</div>
-        <a class="nav-link" th:href="@{/sale}">
-          <i class="fas fa-cash-register me-1"></i> Ventas
+
+        <!-- Ventas -->
+        <a class="nav-link d-flex align-items-center" th:href="@{/sale}">
+          <i class="fas fa-cash-register me-2"></i>
+          <span>Ventas</span>
         </a>
-        <a class="nav-link" th:href="@{/orderbuy}">
-          <i class="fas fa-shopping-cart me-1"></i> Órdenes de compra
+
+        <!-- Órdenes de compra -->
+        <a class="nav-link d-flex align-items-center" th:href="@{/orderbuy}">
+          <i class="fas fa-shopping-cart me-2"></i>
+          <span>Órdenes de compra</span>
         </a>
-        <div class="sb-sidenav-menu-heading">Reportes</div>
-        <a class="nav-link" th:href="@{/}">
-          <i class="fas fa-chart-bar me-1"></i> Reporte
+
+        <!-- Reporte -->
+        <a class="nav-link d-flex align-items-center" th:href="@{/}">
+          <i class="fas fa-chart-bar me-2"></i>
+          <span>Reporte</span>
         </a>
       </div>
     </div>
