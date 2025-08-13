@@ -8,7 +8,8 @@ import org.springframework.data.repository.query.Param;
 import java.util.Date;
 import java.util.List;
 
-public interface EntryRepository extends JpaRepository<Entry, Long>{
+public interface EntryRepository extends JpaRepository<Entry, Long> {
+
     @Query("SELECT e FROM Entry e WHERE e.inventory.id = :inventoryId")
     List<Entry> findByInventoryId(@Param("inventoryId") Long inventoryId);
 

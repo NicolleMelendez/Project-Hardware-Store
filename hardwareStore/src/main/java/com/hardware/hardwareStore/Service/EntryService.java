@@ -1,10 +1,8 @@
 package com.hardware.hardwareStore.Service;
 
-
 import com.hardware.hardwareStore.model.*;
 import com.hardware.hardwareStore.Repository.EntryRepository;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -13,94 +11,110 @@ import java.util.List;
 import java.util.Optional;
 
 @Service
+@Transactional
 public class EntryService {
 
-    private final EntryRepository entryRepository;
-    private final InventoryService inventoryService;
-    private final SupplierService supplierService;
-    private final EmployeeService employeeService;
+    @Autowired
+    private EntryRepository entryRepository;
 
     @Autowired
-    public EntryService(EntryRepository entryRepository,
-                        InventoryService inventoryService,
-                        SupplierService supplierService,
-                        EmployeeService employeeService) {
-        this.entryRepository = entryRepository;
-        this.inventoryService = inventoryService;
-        this.supplierService = supplierService;
-        this.employeeService = employeeService;
-    }
+    private InventoryService inventoryService;
 
-    @Transactional(readOnly = true)
+    @Autowired
+    private SupplierService supplierService;
+
+    @Autowired
+    private EmployeeService employeeService;
+
     public List<Entry> getAllEntries() {
         return entryRepository.findAll();
     }
 
-    @Transactional(readOnly = true)
     public Optional<Entry> getEntryById(Long id) {
         return entryRepository.findById(id);
     }
 
-    @Transactional
     public Entry createEntry(Entry entry) {
-        validateRelations(entry);
+        // Validar y cargar relaciones
+        validateAndLoadRelations(entry);
+
+        // Actualizar stock en inventario
         updateInventoryStock(entry.getInventory(), entry.getAmount());
+
+        // Guardar la entrada
         return entryRepository.save(entry);
     }
 
-    @Transactional
     public Entry updateEntry(Long id, Entry entryDetails) {
-        Entry entry = entryRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Entry not found with id: " + id));
+        Entry existingEntry = entryRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Entrada no encontrada con ID: " + id));
 
-        validateRelations(entryDetails);
-        int quantityDifference = entryDetails.getAmount() - entry.getAmount();
+        // Validar y cargar relaciones
+        validateAndLoadRelations(entryDetails);
+
+        // Calcular diferencia de cantidad
+        int quantityDifference = entryDetails.getAmount() - existingEntry.getAmount();
         updateInventoryStock(entryDetails.getInventory(), quantityDifference);
 
-        entry.setInventory(entryDetails.getInventory());
-        entry.setSupplier(entryDetails.getSupplier());
-        entry.setAmount(entryDetails.getAmount());
-        entry.setPriceBuy(entryDetails.getPriceBuy());
-        entry.setEmployee(entryDetails.getEmployee());
+        // Actualizar campos
+        existingEntry.setInventory(entryDetails.getInventory());
+        existingEntry.setSupplier(entryDetails.getSupplier());
+        existingEntry.setAmount(entryDetails.getAmount());
+        existingEntry.setPriceBuy(entryDetails.getPriceBuy());
+        existingEntry.setDateEntry(entryDetails.getDateEntry());
+        existingEntry.setEmployee(entryDetails.getEmployee());
 
-        return entryRepository.save(entry);
+        return entryRepository.save(existingEntry);
     }
 
-    @Transactional
     public void deleteEntry(Long id) {
         Entry entry = entryRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Entry not found with id: " + id));
+                .orElseThrow(() -> new RuntimeException("Entrada no encontrada con ID: " + id));
 
+        // Revertir stock en inventario
         updateInventoryStock(entry.getInventory(), -entry.getAmount());
+
         entryRepository.delete(entry);
     }
 
-    @Transactional(readOnly = true)
     public List<Entry> getEntriesByInventory(Long inventoryId) {
         return entryRepository.findByInventoryId(inventoryId);
     }
 
-    @Transactional(readOnly = true)
     public List<Entry> getEntriesBySupplier(Long supplierId) {
         return entryRepository.findBySupplierId(supplierId);
     }
 
-    @Transactional(readOnly = true)
     public List<Entry> getEntriesBetweenDates(Date start, Date end) {
         return entryRepository.findByDateEntryBetween(start, end);
     }
 
-    private void validateRelations(Entry entry) {
-        inventoryService.getInventoryByIdOrThrow(entry.getInventory().getId());
-        supplierService.getSupplierById(entry.getSupplier().getId())
-                .orElseThrow(() -> new RuntimeException("Supplier not found"));
-        employeeService.getEmployeeById(entry.getEmployee().getId())
-                .orElseThrow(() -> new RuntimeException("Employee not found"));
+    private void validateAndLoadRelations(Entry entry) {
+        // Cargar y validar Inventory
+        Inventory inventory = inventoryService.getInventoryById(entry.getInventory().getId())
+                .orElseThrow(() -> new RuntimeException("Inventario no encontrado"));
+        entry.setInventory(inventory);
+
+        // Cargar y validar Supplier
+        Supplier supplier = supplierService.getSupplierById(entry.getSupplier().getId())
+                .orElseThrow(() -> new RuntimeException("Proveedor no encontrado"));
+        entry.setSupplier(supplier);
+
+        // Cargar y validar Employee
+        Employee employee = employeeService.getEmployeeById(entry.getEmployee().getId())
+                .orElseThrow(() -> new RuntimeException("Empleado no encontrado"));
+        entry.setEmployee(employee);
     }
 
     private void updateInventoryStock(Inventory inventory, int quantity) {
-        Inventory existing = inventoryService.getInventoryByIdOrThrow(inventory.getId());
-        existing.setStock(existing.getStock() + quantity);
-        inventoryService.updateInventory(existing.getId(), existing);
+        // Primero obtenemos el inventory actualizado de la base de datos
+        Inventory managedInventory = inventoryService.getInventoryById(inventory.getId())
+                .orElseThrow(() -> new RuntimeException("Inventory not found"));
+
+        // Actualizamos el stock
+        managedInventory.setStock(managedInventory.getStock() + quantity);
+
+        // Guardamos los cambios
+        inventoryService.saveInventory(managedInventory);
     }
 }

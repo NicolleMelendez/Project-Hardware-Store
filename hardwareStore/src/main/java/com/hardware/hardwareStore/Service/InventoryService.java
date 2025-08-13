@@ -24,6 +24,14 @@ public class InventoryService {
         this.supplierService = supplierService;
     }
 
+
+
+
+    @Transactional
+    public Inventory saveInventory(Inventory inventory) {
+        return inventoryRepository.save(inventory);
+    }
+
     @Transactional(readOnly = true)
     public List<Inventory> getAllInventory() {
         return inventoryRepository.findAll();
