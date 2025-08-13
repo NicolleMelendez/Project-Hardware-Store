@@ -1,8 +1,10 @@
 package com.hardware.hardwareStore.Controller;
 
 import com.hardware.hardwareStore.Repository.*;
+import com.hardware.hardwareStore.Security.CustomUserDetails;
 import com.hardware.hardwareStore.model.*;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
@@ -26,7 +28,11 @@ public class ViewController {
 
     /* -------------------- DASHBOARD -------------------- */
     @GetMapping("/")
-    public String home() {
+    public String home(@AuthenticationPrincipal CustomUserDetails userDetails, Model model) {
+        if (userDetails != null) {
+            model.addAttribute("currentUser", userDetails);
+            model.addAttribute("userName", userDetails.getName()); // Si agregaste el método getName()
+        }
         return "index";
     }
 
@@ -139,6 +145,12 @@ public class ViewController {
         return "redirect:/entry";
     }
 
+    @GetMapping("/api/entry/{id}")
+    @ResponseBody
+    public Entry getEntryById(@PathVariable Long id) {
+        return entryRepository.findById(id).orElse(null);
+    }
+
     /* -------------------- ISSUE -------------------- */
     @GetMapping("/issue")
     public String issuePage(Model model) {
@@ -158,6 +170,12 @@ public class ViewController {
     public String deleteIssue(@PathVariable Long id) {
         issueRepository.deleteById(id);
         return "redirect:/issue";
+    }
+
+    @GetMapping("/api/issue/{id}")
+    @ResponseBody
+    public Issue getIssueById(@PathVariable Long id) {
+        return issueRepository.findById(id).orElse(null);
     }
 
     /* -------------------- ORDERBUY -------------------- */

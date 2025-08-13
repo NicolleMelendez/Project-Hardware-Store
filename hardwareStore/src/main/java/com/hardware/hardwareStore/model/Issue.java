@@ -1,6 +1,8 @@
 package com.hardware.hardwareStore.model;
 
 import jakarta.persistence.*;
+import org.springframework.format.annotation.DateTimeFormat;
+
 import java.util.Date;
 
 @Entity
@@ -31,8 +33,10 @@ public class Issue {
     @Column(length = 500)
     private String observation;
 
+
     // Constructors
     public Issue() {}
+
 
     public Issue(Inventory inventory, Integer amount, String reason,
                  Employee employee, String observation) {
@@ -68,20 +72,20 @@ public class Issue {
         this.amount = amount;
     }
 
-    public String getReason() {
-        return reason;
-    }
-
-    public void setReason(String reason) {
-        this.reason = reason;
-    }
-
     public Date getDateIssue() {
         return dateIssue;
     }
 
     public void setDateIssue(Date dateIssue) {
         this.dateIssue = dateIssue;
+    }
+
+    public String getReason() {
+        return reason;
+    }
+
+    public void setReason(String reason) {
+        this.reason = reason;
     }
 
     public Employee getEmployee() {

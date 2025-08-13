@@ -16,17 +16,20 @@
       <div class="container-fluid px-4">
         <h1 class="mt-4">Gestión de Pedidos</h1>
 
+        <!-- Botón de Nueva Venta -->
+        <button type="button" class="btn btn-primary mb-3" data-bs-toggle="modal"
+                data-bs-target="#orderModal" onclick="prepareNewOrder()">
+          <i class="fas fa-plus me-1"></i> Nuevo Pedido
+        </button>
 
+        <!-- Tarjeta con la Tabla -->
         <div class="card mb-4">
           <div class="card-header">
-
-
-            <button type="button" class="btn btn-primary float-end" data-bs-toggle="modal"
-                    data-bs-target="#orderModal" onclick="prepareNewOrder()">
-              <i class="fas fa-plus me-1"></i> Nuevo Pedido
-            </button>
+            <i class="fas fa-shopping-cart me-1"></i>
+            Pedidos registrados
           </div>
           <div class="card-body">
+
             <!-- Tabla de pedidos -->
             <div class="table-responsive">
               <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
