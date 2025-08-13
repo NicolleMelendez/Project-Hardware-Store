@@ -31,5 +31,8 @@ public class CustomUserDetails implements UserDetails {
     public String getName() {
         return user.getName();
     }
+    public String getRoleName() {
+        return user.getRole() != null ? user.getRole().getName() : "USER";
+    }
 }
 

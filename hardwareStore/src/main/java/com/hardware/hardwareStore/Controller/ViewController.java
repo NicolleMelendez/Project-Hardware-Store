@@ -26,7 +26,14 @@ public class ViewController {
     @Autowired private SaleRepository saleRepository;
     @Autowired private SaleDetailRepository saleDetailRepository;
 
+    @ModelAttribute
+    public void addUserToModel(@AuthenticationPrincipal CustomUserDetails userDetails, Model model) {
+        if (userDetails != null) {
+            model.addAttribute("currentUser", userDetails);
+        }
+    }
     /* -------------------- DASHBOARD -------------------- */
+
     @GetMapping("/")
     public String home(@AuthenticationPrincipal CustomUserDetails userDetails, Model model) {
         if (userDetails != null) {
