@@ -1,6 +1,8 @@
 package com.hardware.hardwareStore.model;
 
 import jakarta.persistence.*;
+import org.springframework.format.annotation.DateTimeFormat;
+
 import java.util.Date;
 
 @Entity
@@ -27,7 +29,7 @@ public class Entry {
     @Column(name = "date_entry", nullable = false)
     @Temporal(TemporalType.TIMESTAMP)
     private Date dateEntry = new Date();
-
+  
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "employee_id", nullable = false)
     private Employee employee;

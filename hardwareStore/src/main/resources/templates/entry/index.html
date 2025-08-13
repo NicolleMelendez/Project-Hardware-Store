@@ -14,6 +14,7 @@
   <div id="layoutSidenav_content">
     <main>
       <div class="container-fluid px-4">
+<<<<<<< Updated upstream
         <h1 class="mt-4">Registro de Entradas</h1>
 
         <div class="card-body">
@@ -23,11 +24,23 @@
               <i class="fas fa-plus me-1"></i> Nueva Entrada
             </button>
           </div>
+=======
+        <h1 class="mt-4">Gestión de Entradas</h1>
+
+        <!-- Botón de Nueva Entrada -->
+        <button type="button" class="btn btn-primary mb-3" data-bs-toggle="modal"
+                data-bs-target="#entryModal" onclick="prepareNewEntry()">
+          <i class="fas fa-plus me-1"></i> Nueva Entrada
+        </button>
+
+        <!-- Tarjeta con la Tabla -->
+>>>>>>> Stashed changes
         <div class="card mb-4">
           <div class="card-header">
             <i class="fas fa-truck me-1"></i>
             Entradas registradas
           </div>
+<<<<<<< Updated upstream
 
 
             <!-- Modal para formulario -->
@@ -85,6 +98,10 @@
             </div>
 
             <!-- Tabla de entradas -->
+=======
+          <div class="card-body">
+            <!-- Tabla de Entradas (DataTable) -->
+>>>>>>> Stashed changes
             <div class="table-responsive">
               <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
                 <thead>
@@ -93,8 +110,8 @@
                   <th>Producto</th>
                   <th>Proveedor</th>
                   <th>Cantidad</th>
-                  <th>Precio</th>
-                  <th>Fecha</th>
+                  <th>Precio Compra</th>
+                  <th>Fecha Entrada</th>
                   <th>Empleado</th>
                   <th>Acciones</th>
                 </tr>
@@ -102,12 +119,12 @@
                 <tbody>
                 <tr th:each="entry : ${entries}">
                   <td th:text="${entry.id}"></td>
-                  <td th:text="${entry.inventory.name}"></td>
-                  <td th:text="${entry.supplier.name}"></td>
-                  <td th:text="${entry.amount}"></td>
+                  <td th:text="${entry.inventory?.name ?: 'N/A'}"></td>
+                  <td th:text="${entry.supplier?.name ?: 'N/A'}"></td>
+                  <td th:text="${entry.amount ?: 0}"></td>
                   <td th:text="${entry.priceBuy != null ? '$' + #numbers.formatInteger(entry.priceBuy, 0, 'POINT') : ''}"></td>
-                  <td th:text="${#temporals.format(entry.dateEntry, 'dd/MM/yyyy')}"></td>
-                  <td th:text="${entry.employee.name}"></td>
+                  <td th:text="${entry.dateEntry != null ? #dates.format(entry.dateEntry, 'dd/MM/yyyy') : 'Sin fecha'}"></td>
+                  <td th:text="${entry.employee?.name ?: 'N/A'}"></td>
                   <td class="text-center">
                     <button class="btn btn-warning btn-sm me-1"
                             th:data-id="${entry.id}" onclick="prepareEditEntry(this)">
@@ -129,17 +146,152 @@
       </div>
     </main>
 
+    <!-- Modal para Formulario -->
+    <div class="modal fade" id="entryModal" tabindex="-1" aria-hidden="true">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <form id="entryForm" th:action="@{/entries/save}" method="post">
+            <input type="hidden" name="id" id="entryId">
+            <div class="modal-header">
+              <h5 class="modal-title" id="modalTitle">Nueva Entrada</h5>
+              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+              <div class="mb-3">
+                <label class="form-label">Producto (Inventario)</label>
+                <select class="form-select" name="inventory.id" required>
+                  <option value="">Seleccione producto</option>
+                  <option th:each="inventory : ${inventories}"
+                          th:value="${inventory.id}"
+                          th:text="${inventory.name ?: 'Sin nombre'} + ' - Stock: ' + ${inventory.stock}"></option>
+                </select>
+              </div>
+              <div class="mb-3">
+                <label class="form-label">Proveedor</label>
+                <select class="form-select" name="supplier.id" required>
+                  <option value="">Seleccione proveedor</option>
+                  <option th:each="supplier : ${suppliers}"
+                          th:value="${supplier.id}"
+                          th:text="${supplier.name}"></option>
+                </select>
+              </div>
+              <div class="mb-3">
+                <label class="form-label">Cantidad</label>
+                <input type="number" class="form-control" name="amount" required min="1" step="1">
+              </div>
+              <div class="mb-3">
+                <label class="form-label">Precio de Compra</label>
+                <div class="input-group">
+                  <span class="input-group-text">$</span>
+                  <input type="number" class="form-control" name="priceBuy" required min="0" step="1">
+                </div>
+              </div>
+              <div class="mb-3">
+                <label class="form-label">Fecha de Entrada</label>
+                <input type="date" class="form-control" name="dateEntry" id="dateEntryInput" required>
+              </div>
+              <div class="mb-3">
+                <label class="form-label">Empleado</label>
+                <select class="form-select" name="employee.id" required>
+                  <option value="">Seleccione empleado</option>
+                  <option th:each="employee : ${employees}"
+                          th:value="${employee.id}"
+                          th:text="${employee.name}"></option>
+                </select>
+              </div>
+            </div>
+            <div class="modal-footer">
+              <button type="submit" class="btn btn-primary">Guardar</button>
+              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+
     <!-- Footer -->
     <footer th:replace="~{fragments/footer :: footer}"></footer>
   </div>
 </div>
 
-
 <!-- SweetAlert2 -->
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
-<!-- JS -->
+<!-- Bootstrap JS -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
+
+<!-- DataTables JS -->
+<script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
+
 <script>
+  // Inicializar DataTable
+  $(document).ready(function () {
+      $('#dataTable').DataTable({
+          language: {
+              url: '//cdn.datatables.net/plug-ins/1.13.6/i18n/es-ES.json'
+          },
+          columnDefs: [{
+              targets: 4, // Columna de precio de compra
+              render: function(data, type) {
+                  if (type === 'display' && data) {
+                      return '$' + parseInt(data).toLocaleString('es-CO');
+                  }
+                  return data;
+              }
+          }]
+      });
+  });
+
+  // Preparar formulario para nueva entrada
+  function prepareNewEntry() {
+      document.getElementById('modalTitle').textContent = 'Nueva Entrada';
+      document.getElementById('entryId').value = '';
+      document.getElementById('entryForm').reset();
+      document.getElementById('dateEntryInput').valueAsDate = new Date();
+  }
+
+  // Preparar formulario para editar entrada
+  function prepareEditEntry(button) {
+      const entryId = button.getAttribute('data-id');
+      fetch(`/api/entry/${entryId}`)
+          .then(response => {
+              if (!response.ok) {
+                  throw new Error('Error al obtener los datos');
+              }
+              return response.json();
+          })
+          .then(entry => {
+              document.getElementById('modalTitle').textContent = 'Editar Entrada';
+              document.getElementById('entryId').value = entry.id;
+
+              const form = document.getElementById('entryForm');
+              form.querySelector('select[name="inventory.id"]').value = entry.inventory?.id || '';
+              form.querySelector('select[name="supplier.id"]').value = entry.supplier?.id || '';
+              form.querySelector('input[name="amount"]').value = entry.amount || '';
+              form.querySelector('input[name="priceBuy"]').value = entry.priceBuy || '';
+              form.querySelector('select[name="employee.id"]').value = entry.employee?.id || '';
+
+              // Manejo seguro de fechas
+              const dateInput = document.getElementById('dateEntryInput');
+              if (entry.dateEntry) {
+                  const date = new Date(entry.dateEntry);
+                  dateInput.valueAsDate = date;
+              } else {
+                  dateInput.valueAsDate = new Date();
+              }
+
+              // Mostrar modal
+              const modal = new bootstrap.Modal(document.getElementById('entryModal'));
+              modal.show();
+          })
+          .catch(error => {
+              console.error('Error:', error);
+              alert('Error al cargar los datos de la entrada');
+          });
+  }
+
+  // Confirmar eliminación
   function confirmDelete(button) {
       Swal.fire({
           title: '¿Estás seguro?',
@@ -155,61 +307,6 @@
               button.closest('form').submit();
           }
       });
-  }
-</script>
-<!-- Bootstrap JS -->
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
-<!-- DataTables JS -->
-<script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
-<script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
-
-<script>
-  // Inicializar DataTable
-  $(document).ready(function () {
-      $('#dataTable').DataTable({
-          language: {
-              url: '//cdn.datatables.net/plug-ins/1.13.6/i18n/es-ES.json'
-          },
-          columnDefs: [{
-              targets: 4, // Columna de precio
-              render: function(data) {
-                  if (!data) return '';
-                  return '$' + parseInt(data).toLocaleString('es-CO');
-              }
-          }]
-      });
-  });
-
-  // Preparar formulario para nueva entrada
-  function prepareNewEntry() {
-      document.getElementById('modalTitle').textContent = 'Nueva Entrada';
-      document.getElementById('entryId').value = '';
-      document.getElementById('entryForm').reset();
-      document.querySelector('input[name="dateEntry"]').value = new Date().toISOString().split('T')[0];
-  }
-
-  // Preparar formulario para editar entrada
-  function prepareEditEntry(button) {
-      const entryId = button.getAttribute('data-id');
-      fetch(`/api/entries/${entryId}`)
-          .then(response => response.json())
-          .then(entry => {
-              document.getElementById('modalTitle').textContent = 'Editar Entrada';
-              document.getElementById('entryId').value = entry.id;
-
-              // Llenar los campos del formulario
-              const form = document.getElementById('entryForm');
-              form.querySelector('select[name="inventory.id"]').value = entry.inventory.id;
-              form.querySelector('select[name="supplier.id"]').value = entry.supplier.id;
-              form.querySelector('input[name="amount"]').value = entry.amount;
-              form.querySelector('input[name="priceBuy"]').value = entry.priceBuy;
-              form.querySelector('input[name="dateEntry"]').value = entry.dateEntry.split('T')[0];
-              form.querySelector('select[name="employee.id"]').value = entry.employee.id;
-
-              // Mostrar modal
-              const modal = new bootstrap.Modal(document.getElementById('entryModal'));
-              modal.show();
-          });
   }
 </script>
 </body>

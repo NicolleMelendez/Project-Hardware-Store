@@ -139,6 +139,12 @@ public class ViewController {
         return "redirect:/entry";
     }
 
+    @GetMapping("/api/entry/{id}")
+    @ResponseBody
+    public Entry getEntryById(@PathVariable Long id) {
+        return entryRepository.findById(id).orElse(null);
+    }
+
     /* -------------------- ISSUE -------------------- */
     @GetMapping("/issue")
     public String issuePage(Model model) {
@@ -158,6 +164,12 @@ public class ViewController {
     public String deleteIssue(@PathVariable Long id) {
         issueRepository.deleteById(id);
         return "redirect:/issue";
+    }
+
+    @GetMapping("/api/issue/{id}")
+    @ResponseBody
+    public Issue getIssueById(@PathVariable Long id) {
+        return issueRepository.findById(id).orElse(null);
     }
 
     /* -------------------- ORDERBUY -------------------- */
