@@ -106,6 +106,16 @@
                           th:text="${employee.name}"></option>
                 </select>
               </div>
+              <div th:if="${param.error}">
+                <div class="alert alert-danger" role="alert">
+                  <span th:text="${param.error}"></span>
+                </div>
+              </div>
+              <div th:if="${param.success}">
+                <div class="alert alert-success" role="alert">
+                  <span th:text="${param.success}"></span>
+                </div>
+              </div>
               <div class="mb-3">
                 <label class="form-label">Fecha del pedido</label>
                 <input type="date" class="form-control" name="dateOrder" id="dateOrderInput" required>
@@ -173,42 +183,10 @@
 <script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
 
 <script>
-  // Inicializar DataTable
-  $(document).ready(function () {
-      $('#dataTable').DataTable({
-          language: {
-              url: '//cdn.datatables.net/plug-ins/1.13.6/i18n/es-ES.json'
-          },
-          columnDefs: [{
-              targets: 4, // Columna de total
-              render: function(data, type) {
-                  if (type === 'display' && data) {
-                      return '$' + parseInt(data).toLocaleString('es-CO');
-                  }
-                  return data;
-              }
-          }]
-      });
-  });
-
-  /// Preparar formulario para nuevo pedido
-  function prepareNewOrder() {
-      document.getElementById('modalTitle').textContent = 'Nuevo Pedido';
-      document.getElementById('orderId').value = '';
-      document.getElementById('orderForm').reset();
-
-      // Establecer fecha actual en formato YYYY-MM-DD
-      const today = new Date();
-      const formattedDate = today.toISOString().split('T')[0];
-      document.getElementById('dateOrderInput').value = formattedDate;
-
-      document.querySelector('select[name="status"]').value = 'PENDIENTE';
-  }
-
   // Preparar formulario para editar pedido
   function prepareEditOrder(button) {
       const orderId = button.getAttribute('data-id');
-      fetch(`/api/orders/${orderId}`)
+      fetch(`/orderbuy/api/${orderId}`)
           .then(response => {
               if (!response.ok) {
                   throw new Error('Error al obtener los datos del pedido');
@@ -247,9 +225,39 @@
           })
           .catch(error => {
               console.error('Error:', error);
-              alert('Error al cargar los datos del pedido. Por favor intente nuevamente.');
+              Swal.fire({
+                  icon: 'error',
+                  title: 'Error',
+                  text: 'Error al cargar los datos del pedido. Por favor intente nuevamente.'
+              });
           });
   }
+
+  // Manejar el envío del formulario con fetch para mejor manejo de errores
+  document.getElementById('orderForm').addEventListener('submit', function(e) {
+      e.preventDefault();
+
+      const formData = new FormData(this);
+      const url = this.getAttribute('action');
+
+      fetch(url, {
+          method: 'POST',
+          body: formData
+      })
+      .then(response => {
+          if (response.redirected) {
+              window.location.href = response.url;
+          }
+      })
+      .catch(error => {
+          console.error('Error:', error);
+          Swal.fire({
+              icon: 'error',
+              title: 'Error',
+              text: 'Error al procesar la solicitud. Por favor intente nuevamente.'
+          });
+      });
+  });
 </script>
 </body>
 </html>
