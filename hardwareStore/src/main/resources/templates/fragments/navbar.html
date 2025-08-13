@@ -1,56 +1,31 @@
-<<<<<<< Updated upstream
-<nav th:fragment="navbar" class="sb-topnav navbar navbar-expand-lg bg-dark"
-     xmlns:th="http://www.w3.org/1999/xhtml">
-    <div class="container-fluid">
-        <hr>
-
-        <!-- Contenedor alineado con el contenido principal -->
-        <div class="d-flex w-100 align-items-center" style="padding-left: 15px;">
-
-            <!-- Texto de bienvenida alineado con "Gestión de Clientes" -->
-            <div class="text-white fw-bold">
-                <h2 class="mb-0 text-white" style="margin-left: 220px;">Bienvenid@s a Foregiline</h2>
-            </div>
-
-            <!-- Menú usuario (mantenido a la derecha) -->
-            <ul class="navbar-nav ms-auto me-3 me-lg-4">
-                <li class="nav-item dropdown">
-                    <a class="nav-link dropdown-toggle text-white" id="navbarDropdown" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                        <i class="fas fa-user fa-fw"></i>
-                    </a>
-                    <ul class="dropdown-menu dropdown-menu-end">
-                        <li><a class="dropdown-item" href="#!">Perfil</a></li>
-                        <li><a class="dropdown-item" href="#!">Configuración</a></li>
-                        <li><hr class="dropdown-divider"/></li>
-                        <li><a class="dropdown-item" href="#!">Cerrar sesión</a></li>
-                    </ul>
-                </li>
-            </ul>
-=======
 <nav th:fragment="navbar" class="sb-topnav navbar navbar-expand-lg navbar-dark bg-dark"
      xmlns:th="http://www.w3.org/1999/xhtml"
      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
     <div class="container-fluid d-flex justify-content-between align-items-center">
->>>>>>> Stashed changes
 
+        <!-- Texto de bienvenida -->
+        <div class="text-white fw-bold">
+            <h2 class="mb-0 text-white" style="margin-left: 220px;">Bienvenid@s a ForgeMax</h2>
         </div>
-<<<<<<< Updated upstream
-=======
 
         <!-- Menú usuario (alineado a la derecha) -->
         <ul class="navbar-nav ms-auto me-3 me-lg-4">
-            <li class="nav-item dropdown">
+            <li class="nav-item dropdown" sec:authorize="isAuthenticated()">
                 <a class="nav-link dropdown-toggle text-white" id="navbarDropdown" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                     <i class="fas fa-user fa-fw me-1"></i>
-                    <span th:text="${currentUser != null ? currentUser.name : 'Usuario'}">Usuario</span>
+                    <span sec:authentication="name">Usuario</span>
                 </a>
                 <ul class="dropdown-menu dropdown-menu-end">
-                    <li><a class="dropdown-item" href="/profile">
-                        <i class="fas fa-user-circle me-2"></i>Perfil
-                    </a></li>
-                    <li><a class="dropdown-item" href="#!">
-                        <i class="fas fa-cog me-2"></i>Configuración
-                    </a></li>
+                    <li>
+                        <a class="dropdown-item" href="/profile">
+                            <i class="fas fa-user-circle me-2"></i>Perfil
+                        </a>
+                    </li>
+                    <li>
+                        <a class="dropdown-item" href="#!">
+                            <i class="fas fa-cog me-2"></i>Configuración
+                        </a>
+                    </li>
                     <li><hr class="dropdown-divider"/></li>
                     <li>
                         <a class="dropdown-item" href="#" onclick="event.preventDefault(); document.getElementById('logout-form').submit();">
@@ -64,6 +39,5 @@
             </li>
         </ul>
 
->>>>>>> Stashed changes
     </div>
 </nav>
