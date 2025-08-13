@@ -1,4 +1,5 @@
 package com.hardware.hardwareStore.model;
+
 import jakarta.persistence.*;
 
 @Entity
@@ -8,20 +9,36 @@ public class Inventory {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column(nullable = false, length = 100)
     private String name;
-    private String category;
-    private Integer price;
-    private Integer stock;
 
-    @ManyToOne
-    @JoinColumn(name = "id_supplier")
+    @Column(nullable = false, length = 50)
+    private String category;
+
+    @Column(nullable = false)
+    private Double price;
+
+    @Column(nullable = false)
+    private Integer stock = 0;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "supplier_id", nullable = false)
     private Supplier supplier;
 
-    @Column(name = "min_stock")
-    private Integer minStock;
+    @Column(name = "min_stock", nullable = false)
+    private Integer minStock = 5;
 
+    // Constructors
     public Inventory() {}
 
+    public Inventory(String name, String category, Double price, Supplier supplier) {
+        this.name = name;
+        this.category = category;
+        this.price = price;
+        this.supplier = supplier;
+    }
+
+    // Getters and setters...
     public Long getId() {
         return id;
     }
@@ -46,11 +63,11 @@ public class Inventory {
         this.category = category;
     }
 
-    public Integer getPrice() {
+    public Double getPrice() {
         return price;
     }
 
-    public void setPrice(Integer price) {
+    public void setPrice(Double price) {
         this.price = price;
     }
 

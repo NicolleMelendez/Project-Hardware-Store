@@ -12,12 +12,13 @@ public class OrderBuy {
     private Long id;
 
     @ManyToOne
-    @JoinColumn(name = "id_client")
+    @JoinColumn(name = "id_client", nullable = false)
     private Client client;
 
     @ManyToOne
-    @JoinColumn(name = "id_employee")
+    @JoinColumn(name = "id_employee", nullable = false)
     private Employee employee;
+
 
     @Column(name = "date_order")
     @Temporal(TemporalType.DATE)
@@ -27,8 +28,7 @@ public class OrderBuy {
     private Integer total;
     private String status;
 
-    public OrderBuy() {}
-
+    // Getters y Setters
     public Long getId() {
         return id;
     }
@@ -77,4 +77,3 @@ public class OrderBuy {
         this.status = status;
     }
 }
-

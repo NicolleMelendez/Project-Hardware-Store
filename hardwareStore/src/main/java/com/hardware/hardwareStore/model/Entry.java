@@ -1,4 +1,5 @@
 package com.hardware.hardwareStore.model;
+
 import jakarta.persistence.*;
 import java.util.Date;
 
@@ -9,28 +10,40 @@ public class Entry {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne
-    @JoinColumn(name = "id_inventory")
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "inventory_id", nullable = false)
     private Inventory inventory;
 
-    @ManyToOne
-    @JoinColumn(name = "id_supplier")
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "supplier_id", nullable = false)
     private Supplier supplier;
 
+    @Column(nullable = false)
     private Integer amount;
 
-    @Column(name = "price_buy")
-    private Integer priceBuy;
+    @Column(name = "price_buy", nullable = false)
+    private Double priceBuy;
 
-    @Column(name = "date_entry")
-    private Date dateEntry;
+    @Column(name = "date_entry", nullable = false)
+    @Temporal(TemporalType.TIMESTAMP)
+    private Date dateEntry = new Date();
 
-    @ManyToOne
-    @JoinColumn(name = "id_employee")
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "employee_id", nullable = false)
     private Employee employee;
 
     public Entry() {}
 
+    public Entry(Inventory inventory, Supplier supplier, Integer amount,
+                 Double priceBuy, Employee employee) {
+        this.inventory = inventory;
+        this.supplier = supplier;
+        this.amount = amount;
+        this.priceBuy = priceBuy;
+        this.employee = employee;
+    }
+
+    // Getters and setters
     public Long getId() {
         return id;
     }
@@ -63,11 +76,11 @@ public class Entry {
         this.amount = amount;
     }
 
-    public Integer getPriceBuy() {
+    public Double getPriceBuy() {
         return priceBuy;
     }
 
-    public void setPriceBuy(Integer priceBuy) {
+    public void setPriceBuy(Double priceBuy) {
         this.priceBuy = priceBuy;
     }
 
