@@ -124,32 +124,32 @@ public class ViewController {
     }
 
     /* -------------------- ENTRY -------------------- */
-    @GetMapping("/entry")
-    public String entryPage(Model model) {
-        model.addAttribute("entries", entryRepository.findAll());
-        model.addAttribute("inventories", inventoryRepository.findAll());
-        model.addAttribute("suppliers", supplierRepository.findAll());
-        model.addAttribute("employees", employeeRepository.findAll());
-        return "entry/index";
-    }
-
-    @PostMapping("/entries/save")
-    public String saveEntry(@ModelAttribute Entry entry) {
-        entryRepository.save(entry);
-        return "redirect:/entry";
-    }
-
-    @PostMapping("/delete/entry/{id}")
-    public String deleteEntry(@PathVariable Long id) {
-        entryRepository.deleteById(id);
-        return "redirect:/entry";
-    }
-
-    @GetMapping("/api/entry/{id}")
-    @ResponseBody
-    public Entry getEntryById(@PathVariable Long id) {
-        return entryRepository.findById(id).orElse(null);
-    }
+//    @GetMapping("/entry")
+//    public String entryPage(Model model) {
+//        model.addAttribute("entries", entryRepository.findAll());
+//        model.addAttribute("inventories", inventoryRepository.findAll());
+//        model.addAttribute("suppliers", supplierRepository.findAll());
+//        model.addAttribute("employees", employeeRepository.findAll());
+//        return "entry/index";
+//    }
+//
+//    @PostMapping("/entries/save")
+//    public String saveEntry(@ModelAttribute Entry entry) {
+//        entryRepository.save(entry);
+//        return "redirect:/entry";
+//    }
+//
+//    @PostMapping("/delete/entry/{id}")
+//    public String deleteEntry(@PathVariable Long id) {
+//        entryRepository.deleteById(id);
+//        return "redirect:/entry";
+//    }
+//
+//    @GetMapping("/api/entry/{id}")
+//    @ResponseBody
+//    public Entry getEntryById(@PathVariable Long id) {
+//        return entryRepository.findById(id).orElse(null);
+//    }
 
     /* -------------------- ISSUE -------------------- */
     @GetMapping("/issue")
@@ -220,42 +220,42 @@ public class ViewController {
         return "redirect:/orderdetail";
     }
     /* -------------------- SALE -------------------- */
-    @GetMapping("/sale")
-    public String salePage(Model model) {
-        model.addAttribute("sales", saleRepository.findAll());
-        model.addAttribute("clients", clientRepository.findAll());
-        model.addAttribute("employees", employeeRepository.findAll());
-        return "sale/index";
-    }
-
-    @GetMapping("/api/sale/{id}")
-    @ResponseBody
-    public Sale getSaleById(@PathVariable Long id) {
-        return saleRepository.findById(id).orElse(null);
-    }
-
-    @PostMapping("/sales/save")
-    public String saveSale(@ModelAttribute Sale sale) {
-        // Si es nueva venta, establecer fecha actual si no viene
-        if(sale.getId() == null && sale.getDateSale() == null) {
-            sale.setDateSale(new Date());
-        } else if(sale.getId() != null) {
-            // Si es edición, mantener la fecha original si no se cambió
-            Sale existing = saleRepository.findById(sale.getId()).orElse(null);
-            if(existing != null && sale.getDateSale() == null) {
-                sale.setDateSale(existing.getDateSale());
-            }
-        }
-
-        saleRepository.save(sale);
-        return "redirect:/sale";
-    }
-
-    @PostMapping("/delete/sale/{id}")
-    public String deleteSale(@PathVariable Long id) {
-        saleRepository.deleteById(id);
-        return "redirect:/sale";
-    }
+//    @GetMapping("/sale")
+//    public String salePage(Model model) {
+//        model.addAttribute("sales", saleRepository.findAll());
+//        model.addAttribute("clients", clientRepository.findAll());
+//        model.addAttribute("employees", employeeRepository.findAll());
+//        return "sale/index";
+//    }
+//
+//    @GetMapping("/api/sale/{id}")
+//    @ResponseBody
+//    public Sale getSaleById(@PathVariable Long id) {
+//        return saleRepository.findById(id).orElse(null);
+//    }
+//
+//    @PostMapping("/sales/save")
+//    public String saveSale(@ModelAttribute Sale sale) {
+//        // Si es nueva venta, establecer fecha actual si no viene
+//        if(sale.getId() == null && sale.getDateSale() == null) {
+//            sale.setDateSale(new Date());
+//        } else if(sale.getId() != null) {
+//            // Si es edición, mantener la fecha original si no se cambió
+//            Sale existing = saleRepository.findById(sale.getId()).orElse(null);
+//            if(existing != null && sale.getDateSale() == null) {
+//                sale.setDateSale(existing.getDateSale());
+//            }
+//        }
+//
+//        saleRepository.save(sale);
+//        return "redirect:/sale";
+//    }
+//
+//    @PostMapping("/delete/sale/{id}")
+//    public String deleteSale(@PathVariable Long id) {
+//        saleRepository.deleteById(id);
+//        return "redirect:/sale";
+//    }
 
 
     /* -------------------- SALEDETAIL -------------------- */

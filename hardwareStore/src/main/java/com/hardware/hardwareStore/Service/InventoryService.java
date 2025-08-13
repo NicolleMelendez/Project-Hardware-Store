@@ -25,15 +25,13 @@ public class InventoryService {
     }
 
 
-
-
     @Transactional
     public Inventory saveInventory(Inventory inventory) {
         return inventoryRepository.save(inventory);
     }
 
     @Transactional(readOnly = true)
-    public List<Inventory> getAllInventory() {
+    public List<Inventory> getAllInventories() {
         return inventoryRepository.findAll();
     }
 

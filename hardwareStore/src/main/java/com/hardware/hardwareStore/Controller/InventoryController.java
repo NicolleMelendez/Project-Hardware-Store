@@ -22,7 +22,7 @@ public class InventoryController {
 
     @GetMapping
     public List<Inventory> getAllInventory() {
-        return inventoryService.getAllInventory();
+        return inventoryService.getAllInventories();
     }
 
     @GetMapping("/{id}")
