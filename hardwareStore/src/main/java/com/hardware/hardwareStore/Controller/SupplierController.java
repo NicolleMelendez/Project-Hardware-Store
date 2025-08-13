@@ -1,8 +1,10 @@
 package com.hardware.hardwareStore.Controller;
 
+
 import com.hardware.hardwareStore.model.Supplier;
-import com.hardware.hardwareStore.Repository.SupplierRepository;
+import com.hardware.hardwareStore.Service.SupplierService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -11,32 +13,43 @@ import java.util.List;
 @RequestMapping("/api/suppliers")
 public class SupplierController {
 
+    private final SupplierService supplierService;
+
     @Autowired
-    private SupplierRepository repository;
+    public SupplierController(SupplierService supplierService) {
+        this.supplierService = supplierService;
+    }
 
     @GetMapping
-    public List<Supplier> getAll() {
-        return repository.findAll();
+    public List<Supplier> getAllSuppliers() {
+        return supplierService.getAllSuppliers();
     }
 
     @GetMapping("/{id}")
-    public Supplier getById(@PathVariable Long id) {
-        return repository.findById(id).orElse(null);
+    public ResponseEntity<Supplier> getSupplierById(@PathVariable Long id) {
+        return supplierService.getSupplierById(id)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
     }
 
     @PostMapping
-    public Supplier create(@RequestBody Supplier supplier) {
-        return repository.save(supplier);
+    public Supplier createSupplier(@RequestBody Supplier supplier) {
+        return supplierService.createSupplier(supplier);
     }
 
     @PutMapping("/{id}")
-    public Supplier update(@PathVariable Long id, @RequestBody Supplier supplier) {
-        supplier.setId(id);
-        return repository.save(supplier);
+    public ResponseEntity<Supplier> updateSupplier(@PathVariable Long id, @RequestBody Supplier supplier) {
+        try {
+            Supplier updatedSupplier = supplierService.updateSupplier(id, supplier);
+            return ResponseEntity.ok(updatedSupplier);
+        } catch (RuntimeException e) {
+            return ResponseEntity.notFound().build();
+        }
     }
 
     @DeleteMapping("/{id}")
-    public void delete(@PathVariable Long id) {
-        repository.deleteById(id);
+    public ResponseEntity<Void> deleteSupplier(@PathVariable Long id) {
+        supplierService.deleteSupplier(id);
+        return ResponseEntity.noContent().build();
     }
 }

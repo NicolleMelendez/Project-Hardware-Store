@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @Transactional
@@ -24,6 +25,16 @@ public class ClientService {
     public Client findById(Long id) {
         return clientRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Cliente no encontrado"));
+    }
+
+    public Optional<Client> getClientById(Long id) {
+        return clientRepository.findById(id);
+    }
+
+
+    public Client getClientByIdOrThrow(Long id) {
+        return getClientById(id)
+                .orElseThrow(() -> new RuntimeException("Client not found with id: " + id));
     }
 
     // Crear cliente (con validación de email)

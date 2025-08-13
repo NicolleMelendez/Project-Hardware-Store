@@ -1,9 +1,8 @@
 package com.hardware.hardwareStore.Controller;
 
-
 import com.hardware.hardwareStore.model.OrderBuy;
-import com.hardware.hardwareStore.Repository.OrderBuyRepository;
-import org.springframework.beans.factory.annotation.Autowired;
+import com.hardware.hardwareStore.Service.OrderBuyService;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -12,32 +11,37 @@ import java.util.List;
 @RequestMapping("/api/orders")
 public class OrderBuyController {
 
-    @Autowired
-    private OrderBuyRepository repository;
+    private final OrderBuyService orderBuyService;
+
+    public OrderBuyController(OrderBuyService orderBuyService) {
+        this.orderBuyService = orderBuyService;
+    }
 
     @GetMapping
-    public List<OrderBuy> getAll() {
-        return repository.findAll();
+    public ResponseEntity<List<OrderBuy>> getAllOrders() {
+        return ResponseEntity.ok(orderBuyService.getAllOrders());
     }
 
     @GetMapping("/{id}")
-    public OrderBuy getById(@PathVariable Long id) {
-        return repository.findById(id).orElse(null);
+    public ResponseEntity<OrderBuy> getOrderById(@PathVariable Long id) {
+        return ResponseEntity.ok(orderBuyService.getOrderById(id));
     }
 
     @PostMapping
-    public OrderBuy create(@RequestBody OrderBuy order) {
-        return repository.save(order);
+    public ResponseEntity<OrderBuy> createOrder(@RequestBody OrderBuy orderBuy) {
+        return ResponseEntity.ok(orderBuyService.createOrder(orderBuy));
     }
 
     @PutMapping("/{id}")
-    public OrderBuy update(@PathVariable Long id, @RequestBody OrderBuy order) {
-        order.setId(id);
-        return repository.save(order);
+    public ResponseEntity<OrderBuy> updateOrder(
+            @PathVariable Long id,
+            @RequestBody OrderBuy orderBuy) {
+        return ResponseEntity.ok(orderBuyService.updateOrder(id, orderBuy));
     }
 
     @DeleteMapping("/{id}")
-    public void delete(@PathVariable Long id) {
-        repository.deleteById(id);
+    public ResponseEntity<Void> deleteOrder(@PathVariable Long id) {
+        orderBuyService.deleteOrder(id);
+        return ResponseEntity.noContent().build();
     }
 }

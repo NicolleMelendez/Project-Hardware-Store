@@ -1,4 +1,5 @@
 package com.hardware.hardwareStore.model;
+
 import jakarta.persistence.*;
 import org.springframework.format.annotation.DateTimeFormat;
 
@@ -11,27 +12,42 @@ public class Issue {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne
-    @JoinColumn(name = "id_inventory")
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "inventory_id", nullable = false)
     private Inventory inventory;
 
+    @Column(nullable = false)
     private Integer amount;
+
+    @Column(nullable = false, length = 100)
     private String reason;
 
-    @Column(name = "date_issue")
-    @Temporal(TemporalType.DATE)
-    @DateTimeFormat(pattern = "yyyy-MM-dd")
-    private Date dateIssue;
+    @Column(name = "date_issue", nullable = false)
+    @Temporal(TemporalType.TIMESTAMP)
+    private Date dateIssue = new Date();
 
-    @ManyToOne
-    @JoinColumn(name = "id_employee")
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "employee_id", nullable = false)
     private Employee employee;
 
+    @Column(length = 500)
     private String observation;
 
-    public Issue() {
+
+    // Constructors
+    public Issue() {}
+
+
+    public Issue(Inventory inventory, Integer amount, String reason,
+                 Employee employee, String observation) {
+        this.inventory = inventory;
+        this.amount = amount;
+        this.reason = reason;
+        this.employee = employee;
+        this.observation = observation;
     }
 
+    // Getters and setters...
     public Long getId() {
         return id;
     }
