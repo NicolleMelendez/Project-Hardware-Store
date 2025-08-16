@@ -1,44 +1,50 @@
 package com.hardware.hardwareStore.Controller;
 
+import com.hardware.hardwareStore.Service.ClientService;
+import com.hardware.hardwareStore.Service.EmployeeService;
+import com.hardware.hardwareStore.Service.SaleService;
 import com.hardware.hardwareStore.model.Sale;
-import com.hardware.hardwareStore.Repository.SaleRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
+import java.util.Date;
 
-@RestController
-@RequestMapping("/api/sales")
+@Controller
+@RequestMapping("/sale")
 public class SaleController {
 
     @Autowired
-    private SaleRepository repository;
+    private SaleService saleService;
+    @Autowired
+    private ClientService clientService;
+    @Autowired
+    private EmployeeService employeeService;
 
     @GetMapping
-    public List<Sale> getAll() {
-        return repository.findAll();
+    public String salePage(Model model) {
+        model.addAttribute("sales", saleService.getAllSales());
+        model.addAttribute("clients", clientService.findAll());
+        model.addAttribute("employees", employeeService.getAllEmployees());
+        return "sale/index";
     }
 
-
-    
-    @GetMapping("/{id}")
-    public Sale getById(@PathVariable Long id) {
-        return repository.findById(id).orElse(null);
+    @GetMapping("/api/sale/{id}")
+    @ResponseBody
+    public Sale getSaleById(@PathVariable Long id) {
+        return saleService.getSaleById(id);
     }
 
-    @PostMapping
-    public Sale create(@RequestBody Sale sale) {
-        return repository.save(sale);
+    @PostMapping("/save")
+    public String saveSale(@ModelAttribute Sale sale) {
+        saleService.createSale(sale);
+        return "redirect:/sale";
     }
 
-    @PutMapping("/{id}")
-    public Sale update(@PathVariable Long id, @RequestBody Sale sale) {
-        sale.setId(id);
-        return repository.save(sale);
-    }
-
-    @DeleteMapping("/{id}")
-    public void delete(@PathVariable Long id) {
-        repository.deleteById(id);
+    @DeleteMapping("/delete/{id}")
+    public String deleteSale(@PathVariable Long id) {
+        saleService.deleteSale(id);
+        return "redirect:/sale";
     }
 }
