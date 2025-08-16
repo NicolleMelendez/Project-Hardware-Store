@@ -1,47 +1,42 @@
 package com.hardware.hardwareStore.Controller;
 
-import com.hardware.hardwareStore.model.OrderBuy;
+import com.hardware.hardwareStore.Service.ClientService;
+import com.hardware.hardwareStore.Service.EmployeeService;
 import com.hardware.hardwareStore.Service.OrderBuyService;
-import org.springframework.http.ResponseEntity;
+import com.hardware.hardwareStore.model.OrderBuy;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
-
-@RestController
-@RequestMapping("/api/orders")
+@Controller
+@RequestMapping("/orderbuy")
 public class OrderBuyController {
 
-    private final OrderBuyService orderBuyService;
-
-    public OrderBuyController(OrderBuyService orderBuyService) {
-        this.orderBuyService = orderBuyService;
-    }
+    @Autowired
+    private OrderBuyService orderBuyService;
+    @Autowired
+    private ClientService clientService;
+    @Autowired
+    private EmployeeService employeeService;
 
     @GetMapping
-    public ResponseEntity<List<OrderBuy>> getAllOrders() {
-        return ResponseEntity.ok(orderBuyService.getAllOrders());
+    public String orderBuyPage(Model model) {
+        model.addAttribute("orders", orderBuyService.getAllOrders());
+        model.addAttribute("clients", clientService.findAll());
+        model.addAttribute("employees", employeeService.getAllEmployees());
+        return "orderbuy/index";
     }
 
-    @GetMapping("/{id}")
-    public ResponseEntity<OrderBuy> getOrderById(@PathVariable Long id) {
-        return ResponseEntity.ok(orderBuyService.getOrderById(id));
+    @PostMapping("/save")
+    public String saveOrderBuy(@ModelAttribute OrderBuy orderBuy) {
+        orderBuyService.createOrder(orderBuy);
+        return "redirect:/orderbuy";
     }
 
-    @PostMapping
-    public ResponseEntity<OrderBuy> createOrder(@RequestBody OrderBuy orderBuy) {
-        return ResponseEntity.ok(orderBuyService.createOrder(orderBuy));
-    }
-
-    @PutMapping("/{id}")
-    public ResponseEntity<OrderBuy> updateOrder(
-            @PathVariable Long id,
-            @RequestBody OrderBuy orderBuy) {
-        return ResponseEntity.ok(orderBuyService.updateOrder(id, orderBuy));
-    }
-
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteOrder(@PathVariable Long id) {
+    @DeleteMapping("/delete/{id}")
+    public String deleteOrderBuy(@PathVariable Long id) {
         orderBuyService.deleteOrder(id);
-        return ResponseEntity.noContent().build();
+        return "redirect:/orderbuy";
     }
 }

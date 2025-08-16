@@ -1,6 +1,10 @@
 package com.hardware.hardwareStore.Controller;
 
+import com.hardware.hardwareStore.Service.ClientService;
+import com.hardware.hardwareStore.Service.EmployeeService;
+import com.hardware.hardwareStore.Service.SaleService;
 import com.hardware.hardwareStore.model.Sale;
+<<<<<<< HEAD
 import com.hardware.hardwareStore.model.Client;
 import com.hardware.hardwareStore.model.Employee;
 import com.hardware.hardwareStore.Repository.SaleRepository;
@@ -11,9 +15,15 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
+=======
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+>>>>>>> origin/nicolle
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+<<<<<<< HEAD
 
 import java.util.Date;
 import java.util.List;
@@ -24,6 +34,20 @@ public class SaleController {
 
     @Autowired
     private SaleRepository saleRepository;
+=======
+import java.util.Date;
+
+@Controller
+@RequestMapping("/sale")
+public class SaleController {
+
+    @Autowired
+    private SaleService saleService;
+    @Autowired
+    private ClientService clientService;
+    @Autowired
+    private EmployeeService employeeService;
+>>>>>>> origin/nicolle
 
     @Autowired
     private ClientRepository clientRepository;
@@ -34,6 +58,7 @@ public class SaleController {
     // Vista principal de ventas
     @GetMapping
     public String salePage(Model model) {
+<<<<<<< HEAD
         if (!model.containsAttribute("sale")) {
             model.addAttribute("sale", new Sale());
         }
@@ -92,5 +117,29 @@ public class SaleController {
         }
 
         return "redirect:/sales";
+=======
+        model.addAttribute("sales", saleService.getAllSales());
+        model.addAttribute("clients", clientService.findAll());
+        model.addAttribute("employees", employeeService.getAllEmployees());
+        return "sale/index";
+    }
+
+    @GetMapping("/api/sale/{id}")
+    @ResponseBody
+    public Sale getSaleById(@PathVariable Long id) {
+        return saleService.getSaleById(id);
+    }
+
+    @PostMapping("/save")
+    public String saveSale(@ModelAttribute Sale sale) {
+        saleService.createSale(sale);
+        return "redirect:/sale";
+    }
+
+    @DeleteMapping("/delete/{id}")
+    public String deleteSale(@PathVariable Long id) {
+        saleService.deleteSale(id);
+        return "redirect:/sale";
+>>>>>>> origin/nicolle
     }
 }

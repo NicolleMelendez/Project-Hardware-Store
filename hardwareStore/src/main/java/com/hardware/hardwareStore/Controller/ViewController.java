@@ -14,18 +14,6 @@ import org.springframework.ui.Model;
 @Controller
 public class ViewController {
 
-    // Repositorios (inyectados)
-    @Autowired private ClientRepository clientRepository;
-    @Autowired private EmployeeRepository employeeRepository;
-    @Autowired private SupplierRepository supplierRepository;
-    @Autowired private InventoryRepository inventoryRepository;
-    @Autowired private EntryRepository entryRepository;
-    @Autowired private IssueRepository issueRepository;
-    @Autowired private OrderBuyRepository orderBuyRepository;
-    @Autowired private OrderDetailRepository orderDetailRepository;
-    @Autowired private SaleRepository saleRepository;
-    @Autowired private SaleDetailRepository saleDetailRepository;
-
     /* -------------------- DASHBOARD -------------------- */
     @GetMapping("/")
     public String home(@AuthenticationPrincipal CustomUserDetails userDetails, Model model) {
@@ -36,6 +24,7 @@ public class ViewController {
         return "index";
     }
 
+<<<<<<< HEAD
     /* -------------------- CLIENT -------------------- */
     @GetMapping("/client")
     public String clientPage(Model model) {
@@ -256,26 +245,13 @@ public class ViewController {
 //        saleRepository.deleteById(id);
 //        return "redirect:/sale";
 //    }
+=======
+>>>>>>> origin/nicolle
 
 
-    /* -------------------- SALEDETAIL -------------------- */
-    @GetMapping("/sale-detail")
-    public String saleDetailPage(Model model) {
-        model.addAttribute("details", saleDetailRepository.findAll());
-        model.addAttribute("sales", saleRepository.findAll());
-        model.addAttribute("inventories", inventoryRepository.findAll());
-        return "saledetail/index";
-    }
 
-    @PostMapping("/sale-details/save")
-    public String saveSaleDetail(@ModelAttribute SaleDetail detail) {
-        saleDetailRepository.save(detail);
-        return "redirect:/sale-detail";
-    }
 
-    @PostMapping("/delete/sale-detail/{id}")
-    public String deleteSaleDetail(@PathVariable Long id) {
-        saleDetailRepository.deleteById(id);
-        return "redirect:/sale-detail";
-    }
+
+
+
 }
