@@ -1,32 +1,42 @@
 package com.hardware.hardwareStore.Controller;
 
-
+import com.hardware.hardwareStore.Service.InventoryService;
+import com.hardware.hardwareStore.Service.SaleDetailService;
+import com.hardware.hardwareStore.Service.SaleService;
 import com.hardware.hardwareStore.model.SaleDetail;
-import com.hardware.hardwareStore.Repository.SaleDetailRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
-
-@RestController
-@RequestMapping("/api/sale-details")
+@Controller
+@RequestMapping("/sale-detail")
 public class SaleDetailController {
 
     @Autowired
-    private SaleDetailRepository repository;
+    private SaleDetailService saleDetailService;
+    @Autowired
+    private SaleService saleService;
+    @Autowired
+    private InventoryService inventoryService;
 
     @GetMapping
-    public List<SaleDetail> getAll() {
-        return repository.findAll();
+    public String saleDetailPage(Model model) {
+        model.addAttribute("details", saleDetailService.getAllSaleDetails());
+        model.addAttribute("sales", saleService.getAllSales());
+        model.addAttribute("inventories", inventoryService.getAllInventory());
+        return "saledetail/index";
     }
 
-    @PostMapping
-    public SaleDetail create(@RequestBody SaleDetail detail) {
-        return repository.save(detail);
+    @PostMapping("/save")
+    public String saveSaleDetail(@ModelAttribute SaleDetail detail) {
+        saleDetailService.createSaleDetail(detail);
+        return "redirect:/sale-detail";
     }
 
-    @DeleteMapping
-    public void delete(@RequestBody SaleDetail detail) {
-        repository.delete(detail);
+    @DeleteMapping("/delete/{id}")
+    public String deleteSaleDetail(@PathVariable Long id) {
+        saleDetailService.deleteSaleDetail(id);
+        return "redirect:/sale-detail";
     }
 }
