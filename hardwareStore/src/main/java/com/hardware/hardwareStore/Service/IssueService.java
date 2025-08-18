@@ -32,13 +32,13 @@ public class IssueService {
     @Transactional(readOnly = true)
     public Issue getIssueById(Long id) {
         return issueRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Issue not found with id: " + id));
+                .orElseThrow(() -> new RuntimeException("No se encontro la salida: " + id));
     }
 
     @Transactional
     public Issue createIssue(Issue issue) {
         validateRelations(issue);
-        updateInventoryStock(issue.getInventory(), -issue.getAmount()); // Reduce stock
+        updateInventoryStock(issue.getInventory(), - issue.getAmount()); // Reduce stock
         return issueRepository.save(issue);
     }
 
@@ -47,8 +47,8 @@ public class IssueService {
         Issue issue = getIssueById(id);
 
         // Calculate stock difference
-        int quantityDifference = issue.getAmount() - issueDetails.getAmount();
-        updateInventoryStock(issueDetails.getInventory(), quantityDifference);
+        int amountDifference = issue.getAmount() - issueDetails.getAmount();
+        updateInventoryStock(issueDetails.getInventory(), amountDifference);
 
         validateRelations(issueDetails);
 
@@ -92,15 +92,15 @@ public class IssueService {
 
     private void validateRelations(Issue issue) {
         if (!inventoryService.getInventoryById(issue.getInventory().getId()).isPresent()) {
-            throw new RuntimeException("Inventory not found");
+            throw new RuntimeException("No se encontro el producto");
         }
 
         if (!employeeService.getEmployeeById(issue.getEmployee().getId()).isPresent()) {
-            throw new RuntimeException("Employee not found");
+            throw new RuntimeException("No se encontro el empleado");
         }
     }
 
-    private void updateInventoryStock(Inventory inventory, int quantity) {
-        inventoryService.updateStock(inventory.getId(), quantity);
+    private void updateInventoryStock(Inventory inventory, int amount) {
+        inventoryService.updateStock(inventory.getId(), amount);
     }
 }

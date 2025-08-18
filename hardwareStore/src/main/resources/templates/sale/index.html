@@ -16,6 +16,16 @@
       <div class="container-fluid px-4">
         <h1 class="mt-4">Gestión de Ventas</h1>
 
+        <!-- Mensajes de éxito/error -->
+        <div th:if="${successMessage}" class="alert alert-success alert-dismissible fade show" role="alert">
+          <span th:text="${successMessage}"></span>
+          <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+        <div th:if="${errorMessage}" class="alert alert-danger alert-dismissible fade show" role="alert">
+          <span th:text="${errorMessage}"></span>
+          <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+
         <!-- Botón de Nueva Venta -->
         <button type="button" class="btn btn-primary mb-3" data-bs-toggle="modal"
                 data-bs-target="#saleModal" onclick="prepareNewSale()">
@@ -40,7 +50,7 @@
                   <th>Fecha</th>
                   <th>Total</th>
                   <th>Estado</th>
-                  <th>Acciones</th>
+                  <th>Detalle</th>
                 </tr>
                 </thead>
                 <tbody>
@@ -57,16 +67,11 @@
                             th:text="${sale.status ?: 'SIN ESTADO'}"></span>
                   </td>
                   <td class="text-center">
-                    <button class="btn btn-warning btn-sm me-1"
-                            th:data-id="${sale.id}" onclick="prepareEditSale(this)">
-                      <i class="fas fa-edit"></i>
+                    <button class="btn btn-info btn-sm"
+                            th:onclick="'viewSaleDetails(' + ${sale.id} + ')'"
+                            title="Ver detalles de la venta">
+                      <i class="fas fa-eye"></i>
                     </button>
-                    <form th:action="@{'/delete/sale/' + ${sale.id}}" method="post" style="display:inline;">
-                      <button type="button" class="btn btn-danger btn-sm"
-                              onclick="confirmDelete(this)">
-                        <i class="fas fa-trash-alt"></i>
-                      </button>
-                    </form>
                   </td>
                 </tr>
                 </tbody>
@@ -127,10 +132,28 @@
               </div>
             </div>
             <div class="modal-footer">
-              <button type="submit" class="btn btn-primary">Guardar</button>
+              <button type="submit" class="btn btn-primary">Guardar Venta</button>
               <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
             </div>
           </form>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal para Detalles de Venta -->
+    <div class="modal fade" id="saleDetailsModal" tabindex="-1" aria-hidden="true">
+      <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">Detalles de la Venta</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body" id="saleDetailsContent">
+            <!-- Contenido cargado dinámicamente -->
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+          </div>
         </div>
       </div>
     </div>
@@ -165,7 +188,8 @@
                   }
                   return data;
               }
-          }]
+          }],
+          order: [[0, 'desc']] // Ordenar por ID descendente
       });
   });
 
@@ -178,9 +202,8 @@
       document.querySelector('select[name="status"]').value = 'COMPLETADA';
   }
 
-  // Preparar formulario para editar venta
-  function prepareEditSale(button) {
-      const saleId = button.getAttribute('data-id');
+  // Ver detalles de venta
+  function viewSaleDetails(saleId) {
       fetch(`/api/sale/${saleId}`)
           .then(response => {
               if (!response.ok) {
@@ -189,52 +212,53 @@
               return response.json();
           })
           .then(sale => {
-              document.getElementById('modalTitle').textContent = 'Editar Venta';
-              document.getElementById('saleId').value = sale.id;
+              const content = `
+                  <div class="row">
+                      <div class="col-md-6">
+                          <h6><strong>Información General</strong></h6>
+                          <p><strong>ID:</strong> ${sale.id}</p>
+                          <p><strong>Fecha:</strong> ${new Date(sale.dateSale).toLocaleDateString('es-CO')}</p>
+                          <p><strong>Estado:</strong>
+                              <span class="badge ${sale.status === 'COMPLETADA' ? 'bg-success' :
+                                                 sale.status === 'PENDIENTE' ? 'bg-warning text-dark' :
+                                                 'bg-danger'}">${sale.status}</span>
+                          </p>
+                      </div>
+                      <div class="col-md-6">
+                          <h6><strong>Cliente y Empleado</strong></h6>
+                          <p><strong>Cliente:</strong> ${sale.client?.name || 'N/A'}</p>
+                          <p><strong>Empleado:</strong> ${sale.employee?.name || 'N/A'}</p>
+                          <p><strong>Total:</strong> <span class="h5 text-primary">$${parseInt(sale.total).toLocaleString('es-CO')}</span></p>
+                      </div>
+                  </div>
+                  <hr>
+                  <div class="text-muted">
+                      <small>Esta venta no puede ser eliminada por políticas de la empresa.</small>
+                  </div>
+              `;
 
-              const form = document.getElementById('saleForm');
-              form.querySelector('select[name="client.id"]').value = sale.client?.id || '';
-              form.querySelector('select[name="employee.id"]').value = sale.employee?.id || '';
-
-              // Manejo seguro de fechas
-              const dateInput = document.getElementById('dateSaleInput');
-              if (sale.dateSale) {
-                  const date = new Date(sale.dateSale);
-                  dateInput.valueAsDate = date;
-              } else {
-                  dateInput.valueAsDate = new Date();
-              }
-
-              form.querySelector('input[name="total"]').value = sale.total || '';
-              form.querySelector('select[name="status"]').value = sale.status || 'COMPLETADA';
-
-              // Mostrar modal
-              const modal = new bootstrap.Modal(document.getElementById('saleModal'));
+              document.getElementById('saleDetailsContent').innerHTML = content;
+              const modal = new bootstrap.Modal(document.getElementById('saleDetailsModal'));
               modal.show();
           })
           .catch(error => {
               console.error('Error:', error);
-              alert('Error al cargar los datos de la venta');
+              Swal.fire({
+                  icon: 'error',
+                  title: 'Error',
+                  text: 'Error al cargar los detalles de la venta'
+              });
           });
   }
 
-  // Confirmar eliminación
-  function confirmDelete(button) {
-      Swal.fire({
-          title: '¿Estás seguro?',
-          text: "No podrás revertir esta acción",
-          icon: 'warning',
-          showCancelButton: true,
-          confirmButtonColor: '#d33',
-          cancelButtonColor: '#3085d6',
-          confirmButtonText: 'Sí, eliminar',
-          cancelButtonText: 'Cancelar'
-      }).then((result) => {
-          if (result.isConfirmed) {
-              button.closest('form').submit();
-          }
+  // Auto-ocultar alertas después de 5 segundos
+  setTimeout(function() {
+      const alerts = document.querySelectorAll('.alert');
+      alerts.forEach(function(alert) {
+          const bsAlert = new bootstrap.Alert(alert);
+          bsAlert.close();
       });
-  }
+  }, 5000);
 </script>
 </body>
 </html>
