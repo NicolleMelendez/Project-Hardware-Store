@@ -23,7 +23,7 @@ public class Entry {
     private Integer amount;
 
     @Column(name = "price_buy", nullable = false)
-    private Double priceBuy;
+    private Integer priceBuy;
 
     @Column(name = "date_entry", nullable = false)
     @Temporal(TemporalType.TIMESTAMP)
@@ -36,7 +36,7 @@ public class Entry {
     public Entry() {}
 
     public Entry(Inventory inventory, Supplier supplier, Integer amount,
-                 Double priceBuy, Employee employee) {
+                 Integer priceBuy, Employee employee) {
         this.inventory = inventory;
         this.supplier = supplier;
         this.amount = amount;
@@ -77,11 +77,11 @@ public class Entry {
         this.amount = amount;
     }
 
-    public Double getPriceBuy() {
+    public Integer getPriceBuy() {
         return priceBuy;
     }
 
-    public void setPriceBuy(Double priceBuy) {
+    public void setPriceBuy(Integer priceBuy) {
         this.priceBuy = priceBuy;
     }
 

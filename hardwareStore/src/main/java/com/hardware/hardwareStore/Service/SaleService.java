@@ -1,46 +1,61 @@
 package com.hardware.hardwareStore.Service;
 
-<<<<<<< HEAD
 
+import com.hardware.hardwareStore.Exception.OrderBuyNotFoundException;
+import com.hardware.hardwareStore.Exception.SaleNotFoundException;
+import com.hardware.hardwareStore.model.Inventory;
+import com.hardware.hardwareStore.model.OrderBuy;
 import com.hardware.hardwareStore.model.Sale;
 import com.hardware.hardwareStore.Repository.SaleRepository;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-
-import java.util.List;
-import java.util.Optional;
-
-@Service
-=======
-import com.hardware.hardwareStore.Repository.SaleRepository;
-import com.hardware.hardwareStore.model.Sale;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
 import java.util.List;
+import java.util.Optional;
+
 
 @Service
 @Transactional
->>>>>>> origin/nicolle
 public class SaleService {
 
     @Autowired
     private SaleRepository saleRepository;
 
-<<<<<<< HEAD
     public List<Sale> findAll() {
-        return saleRepository.findAllByOrderByDateSaleDesc();
+
+        return saleRepository.findAll();
     }
+
+
+    @Transactional(readOnly = true)
+    public Sale getSaleById(Long id) {
+        return saleRepository.findById(id)
+                .orElseThrow(() -> new SaleNotFoundException("No se encontro la venta: " + id));
+    }
+
 
     public Sale findById(Long id) {
         Optional<Sale> sale = saleRepository.findById(id);
         return sale.orElse(null);
     }
 
+
     public Sale save(Sale sale) {
         validateSale(sale);
         return saleRepository.save(sale);
+    }
+
+    @Transactional
+    public void delete(Long id) {
+        if (!saleRepository.existsById(id)) {
+            throw new SaleNotFoundException("No se encontro la venta: " + id);
+        }
+        saleRepository.deleteById(id);
+    }
+
+    @Transactional(readOnly = true)
+    public List<Sale> getAllSale() {
+        return saleRepository.findAll();
     }
 
     public List<Sale> findByStatus(String status) {
@@ -95,22 +110,8 @@ public class SaleService {
         }
     }
 }
-=======
-    public List<Sale> getAllSales() {
-        return saleRepository.findAll();
-    }
 
-    public Sale getSaleById(Long id) {
-        return saleRepository.findById(id).orElseThrow(() -> new RuntimeException("Sale not found"));
-    }
 
-    public Sale createSale(Sale sale) {
-        // Here you can add logic to update inventory, etc.
-        return saleRepository.save(sale);
-    }
 
-    public void deleteSale(Long id) {
-        saleRepository.deleteById(id);
-    }
-}
->>>>>>> origin/nicolle
+
+

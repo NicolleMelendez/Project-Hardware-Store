@@ -20,11 +20,10 @@ public class SaleDetailService {
     }
 
     public SaleDetail getSaleDetailById(Long id) {
-        return saleDetailRepository.findById(id).orElseThrow(() -> new RuntimeException("SaleDetail not found"));
+        return saleDetailRepository.findById(id).orElseThrow(() -> new RuntimeException("No se encontro los detalles de ventas"));
     }
 
     public SaleDetail createSaleDetail(SaleDetail saleDetail) {
-        // Add logic to update inventory stock
         return saleDetailRepository.save(saleDetail);
     }
 

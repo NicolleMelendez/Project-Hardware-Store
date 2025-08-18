@@ -41,7 +41,7 @@ public class EntryService {
 
     public Entry updateEntry(Long id, Entry entryDetails) {
         Entry existingEntry = entryRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Entry not found"));
+                .orElseThrow(() -> new RuntimeException("No se encontro la entrada"));
 
         validateAndLoadRelations(entryDetails);
         int quantityDifference = entryDetails.getAmount() - existingEntry.getAmount();
@@ -59,7 +59,7 @@ public class EntryService {
 
     public void deleteEntry(Long id) {
         Entry entry = entryRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Entry not found"));
+                .orElseThrow(() -> new RuntimeException("No se encontro la entrada"));
 
         updateInventoryStock(entry.getInventory(), -entry.getAmount());
         entryRepository.delete(entry);
@@ -91,11 +91,11 @@ public class EntryService {
         entry.setEmployee(employee);
     }
 
-    private void updateInventoryStock(Inventory inventory, int quantity) {
+    private void updateInventoryStock(Inventory inventory, int amount) {
         Inventory managedInventory = inventoryService.getInventoryById(inventory.getId())
-                .orElseThrow(() -> new RuntimeException("Inventory not found"));
+                .orElseThrow(() -> new RuntimeException("No se encontro el producto"));
 
-        managedInventory.setStock(managedInventory.getStock() + quantity);
+        managedInventory.setStock(managedInventory.getStock() + amount);
         inventoryService.saveInventory(managedInventory);
     }
 }

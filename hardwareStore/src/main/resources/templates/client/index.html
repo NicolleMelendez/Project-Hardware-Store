@@ -100,7 +100,7 @@
                                                 th:data-id="${client.id}" onclick="prepareEditClient(this)">
                                             <i class="fas fa-edit"></i>
                                         </button>
-                                        <form th:action="@{'/delete/' + ${client.id}}" method="post" style="display:inline;">
+                                        <form th:action="@{'/clients/delete/' + ${client.id}}" method="post" style="display:inline;">
                                             <button type="button" class="btn btn-danger btn-sm"
                                                     onclick="confirmDelete(this)">
                                                 <i class="fas fa-trash-alt"></i>

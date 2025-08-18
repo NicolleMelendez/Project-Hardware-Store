@@ -23,8 +23,8 @@ public class SaleDetailController {
     @GetMapping
     public String saleDetailPage(Model model) {
         model.addAttribute("details", saleDetailService.getAllSaleDetails());
-        model.addAttribute("sales", saleService.getAllSales());
-        model.addAttribute("inventories", inventoryService.getAllInventory());
+        model.addAttribute("sales", saleService.getAllSale());
+        model.addAttribute("inventories", inventoryService.getAllInventories());
         return "saledetail/index";
     }
 

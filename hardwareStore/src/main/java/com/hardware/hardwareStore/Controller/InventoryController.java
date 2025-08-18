@@ -8,6 +8,8 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @Controller
 @RequestMapping("/inventory")
 public class InventoryController {
@@ -18,15 +20,17 @@ public class InventoryController {
     private SupplierService supplierService;
 
     @GetMapping
-<<<<<<< HEAD
-    public List<Inventory> getAllInventory() {
+    public List<Inventory> getAllInventories() {
         return inventoryService.getAllInventories();
-=======
+    }
+
+
+
     public String inventoryPage(Model model) {
-        model.addAttribute("inventories", inventoryService.getAllInventory());
+        model.addAttribute("inventories", inventoryService.getAllInventories());
         model.addAttribute("suppliers", supplierService.getAllSuppliers());
         return "inventory/index";
->>>>>>> origin/nicolle
+
     }
 
     @PostMapping("/save")

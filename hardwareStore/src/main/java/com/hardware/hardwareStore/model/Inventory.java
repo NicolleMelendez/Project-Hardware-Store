@@ -16,7 +16,7 @@ public class Inventory {
     private String category;
 
     @Column(nullable = false)
-    private Double price;
+    private Integer price;
 
     @Column(nullable = false)
     private Integer stock = 0;
@@ -31,7 +31,7 @@ public class Inventory {
     // Constructors
     public Inventory() {}
 
-    public Inventory(String name, String category, Double price, Supplier supplier) {
+    public Inventory(String name, String category, Integer price, Supplier supplier) {
         this.name = name;
         this.category = category;
         this.price = price;
@@ -63,11 +63,11 @@ public class Inventory {
         this.category = category;
     }
 
-    public Double getPrice() {
+    public Integer getPrice() {
         return price;
     }
 
-    public void setPrice(Double price) {
+    public void setPrice(Integer price) {
         this.price = price;
     }
 

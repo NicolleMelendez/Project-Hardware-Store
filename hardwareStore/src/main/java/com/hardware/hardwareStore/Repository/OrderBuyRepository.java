@@ -10,9 +10,8 @@ import java.util.Optional;
 
 
 public interface OrderBuyRepository extends JpaRepository<OrderBuy, Long>{
-    // Métodos básicos ya vienen con JpaRepository
-    // Si necesitas métodos personalizados con joins, decláralos aquí:
 
+    //consula de los detalles de order
     @Query("SELECT o FROM OrderBuy o JOIN FETCH o.client JOIN FETCH o.employee")
     List<OrderBuy> findAllWithDetails();
 

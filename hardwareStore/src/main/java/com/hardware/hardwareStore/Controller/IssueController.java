@@ -23,7 +23,7 @@ public class IssueController {
     @GetMapping
     public String issuePage(Model model) {
         model.addAttribute("issues", issueService.getAllIssues());
-        model.addAttribute("inventories", inventoryService.getAllInventory());
+        model.addAttribute("inventories", inventoryService.getAllInventories());
         model.addAttribute("employees", employeeService.getAllEmployees());
         return "issue/index";
     }
