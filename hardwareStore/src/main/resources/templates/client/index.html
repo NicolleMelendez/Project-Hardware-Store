@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.w3.org/1999/xhtml">
+<html xmlns:th="http://www.thymeleaf.org">
 <head th:replace="~{fragments/head :: head('Clientes')}">
     <meta charset="UTF-8">
 </head>
@@ -23,11 +23,11 @@
                             <i class="fas fa-plus me-1"></i> Nuevo Cliente
                         </button>
                     </div>
-                <div class="card mb-4">
-                    <div class="card-header">
-                        <i class="fas fa-users me-1"></i>
-                        Clientes registrados
-                    </div>
+                    <div class="card mb-4">
+                        <div class="card-header">
+                            <i class="fas fa-users me-1"></i>
+                            Clientes registrados
+                        </div>
 
 
                         <!-- Modal para formulario -->
@@ -100,10 +100,7 @@
                                                 th:data-id="${client.id}" onclick="prepareEditClient(this)">
                                             <i class="fas fa-edit"></i>
                                         </button>
-                                        <form sec:authorize="hasAnyRole('ADMIN', 'MANAGER')"
-                                              th:action="@{'/delete/' + ${client.id}}"
-                                              method="post"
-                                              style="display:inline;">
+                                        <form th:action="@{'/clients/delete/' + ${client.id}}" method="post" style="display:inline;">
                                             <button type="button" class="btn btn-danger btn-sm"
                                                     onclick="confirmDelete(this)">
                                                 <i class="fas fa-trash-alt"></i>
@@ -153,7 +150,6 @@
 <!-- DataTables JS -->
 <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
 <script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
-
 
 <script>
     // Función para formatear el input de teléfono
