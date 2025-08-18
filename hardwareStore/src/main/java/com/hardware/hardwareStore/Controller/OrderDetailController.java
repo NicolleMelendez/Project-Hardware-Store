@@ -1,32 +1,42 @@
 package com.hardware.hardwareStore.Controller;
 
-
-import com.hardware.hardwareStore.model.OrderDetail;
+import com.hardware.hardwareStore.Repository.InventoryRepository;
+import com.hardware.hardwareStore.Repository.OrderBuyRepository;
 import com.hardware.hardwareStore.Repository.OrderDetailRepository;
+import com.hardware.hardwareStore.model.OrderDetail;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
-
-@RestController
-@RequestMapping("/api/order-details")
+@Controller
+@RequestMapping("/orderdetail")
 public class OrderDetailController {
 
     @Autowired
-    private OrderDetailRepository repository;
+    private OrderDetailRepository orderDetailRepository;
+    @Autowired
+    private OrderBuyRepository orderBuyRepository;
+    @Autowired
+    private InventoryRepository inventoryRepository;
 
     @GetMapping
-    public List<OrderDetail> getAll() {
-        return repository.findAll();
+    public String orderDetailPage(Model model) {
+        model.addAttribute("details", orderDetailRepository.findAll());
+        model.addAttribute("orders", orderBuyRepository.findAll());
+        model.addAttribute("inventories", inventoryRepository.findAll());
+        return "orderdetail/index";
     }
 
-    @PostMapping
-    public OrderDetail create(@RequestBody OrderDetail detail) {
-        return repository.save(detail);
+    @PostMapping("/save")
+    public String saveOrderDetail(@ModelAttribute OrderDetail detail) {
+        orderDetailRepository.save(detail);
+        return "redirect:/orderdetail";
     }
 
-    @DeleteMapping
-    public void delete(@RequestBody OrderDetail detail) {
-        repository.delete(detail);
+    @DeleteMapping("/delete/{id}")
+    public String deleteOrderDetail(@PathVariable Long id) {
+        orderDetailRepository.deleteById(id);
+        return "redirect:/orderdetail";
     }
 }

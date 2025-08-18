@@ -29,7 +29,7 @@ public class EmployeeService {
 
     public Employee getEmployeeByIdOrThrow(Long id) {
         return getEmployeeById(id)
-                .orElseThrow(() -> new RuntimeException("Employee not found with id: " + id));
+                .orElseThrow(() -> new RuntimeException("No se pudo encontrar el id del empleado: " + id));
     }
 
 
@@ -39,7 +39,7 @@ public class EmployeeService {
 
     public Employee updateEmployee(Long id, Employee employeeDetails) {
         Employee employee = employeeRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Employee not found with id: " + id));
+                .orElseThrow(() -> new RuntimeException("No se pudo encontrar el id del empleado: " + id));
 
         employee.setName(employeeDetails.getName());
         employee.setPosition(employeeDetails.getPosition());

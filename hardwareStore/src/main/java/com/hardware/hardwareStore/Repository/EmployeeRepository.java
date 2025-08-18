@@ -8,10 +8,10 @@ import org.springframework.data.repository.query.Param;
 import java.util.List;
 
 public interface EmployeeRepository extends JpaRepository<Employee, Long>{
-    // Consulta derivada del nombre del método
+    // Consulta de la posición
     List<Employee> findByPosition(String position);
 
-    // Consulta con anotación @Query
+    // Consulta para el salario minimo
     @Query("SELECT e FROM Employee e WHERE e.salary > :minSalary")
     List<Employee> findWithSalaryGreaterThan(@Param("minSalary") Integer minSalary);
 }

@@ -25,15 +25,13 @@ public class InventoryService {
     }
 
 
-
-
     @Transactional
     public Inventory saveInventory(Inventory inventory) {
         return inventoryRepository.save(inventory);
     }
 
     @Transactional(readOnly = true)
-    public List<Inventory> getAllInventory() {
+    public List<Inventory> getAllInventories() {
         return inventoryRepository.findAll();
     }
 
@@ -45,7 +43,7 @@ public class InventoryService {
     @Transactional(readOnly = true)
     public Inventory getInventoryByIdOrThrow(Long id) {
         return getInventoryById(id)
-                .orElseThrow(() -> new RuntimeException("Inventory item not found with id: " + id));
+                .orElseThrow(() -> new RuntimeException("No se encontro el producto: " + id));
     }
 
     @Transactional
@@ -92,15 +90,15 @@ public class InventoryService {
     }
 
     @Transactional
-    public Inventory updateStock(Long id, Integer quantityChange) {
+    public Inventory updateStock(Long id, Integer amountChange) {
         Inventory inventory = getInventoryByIdOrThrow(id);
-        inventory.setStock(inventory.getStock() + quantityChange);
+        inventory.setStock(inventory.getStock() + amountChange);
         return inventoryRepository.save(inventory);
     }
 
     private void validateSupplier(Supplier supplier) {
         if (!supplierService.getSupplierById(supplier.getId()).isPresent()) {
-            throw new RuntimeException("Supplier not found with id: " + supplier.getId());
+            throw new RuntimeException("No se encontro el proveedor: " + supplier.getId());
         }
     }
 }

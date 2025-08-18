@@ -25,23 +25,22 @@ public class OrderBuyService {
     @Transactional(readOnly = true)
     public OrderBuy getOrderById(Long id) {
         return orderBuyRepository.findById(id)
-                .orElseThrow(() -> new OrderBuyNotFoundException("Order not found with id: " + id));
+                .orElseThrow(() -> new OrderBuyNotFoundException("No se encontro la órden: " + id));
     }
 
     @Transactional
     public OrderBuy createOrder(OrderBuy orderBuy) {
-        // Validaciones adicionales pueden ir aquí
         return orderBuyRepository.save(orderBuy);
     }
 
     @Transactional
     public OrderBuy updateOrder(Long id, OrderBuy orderDetails) {
-        OrderBuy order = getOrderById(id); // Reutiliza el método existente
+        OrderBuy order = getOrderById(id);
 
-        // Actualiza los campos necesarios
+        // Actualizae los campos
         order.setDateOrder(orderDetails.getDateOrder());
         order.setTotal(orderDetails.getTotal());
-        // ... otros campos
+
 
         return orderBuyRepository.save(order);
     }
@@ -49,7 +48,7 @@ public class OrderBuyService {
     @Transactional
     public void deleteOrder(Long id) {
         if (!orderBuyRepository.existsById(id)) {
-            throw new OrderBuyNotFoundException("Order not found with id: " + id);
+            throw new OrderBuyNotFoundException("No se encontro la órden: " + id);
         }
         orderBuyRepository.deleteById(id);
     }
