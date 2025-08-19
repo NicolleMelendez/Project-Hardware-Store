@@ -15,6 +15,14 @@
     <main>
       <div class="container-fluid px-4">
         <h1 class="mt-4">Gestión de Empleados</h1>
+
+
+        <div th:if="${error}" class="alert alert-danger alert-dismissible fade show mt-3" role="alert">
+          <i class="fas fa-exclamation-triangle me-1"></i>
+          <span th:text="${error}"></span>
+          <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+
         <div class="card-body">
           <div class="mb-3">
             <button type="button" class="btn btn-primary" data-bs-toggle="modal"
@@ -22,19 +30,19 @@
               <i class="fas fa-plus me-1"></i> Nuevo Empleado
             </button>
           </div>
-
-        <div class="card mb-4">
-          <div class="card-header">
-            <i class="fas fa-user-tie me-1"></i>
-            Empleados registrados
-          </div>
-
+          <div class="card mb-4">
+            <div class="card-header">
+              <i class="fas fa-user-tie me-1"></i>
+              Empleados registrados
+            </div>
 
             <!-- Modal para formulario -->
             <div class="modal fade" id="employeeModal" tabindex="-1" aria-hidden="true">
               <div class="modal-dialog">
                 <div class="modal-content">
-                  <form id="employeeForm" th:action="@{/employees/save}" method="post">
+                  <form id="employeeForm" th:action="@{/employee/save}" method="post">
+
+                    <input type="hidden" name="_csrf" th:value="${_csrf.token}" th:if="${_csrf}"/>
                     <input type="hidden" name="id" id="employeeId">
                     <div class="modal-header">
                       <h5 class="modal-title" id="modalTitle">Nuevo Empleado</h5>
@@ -43,15 +51,25 @@
                     <div class="modal-body">
                       <div class="mb-3">
                         <label class="form-label">Nombre</label>
-                        <input type="text" class="form-control" name="name" required>
+                        <input type="text" class="form-control" name="name" required
+                               th:value="${employee?.name}">
                       </div>
                       <div class="mb-3">
                         <label class="form-label">Puesto</label>
-                        <input type="text" class="form-control" name="position" required>
+                        <select class="form-control" name="position" required>
+                          <option value="" disabled th:selected="${employee?.position == null}">Seleccione un puesto</option>
+                          <option value="Vendedor" th:selected="${employee?.position} eq 'Vendedor'">Vendedor</option>
+                          <option value="Cajero" th:selected="${employee?.position} eq 'Cajero'">Cajero</option>
+                          <option value="Administrador" th:selected="${employee?.position} eq 'Administrador'">Administrador</option>
+                          <option value="Gerente" th:selected="${employee?.position} eq 'Gerente'">Gerente</option>
+                        </select>
                       </div>
                       <div class="mb-3">
                         <label class="form-label">Salario</label>
-                        <input type="number" class="form-control" name="salary" required min="0">
+                        <input type="number" class="form-control" name="salary" required
+                               min="0" step="0.01"
+                               th:value="${employee?.salary}"
+                               oninput="this.value = Math.abs(this.value)">
                       </div>
                     </div>
                     <div class="modal-footer">
@@ -70,7 +88,7 @@
                 <tr>
                   <th>ID</th>
                   <th>Nombre</th>
-                  <th>Cargo</th>
+                  <th>Puesto</th>
                   <th>Salario</th>
                   <th>Acciones</th>
                 </tr>
@@ -80,17 +98,18 @@
                   <td th:text="${employee.id}"></td>
                   <td th:text="${employee.name}"></td>
                   <td th:text="${employee.position}"></td>
-                  <td th:text="${employee.salary != null ? '$' + #numbers.formatInteger(employee.salary, 0, 'POINT') : ''}"></td>
+                  <td th:text="${employee.salary != null ? '$' + #numbers.formatDecimal(employee.salary, 1, 'POINT', 2, 'COMMA') : ''}"></td>
                   <td class="text-center">
                     <button class="btn btn-warning btn-sm me-1"
                             th:data-id="${employee.id}" onclick="prepareEditEmployee(this)">
                       <i class="fas fa-edit"></i>
                     </button>
-                    <form th:action="@{'/delete/employee/' + ${employee.id}}" method="post" style="display:inline;">
-                      <button type="button" class="btn btn-danger btn-sm"
-                              onclick="confirmDelete(this)">
-                        <i class="fas fa-trash-alt"></i>
-                      </button>
+                    <form th:action="@{'/employee/delete/' + ${employee.id}}" method="post" style="display:inline;">
+                    <input type="hidden" name="_csrf" th:value="${_csrf.token}" th:if="${_csrf}"/>
+                    <button type="button" class="btn btn-danger btn-sm"
+                            onclick="confirmDelete(this)">
+                      <i class="fas fa-trash-alt"></i>
+                    </button>
                     </form>
                   </td>
                 </tr>
@@ -108,9 +127,13 @@
 </div>
 
 <!-- SweetAlert2 -->
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11  "></script>
+<!-- Bootstrap JS -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js  "></script>
+<!-- DataTables JS -->
+<script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js  "></script>
+<script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js  "></script>
 
-<!-- JS -->
 <script>
   function confirmDelete(button) {
       Swal.fire({
@@ -128,27 +151,29 @@
           }
       });
   }
-</script>
-<!-- Bootstrap JS -->
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
-<!-- DataTables JS -->
-<script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
-<script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
 
-<script>
   // Inicializar DataTable
   $(document).ready(function() {
       $('#dataTable').DataTable({
           language: {
               url: '//cdn.datatables.net/plug-ins/1.13.6/i18n/es-ES.json'
           },
-          columnDefs: [{
-              targets: 3, // Columna de salario
-              render: function(data) {
-                  if (!data) return '';
-                  return '$' + parseInt(data).toLocaleString('es-CO');
+          columnDefs: [
+              {
+                  targets: 3, // Columna de salario
+                  render: function(data, type, row) {
+                      if (data == null) return '';
+
+                      const salary = parseFloat(data);
+                      if (isNaN(salary)) return data;
+
+                      return '$' + salary.toLocaleString('es-CO', {
+                          minimumFractionDigits: 0,
+                          maximumFractionDigits: 0
+                      });
+                  }
               }
-          }]
+          ]
       });
   });
 
@@ -157,26 +182,52 @@
       document.getElementById('modalTitle').textContent = 'Nuevo Empleado';
       document.getElementById('employeeId').value = '';
       document.getElementById('employeeForm').reset();
+
+      // Forzar selección del placeholder
+      const positionSelect = document.querySelector('select[name="position"]');
+      positionSelect.selectedIndex = 0;
   }
 
   // Preparar formulario para editar empleado
   function prepareEditEmployee(button) {
       const employeeId = button.getAttribute('data-id');
+
+
       fetch(`/api/employees/${employeeId}`)
-          .then(response => response.json())
+          .then(response => {
+              if (!response.ok) {
+                  throw new Error(`Error ${response.status}: ${response.statusText}`);
+              }
+              return response.json();
+          })
           .then(employee => {
               document.getElementById('modalTitle').textContent = 'Editar Empleado';
               document.getElementById('employeeId').value = employee.id;
 
-              // Llenar los campos del formulario
+
               const form = document.getElementById('employeeForm');
               form.querySelector('input[name="name"]').value = employee.name || '';
-              form.querySelector('input[name="position"]').value = employee.position || '';
-              form.querySelector('input[name="salary"]').value = employee.salary || '';
+
+              // Actualizado para manejar el select
+              const positionSelect = form.querySelector('select[name="position"]');
+              positionSelect.value = employee.position || '';
+
+
+              const salary = employee.salary != null ? parseFloat(employee.salary) : 0;
+              form.querySelector('input[name="salary"]').value = isNaN(salary) ? 0 : salary;
 
               // Mostrar modal
               const modal = new bootstrap.Modal(document.getElementById('employeeModal'));
               modal.show();
+          })
+          .catch(error => {
+              console.error('Error al cargar empleado:', error);
+              Swal.fire({
+                  title: 'Error',
+                  text: 'No se pudo cargar el empleado: ' + error.message,
+                  icon: 'error',
+                  confirmButtonText: 'Aceptar'
+              });
           });
   }
 </script>
