@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.w3.org/1999/xhtml">
 <head th:replace="~{fragments/head :: head('Proveedores')}">
   <meta charset="UTF-8">
 </head>
@@ -84,11 +84,13 @@
                                 #strings.substring(supplier.phone,6) : supplier.phone}"></td>
                   <td th:text="${supplier.suppliedProduct}"></td>
                   <td class="text-center">
+                    <form sec:authorize="hasAnyRole('ADMIN','MANAGER') " th:action="@{'/delete/supplier/' + ${supplier.id}}" method="post" style="display:inline;">
+
                     <button class="btn btn-warning btn-sm me-1"
                             th:data-id="${supplier.id}" onclick="prepareEditSupplier(this)">
                       <i class="fas fa-edit"></i>
                     </button>
-                    <form th:action="@{'/delete/supplier/' + ${supplier.id}}" method="post" style="display:inline;">
+                    <form sec:authorize="hasAnyRole('ADMIN','MANAGER') " th:action="@{'/delete/supplier/' + ${supplier.id}}" method="post" style="display:inline;">
                       <button type="button" class="btn btn-danger btn-sm"
                               onclick="confirmDelete(this)">
                         <i class="fas fa-trash-alt"></i>
