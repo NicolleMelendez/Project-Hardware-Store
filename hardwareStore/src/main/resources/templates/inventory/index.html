@@ -15,19 +15,31 @@
     <main>
       <div class="container-fluid px-4">
         <h1 class="mt-4">Gestión de Inventario</h1>
-        <div class="card-body">
-          <div class="mb-3">
-            <button type="button" class="btn btn-primary" data-bs-toggle="modal"
+        <!-- Botones superiores -->
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <div>
+            <button type="button" class="btn btn-primary me-2" data-bs-toggle="modal"
                     data-bs-target="#inventoryModal" onclick="prepareNewInventory()">
-              <i class="fas fa-plus me-1"></i> Nuevo Producto
+              <i class="fas fa-plus me-1"></i> Nuevo Inventario
+            </button>
+            <button type="button" class="btn btn-success me-2" onclick="exportToExcel()">
+              <i class="fas fa-file-excel me-1"></i> Descargar Excel
+            </button>
+            <button type="button" class="btn btn-danger" onclick="exportToPDF()">
+              <i class="fas fa-file-pdf me-1"></i> Descargar PDF
             </button>
           </div>
-
-        <div class="card mb-4">
-          <div class="card-header">
-            <i class="fas fa-warehouse me-1"></i>
-            Productos en inventario
+          <div>
+            <label for="entries" class="me-2">Mostrar:</label>
+            <select id="entries" class="form-select d-inline-block w-auto">
+              <option value="10">10</option>
+              <option value="25">25</option>
+              <option value="50">50</option>
+              <option value="-1">Todos</option>
+            </select>
+            <span class="ms-3" id="totalRecords">Total de registros: <span th:text="${inventories.size()}"></span></span>
           </div>
+        </div>
 
 
             <!-- Modal para formulario -->
@@ -167,9 +179,10 @@
 <!-- DataTables JS -->
 <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
 <script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
-<!-- Bootstrap JS (requerido para dropdown) -->
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
-
+<!-- Export to Excel and PDF -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
 <script>
   // Inicializar DataTable
   $(document).ready(function () {
@@ -186,6 +199,62 @@
           }]
       });
   });
+
+  // Exportar a Excel
+    function exportToExcel() {
+        try {
+            const table = document.getElementById('dataTable');
+            const rows = Array.from(table.querySelectorAll('tbody tr')).map(row => {
+                // Ignorar la última columna ("Acciones")
+                const cells = Array.from(row.children).slice(0, -1);
+                return cells.map(cell => cell.innerText);
+            });
+
+            // Crear encabezados excluyendo la columna "Acciones"
+            const headers = Array.from(table.querySelectorAll('thead th')).slice(0, -1).map(th => th.innerText);
+
+            const worksheet = XLSX.utils.json_to_sheet([headers, ...rows]);
+            const workbook = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(workbook, worksheet, 'Inventarios');
+            XLSX.writeFile(workbook, 'inventarios.xlsx');
+        } catch (error) {
+            console.error("Error al exportar a Excel:", error);
+        }
+    }
+
+    // Exportar a PDF
+    function exportToPDF() {
+        try {
+            const table = document.getElementById('dataTable');
+
+            // Configurar jsPDF-AutoTable para ignorar la columna "Acciones"
+            const columns = Array.from(table.querySelectorAll('thead th')).slice(0, -1).map(th => ({
+                header: th.innerText,
+                dataKey: th.innerText
+            }));
+
+            const rows = Array.from(table.querySelectorAll('tbody tr')).map(row => {
+                const cells = Array.from(row.children).slice(0, -1); // Ignorar la última columna
+                const rowData = {};
+                columns.forEach((col, index) => {
+                    rowData[col.dataKey] = cells[index].innerText;
+                });
+                return rowData;
+            });
+
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+
+            doc.autoTable({
+                columns: columns,
+                body: rows
+            });
+
+            doc.save('inventories.pdf');
+        } catch (error) {
+            console.error("Error al exportar a PDF:", error);
+        }
+    }
 
   // Preparar formulario para nuevo producto
   function prepareNewInventory() {
