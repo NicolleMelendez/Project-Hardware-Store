@@ -4,104 +4,115 @@
   <meta charset="UTF-8">
 </head>
 <body class="sb-nav-fixed">
+<!-- Navbar -->
 <div th:replace="~{fragments/navbar :: navbar}"></div>
 
 <div id="layoutSidenav">
+  <!-- Sidebar -->
   <div th:replace="~{fragments/sidebar :: sidebar}"></div>
+
   <div id="layoutSidenav_content">
     <main>
       <div class="container-fluid px-4">
         <h1 class="mt-4">Gestión de Proveedores</h1>
-        <div class="card-body">
-          <div class="mb-3">
-            <button type="button" class="btn btn-primary" data-bs-toggle="modal"
+
+        <!-- Botones superiores -->
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <div>
+            <button type="button" class="btn btn-primary me-2" data-bs-toggle="modal"
                     data-bs-target="#supplierModal" onclick="prepareNewSupplier()">
               <i class="fas fa-plus me-1"></i> Nuevo Proveedor
             </button>
+            <button type="button" class="btn btn-success me-2" onclick="exportToExcel()">
+              <i class="fas fa-file-excel me-1"></i> Descargar Excel
+            </button>
+            <button type="button" class="btn btn-danger" onclick="exportToPDF()">
+              <i class="fas fa-file-pdf me-1"></i> Descargar PDF
+            </button>
           </div>
-
-        <div class="card mb-4">
-          <div class="card-header">
-            <i class="fas fa-truck me-1"></i>
-            Proveedores registrados
+          <div>
+            <label for="entries" class="me-2">Mostrar:</label>
+            <select id="entries" class="form-select d-inline-block w-auto">
+              <option value="10">10</option>
+              <option value="25">25</option>
+              <option value="50">50</option>
+              <option value="-1">Todos</option>
+            </select>
+            <span class="ms-3" id="totalRecords">Total de registros: <span th:text="${suppliers.size()}"></span></span>
           </div>
+        </div>
 
-
-            <!-- Modal para formulario -->
-            <div class="modal fade" id="supplierModal" tabindex="-1" aria-hidden="true">
-              <div class="modal-dialog">
-                <div class="modal-content">
-                  <form id="supplierForm" th:action="@{/suppliers/save}" method="post">
-                    <input type="hidden" name="id" id="supplierId">
-                    <div class="modal-header">
-                      <h5 class="modal-title" id="modalTitle">Nuevo Proveedor</h5>
-                      <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                    </div>
-                    <div class="modal-body">
-                      <div class="mb-3">
-                        <label class="form-label">Nombre</label>
-                        <input type="text" class="form-control" name="name" required>
-                      </div>
-                      <div class="mb-3">
-                        <label class="form-label">Teléfono</label>
-                        <input type="tel" class="form-control" name="phone" required
-                               oninput="formatPhoneInput(this)"
-                               maxlength="12" placeholder="Ej: 320-222-2222">
-                      </div>
-                      <div class="mb-3">
-                        <label class="form-label">Producto Suministrado</label>
-                        <input type="text" class="form-control" name="suppliedProduct" required>
-                      </div>
-                    </div>
-                    <div class="modal-footer">
-                      <button type="submit" class="btn btn-primary">Guardar</button>
-                      <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                    </div>
-                  </form>
+        <!-- Modal para formulario -->
+        <div class="modal fade" id="supplierModal" tabindex="-1" aria-hidden="true">
+          <div class="modal-dialog">
+            <div class="modal-content">
+              <form id="supplierForm" th:action="@{/supplier/save}" method="post">
+                <input type="hidden" name="id" id="supplierId">
+                <div class="modal-header">
+                  <h5 class="modal-title" id="modalTitle">Nuevo Proveedor</h5>
+                  <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
-              </div>
-            </div>
-
-            <!-- Tabla de proveedores -->
-            <div class="table-responsive">
-              <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
-                <thead>
-                <tr>
-                  <th>ID</th>
-                  <th>Nombre</th>
-                  <th>Teléfono</th>
-                  <th>Producto</th>
-                  <th>Acciones</th>
-                </tr>
-                </thead>
-                <tbody>
-                <tr th:each="supplier : ${suppliers}">
-                  <td th:text="${supplier.id}"></td>
-                  <td th:text="${supplier.name}"></td>
-                  <td th:text="${#strings.length(supplier.phone) == 10 ?
-                                #strings.substring(supplier.phone,0,3) + '-' +
-                                #strings.substring(supplier.phone,3,6) + '-' +
-                                #strings.substring(supplier.phone,6) : supplier.phone}"></td>
-                  <td th:text="${supplier.suppliedProduct}"></td>
-                  <td class="text-center">
-                    <form sec:authorize="hasAnyRole('ADMIN','MANAGER') " th:action="@{'/delete/supplier/' + ${supplier.id}}" method="post" style="display:inline;">
-
-                    <button class="btn btn-warning btn-sm me-1"
-                            th:data-id="${supplier.id}" onclick="prepareEditSupplier(this)">
-                      <i class="fas fa-edit"></i>
-                    </button>
-                    <form sec:authorize="hasAnyRole('ADMIN','MANAGER') " th:action="@{'/delete/supplier/' + ${supplier.id}}" method="post" style="display:inline;">
-                      <button type="button" class="btn btn-danger btn-sm"
-                              onclick="confirmDelete(this)">
-                        <i class="fas fa-trash-alt"></i>
-                      </button>
-                    </form>
-                  </td>
-                </tr>
-                </tbody>
-              </table>
+                <div class="modal-body">
+                  <div class="mb-3">
+                    <label class="form-label">Nombre</label>
+                    <input type="text" class="form-control" name="name" required>
+                  </div>
+                  <div class="mb-3">
+                    <label class="form-label">Teléfono</label>
+                    <input type="tel" class="form-control" name="phone" required
+                           oninput="formatPhoneInput(this)"
+                           maxlength="12" placeholder="Ej: 320-222-2222">
+                  </div>
+                  <div class="mb-3">
+                    <label class="form-label">Producto Suministrado</label>
+                    <input type="text" class="form-control" name="suppliedProduct" required>
+                  </div>
+                </div>
+                <div class="modal-footer">
+                  <button type="submit" class="btn btn-primary">Guardar</button>
+                  <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                </div>
+              </form>
             </div>
           </div>
+        </div>
+
+        <!-- Tabla de proveedores -->
+        <div class="table-responsive text-center">
+          <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
+            <thead>
+            <tr>
+              <th>ID</th>
+              <th>Nombre</th>
+              <th>Teléfono</th>
+              <th>Producto</th>
+              <th>Acciones</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="supplier : ${suppliers}">
+              <td th:text="${supplier.id}"></td>
+              <td th:text="${supplier.name}"></td>
+              <td th:text="${#strings.length(supplier.phone) == 10 ?
+                              #strings.substring(supplier.phone,0,3) + '-' +
+                              #strings.substring(supplier.phone,3,6) + '-' +
+                              #strings.substring(supplier.phone,6) : supplier.phone}"></td>
+              <td th:text="${supplier.suppliedProduct}"></td>
+              <td class="text-center">
+                <button class="btn btn-warning btn-sm me-1"
+                        th:data-id="${supplier.id}" onclick="prepareEditSupplier(this)">
+                  <i class="fas fa-edit"></i>
+                </button>
+                <form sec:authorize="hasAnyRole('ADMIN','MANAGER')" th:action="@{/supplier/delete/{id}(id=${supplier.id})}" method="post" style="display:inline;">
+                  <button type="button" class="btn btn-danger btn-sm"
+                          onclick="confirmDelete(this)">
+                    <i class="fas fa-trash-alt"></i>
+                  </button>
+                </form>
+              </td>
+            </tr>
+            </tbody>
+          </table>
         </div>
       </div>
     </main>
@@ -109,98 +120,164 @@
   </div>
 </div>
 
-
-
 <!-- SweetAlert2 -->
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
-<!-- JS -->
-<script>
-  function confirmDelete(button) {
-      Swal.fire({
-          title: '¿Estás seguro?',
-          text: "No podrás revertir esta acción",
-          icon: 'warning',
-          showCancelButton: true,
-          confirmButtonColor: '#d33',
-          cancelButtonColor: '#3085d6',
-          confirmButtonText: 'Sí, eliminar',
-          cancelButtonText: 'Cancelar'
-      }).then((result) => {
-          if (result.isConfirmed) {
-              button.closest('form').submit();
-          }
-      });
-  }
-</script>
+<!-- Bootstrap JS -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
+
+<!-- DataTables JS -->
 <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
 <script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
 
-<script>
-  // Función para formatear el input de teléfono
-  function formatPhoneInput(input) {
-      // Eliminar todo excepto números
-      let phone = input.value.replace(/\D/g,'');
+<!-- Export to Excel and PDF -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
 
-      // Aplicar formato ###-###-####
-      if(phone.length > 6) {
-          input.value = phone.replace(/(\d{3})(\d{3})(\d{4})/, '$1-$2-$3');
+<!-- JS -->
+<script>
+  // Confirmar eliminación
+  function confirmDelete(button) {
+    Swal.fire({
+      title: '¿Estás seguro?',
+      text: "No podrás revertir esta acción",
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#d33',
+      cancelButtonColor: '#3085d6',
+      confirmButtonText: 'Sí, eliminar',
+      cancelButtonText: 'Cancelar'
+    }).then((result) => {
+      if (result.isConfirmed) {
+        button.closest('form').submit();
       }
-      else if(phone.length > 3) {
-          input.value = phone.replace(/(\d{3})(\d{3})/, '$1-$2');
-      }
+    });
   }
 
+  // Formatear teléfono
+  function formatPhoneInput(input) {
+    let phone = input.value.replace(/\D/g, '');
+    if (phone.length > 10) {
+      phone = phone.substring(0, 10); // Limitar a 10 dígitos
+    }
+    if (phone.length >= 10) {
+      input.value = phone.replace(/(\d{3})(\d{3})(\d{4})/, '$1-$2-$3');
+    } else {
+      input.value = phone;
+    }
+  }
+
+  // Inicializar DataTable
   $(document).ready(function() {
-      $('#dataTable').DataTable({
-          language: {
-              url: '//cdn.datatables.net/plug-ins/1.13.6/i18n/es-ES.json'
-          },
-          columnDefs: [
-              {
-                  targets: 2, // Columna de teléfono
-                  render: function(data, type, row) {
-                      if (type === 'display' && data && data.length === 10) {
-                          return data.replace(/(\d{3})(\d{3})(\d{4})/, '$1-$2-$3');
-                      }
-                      return data;
-                  }
-              }
-          ]
-      });
+    $('#dataTable').DataTable({
+      language: {
+        url: '//cdn.datatables.net/plug-ins/1.13.6/i18n/es-ES.json'
+      },
+      columnDefs: [
+        {
+          targets: 2, // Columna de teléfono
+          render: function(data, type, row) {
+            if (type === 'display' && data && data.length === 10) {
+              return data.replace(/(\d{3})(\d{3})(\d{4})/, '$1-$2-$3');
+            }
+            return data;
+          }
+        }
+      ]
+    });
   });
 
-  function prepareNewSupplier() {
-      document.getElementById('modalTitle').textContent = 'Nuevo Proveedor';
-      document.getElementById('supplierId').value = '';
-      document.getElementById('supplierForm').reset();
+  // Exportar a Excel
+  function exportToExcel() {
+    try {
+      const table = document.getElementById('dataTable');
+      const rows = Array.from(table.querySelectorAll('tbody tr')).map(row => {
+        // Ignorar la última columna ("Acciones")
+        const cells = Array.from(row.children).slice(0, -1);
+        return cells.map(cell => cell.innerText);
+      });
+
+      // Crear encabezados excluyendo la columna "Acciones"
+      const headers = Array.from(table.querySelectorAll('thead th')).slice(0, -1).map(th => th.innerText);
+
+      const worksheet = XLSX.utils.json_to_sheet([headers, ...rows]);
+      const workbook = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(workbook, worksheet, 'Proveedores');
+      XLSX.writeFile(workbook, 'proveedores.xlsx');
+    } catch (error) {
+      console.error("Error al exportar a Excel:", error);
+    }
   }
 
+  // Exportar a PDF
+  function exportToPDF() {
+    try {
+      const table = document.getElementById('dataTable');
+
+      // Configurar jsPDF-AutoTable para ignorar la columna "Acciones"
+      const columns = Array.from(table.querySelectorAll('thead th')).slice(0, -1).map(th => ({
+        header: th.innerText,
+        dataKey: th.innerText
+      }));
+
+      const rows = Array.from(table.querySelectorAll('tbody tr')).map(row => {
+        const cells = Array.from(row.children).slice(0, -1); // Ignorar la última columna
+        const rowData = {};
+        columns.forEach((col, index) => {
+          rowData[col.dataKey] = cells[index].innerText;
+        });
+        return rowData;
+      });
+
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF();
+
+      doc.autoTable({
+        columns: columns,
+        body: rows
+      });
+
+      doc.save('proveedores.pdf');
+    } catch (error) {
+      console.error("Error al exportar a PDF:", error);
+    }
+  }
+
+  // Preparar formulario para nuevo proveedor
+  function prepareNewSupplier() {
+    document.getElementById('modalTitle').textContent = 'Nuevo Proveedor';
+    document.getElementById('supplierId').value = '';
+    document.getElementById('supplierForm').reset();
+  }
+
+  // Preparar formulario para editar proveedor
   function prepareEditSupplier(button) {
-      const supplierId = button.getAttribute('data-id');
-      fetch(`/api/suppliers/${supplierId}`)
-          .then(response => response.json())
-          .then(supplier => {
-              document.getElementById('modalTitle').textContent = 'Editar Proveedor';
-              document.getElementById('supplierId').value = supplier.id;
+    const supplierId = button.getAttribute('data-id');
+    fetch(`/api/suppliers/${supplierId}`)
+      .then(response => response.json())
+      .then(supplier => {
+        document.getElementById('modalTitle').textContent = 'Editar Proveedor';
+        document.getElementById('supplierId').value = supplier.id;
 
-              const form = document.getElementById('supplierForm');
-              form.querySelector('input[name="name"]').value = supplier.name || '';
+        // Llenar los campos del formulario
+        const form = document.getElementById('supplierForm');
+        form.querySelector('input[name="name"]').value = supplier.name || '';
 
-              // Formatear teléfono para edición
-              let phone = supplier.phone || '';
-              phone = phone.replace(/\D/g, '');
-              if(phone.length >= 10) {
-                  phone = phone.replace(/(\d{3})(\d{3})(\d{4})/, '$1-$2-$3');
-              }
-              form.querySelector('input[name="phone"]').value = phone;
+        // Formatear teléfono para edición
+        let phone = supplier.phone || '';
+        phone = phone.replace(/\D/g, '');
+        if (phone.length >= 10) {
+          phone = phone.replace(/(\d{3})(\d{3})(\d{4})/, '$1-$2-$3');
+        }
+        form.querySelector('input[name="phone"]').value = phone;
 
-              form.querySelector('input[name="suppliedProduct"]').value = supplier.suppliedProduct || '';
+        form.querySelector('input[name="suppliedProduct"]').value = supplier.suppliedProduct || '';
 
-              const modal = new bootstrap.Modal(document.getElementById('supplierModal'));
-              modal.show();
-          });
+        // Mostrar modal
+        const modal = new bootstrap.Modal(document.getElementById('supplierModal'));
+        modal.show();
+      });
   }
 </script>
 </body>

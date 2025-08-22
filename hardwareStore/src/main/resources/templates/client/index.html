@@ -42,48 +42,48 @@
                     </div>
                 </div>
 
-                        <!-- Modal para formulario -->
-                        <div class="modal fade" id="clientModal" tabindex="-1" aria-hidden="true">
-                            <div class="modal-dialog">
-                                <div class="modal-content">
-                                    <form id="clientForm" th:action="@{/clients/save}" method="post">
-                                        <input type="hidden" name="id" id="clientId">
-                                        <input type="hidden" name="dateClient" id="clientDate">
-                                        <div class="modal-header">
-                                            <h5 class="modal-title" id="modalTitle">Nuevo Cliente</h5>
-                                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    <!-- Modal para formulario -->
+                    <div class="modal fade" id="clientModal" tabindex="-1" aria-hidden="true">
+                        <div class="modal-dialog">
+                            <div class="modal-content">
+                                <form id="clientForm" th:action="@{/clients/save}" method="post">
+                                    <input type="hidden" name="id" id="clientId">
+                                    <input type="hidden" name="dateClient" id="clientDate">
+                                    <div class="modal-header">
+                                        <h5 class="modal-title" id="modalTitle">Nuevo Cliente</h5>
+                                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                    </div>
+                                    <div class="modal-body">
+                                        <div class="mb-3">
+                                            <label class="form-label">Nombre</label>
+                                            <input type="text" class="form-control" name="name" required>
                                         </div>
-                                        <div class="modal-body">
-                                            <div class="mb-3">
-                                                <label class="form-label">Nombre</label>
-                                                <input type="text" class="form-control" name="name" required>
-                                            </div>
-                                            <div class="mb-3">
-                                                <label class="form-label">Teléfono</label>
-                                                <input type="text" class="form-control" name="phone" required
-                                                       oninput="formatPhoneInput(this)"
-                                                       maxlength="10" placeholder="Ej: 320-222-2222">
-                                            </div>
-                                            <div class="mb-3">
-                                                <label class="form-label">Dirección</label>
-                                                <input type="text" class="form-control" name="address">
-                                            </div>
-                                            <div class="mb-3">
-                                                <label class="form-label">Email</label>
-                                                <input type="email" class="form-control" name="email">
-                                            </div>
+                                        <div class="mb-3">
+                                            <label class="form-label">Teléfono</label>
+                                            <input type="text" class="form-control" name="phone" required
+                                                   oninput="formatPhoneInput(this)"
+                                                   maxlength="10" placeholder="Ej: 320-222-2222">
                                         </div>
-                                        <div class="modal-footer">
-                                            <button type="submit" class="btn btn-primary">Guardar</button>
-                                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                                        <div class="mb-3">
+                                            <label class="form-label">Dirección</label>
+                                            <input type="text" class="form-control" name="address">
                                         </div>
-                                    </form>
-                                </div>
+                                        <div class="mb-3">
+                                            <label class="form-label">Email</label>
+                                            <input type="email" class="form-control" name="email">
+                                        </div>
+                                    </div>
+                                    <div class="modal-footer">
+                                        <button type="submit" class="btn btn-primary">Guardar</button>
+                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                                    </div>
+                                </form>
                             </div>
                         </div>
+                    </div>
 
                         <!-- Tabla de clientes -->
-                        <div class="table-responsive">
+                        <div class="table-responsive text-center">
                             <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
                                 <thead>
                                 <tr>
@@ -112,7 +112,7 @@
                                                 th:data-id="${client.id}" onclick="prepareEditClient(this)">
                                             <i class="fas fa-edit"></i>
                                         </button>
-                                        <form th:action="@{'/delete/' + ${client.id}}" method="post" style="display:inline;">
+                                        <form th:action="@{/clients/delete/{id}(id=${client.id})}" method="post" style="display:inline;">
                                             <button type="button" class="btn btn-danger btn-sm"
                                                     onclick="confirmDelete(this)">
                                                 <i class="fas fa-trash-alt"></i>
@@ -169,9 +169,6 @@
     }
 </script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
-<!-- DataTables JS -->
-<script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
-<script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
 
 <script>
     // Función para formatear el input de teléfono
