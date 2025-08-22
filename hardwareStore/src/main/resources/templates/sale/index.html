@@ -26,11 +26,19 @@
           <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
         </div>
 
-        <!-- Botón de Nueva Venta -->
-        <button type="button" class="btn btn-primary mb-3" data-bs-toggle="modal"
-                data-bs-target="#saleModal" onclick="prepareNewSale()">
-          <i class="fas fa-plus me-1"></i> Nueva Venta
-        </button>
+        <!-- Botones de acción -->
+        <div class="mb-3">
+            <button type="button" class="btn btn-primary" data-bs-toggle="modal"
+                    data-bs-target="#saleModal" onclick="prepareNewSale()">
+                <i class="fas fa-plus me-1"></i> Nueva Venta
+            </button>
+            <button type="button" class="btn btn-success" onclick="exportToExcel()">
+                <i class="fas fa-file-excel me-1"></i> Exportar a Excel
+            </button>
+            <button type="button" class="btn btn-danger" onclick="exportToPDF()">
+                <i class="fas fa-file-pdf me-1"></i> Exportar a PDF
+            </button>
+        </div>
 
         <!-- Tarjeta con la Tabla -->
         <div class="card mb-4">
@@ -41,7 +49,7 @@
           <div class="card-body">
             <!-- Tabla de Ventas (DataTable) -->
             <div class="table-responsive">
-              <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
+              <table class="table table-bordered table-striped table-hover" id="dataTable" width="100%" cellspacing="0">
                 <thead>
                 <tr>
                   <th>ID</th>
@@ -152,8 +160,48 @@
             <!-- Contenido cargado dinámicamente -->
           </div>
           <div class="modal-footer">
+            <button type="button" class="btn btn-primary" id="addProductBtn" onclick="openAddProductModal()">Añadir Producto</button>
             <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
           </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal para Añadir Producto a Venta -->
+    <div class="modal fade" id="addProductModal" tabindex="-1" aria-hidden="true">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <form id="addProductForm">
+            <input type="hidden" id="saleIdForProduct">
+            <div class="modal-header">
+              <h5 class="modal-title">Añadir Producto a la Venta</h5>
+              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+              <div class="mb-3">
+                <label class="form-label">Producto</label>
+                <select class="form-select" id="productId" required>
+                  <option value="">Seleccione un producto</option>
+                  <option th:each="inventory : ${inventories}"
+                          th:value="${inventory.id}"
+                          th:text="${inventory.name}"
+                          th:attr="data-price=${inventory.price}"></option>
+                </select>
+              </div>
+              <div class="mb-3">
+                <label class="form-label">Cantidad</label>
+                <input type="number" class="form-control" id="productQuantity" required min="1">
+              </div>
+              <div class="mb-3">
+                <label class="form-label">Precio Unitario</label>
+                <input type="number" class="form-control" id="productPrice" required min="0">
+              </div>
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-primary" onclick="addProductToSale()">Guardar Producto</button>
+              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+            </div>
+          </form>
         </div>
       </div>
     </div>
@@ -173,7 +221,14 @@
 <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
 <script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
 
+<!-- Export to Excel and PDF -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
+
 <script>
+  let currentSaleId = null;
+
   // Inicializar DataTable
   $(document).ready(function () {
       $('#dataTable').DataTable({
@@ -191,6 +246,12 @@
           }],
           order: [[0, 'desc']] // Ordenar por ID descendente
       });
+
+      $('#productId').on('change', function() {
+          const selectedOption = $(this).find('option:selected');
+          const price = selectedOption.data('price');
+          $('#productPrice').val(price);
+      });
   });
 
   // Preparar formulario para nueva venta
@@ -204,51 +265,118 @@
 
   // Ver detalles de venta
   function viewSaleDetails(saleId) {
-      fetch(`/api/sale/${saleId}`)
-          .then(response => {
-              if (!response.ok) {
-                  throw new Error('Error al obtener los datos');
-              }
-              return response.json();
-          })
-          .then(sale => {
-              const content = `
-                  <div class="row">
-                      <div class="col-md-6">
-                          <h6><strong>Información General</strong></h6>
-                          <p><strong>ID:</strong> ${sale.id}</p>
-                          <p><strong>Fecha:</strong> ${new Date(sale.dateSale).toLocaleDateString('es-CO')}</p>
-                          <p><strong>Estado:</strong>
-                              <span class="badge ${sale.status === 'COMPLETADA' ? 'bg-success' :
-                                                 sale.status === 'PENDIENTE' ? 'bg-warning text-dark' :
-                                                 'bg-danger'}">${sale.status}</span>
-                          </p>
-                      </div>
-                      <div class="col-md-6">
-                          <h6><strong>Cliente y Empleado</strong></h6>
-                          <p><strong>Cliente:</strong> ${sale.client?.name || 'N/A'}</p>
-                          <p><strong>Empleado:</strong> ${sale.employee?.name || 'N/A'}</p>
-                          <p><strong>Total:</strong> <span class="h5 text-primary">$${parseInt(sale.total).toLocaleString('es-CO')}</span></p>
-                      </div>
-                  </div>
-                  <hr>
-                  <div class="text-muted">
-                      <small>Esta venta no puede ser eliminada por políticas de la empresa.</small>
-                  </div>
+      currentSaleId = saleId;
+      Promise.all([
+          fetch(`/sales/api/${saleId}`).then(res => res.json()),
+          fetch(`/sale-detail/api/sale/${saleId}`).then(res => res.json())
+      ])
+      .then(([sale, details]) => {
+          let detailsHtml = '<p>No hay productos en esta venta.</p>';
+          if (details.length > 0) {
+              detailsHtml = `
+                  <table class="table table-striped">
+                      <thead>
+                          <tr>
+                              <th>Producto</th>
+                              <th>Cantidad</th>
+                              <th>Precio Unitario</th>
+                              <th>Subtotal</th>
+                          </tr>
+                      </thead>
+                      <tbody>
+                          ${details.map(d => `
+                              <tr>
+                                  <td>${d.inventory.name}</td>
+                                  <td>${d.amount}</td>
+                                  <td>$${parseInt(d.priceUnit).toLocaleString('es-CO')}</td>
+                                  <td>$${(d.amount * d.priceUnit).toLocaleString('es-CO')}</td>
+                              </tr>
+                          `).join('')}
+                      </tbody>
+                  </table>
               `;
+          }
 
-              document.getElementById('saleDetailsContent').innerHTML = content;
-              const modal = new bootstrap.Modal(document.getElementById('saleDetailsModal'));
-              modal.show();
-          })
-          .catch(error => {
-              console.error('Error:', error);
-              Swal.fire({
-                  icon: 'error',
-                  title: 'Error',
-                  text: 'Error al cargar los detalles de la venta'
-              });
+          const content = `
+              <div class="row">
+                  <div class="col-md-6">
+                      <h6><strong>Información General</strong></h6>
+                      <p><strong>ID:</strong> ${sale.id}</p>
+                      <p><strong>Fecha:</strong> ${new Date(sale.dateSale).toLocaleDateString('es-CO')}</p>
+                      <p><strong>Estado:</strong>
+                          <span class="badge ${sale.status === 'COMPLETADA' ? 'bg-success' :
+                                             sale.status === 'PENDIENTE' ? 'bg-warning text-dark' :
+                                             'bg-danger'}">${sale.status}</span>
+                      </p>
+                  </div>
+                  <div class="col-md-6">
+                      <h6><strong>Cliente y Empleado</strong></h6>
+                      <p><strong>Cliente:</strong> ${sale.client?.name || 'N/A'}</p>
+                      <p><strong>Empleado:</strong> ${sale.employee?.name || 'N/A'}</p>
+                      <p><strong>Total:</strong> <span class="h5 text-primary">$${parseInt(sale.total).toLocaleString('es-CO')}</span></p>
+                  </div>
+              </div>
+              <hr>
+              <h6><strong>Productos Vendidos</strong></h6>
+              ${detailsHtml}
+          `;
+
+          document.getElementById('saleDetailsContent').innerHTML = content;
+          const addProductBtn = document.getElementById('addProductBtn');
+          if (sale.status === 'COMPLETADA') {
+              addProductBtn.style.display = 'none';
+          } else {
+              addProductBtn.style.display = 'block';
+          }
+          const modal = new bootstrap.Modal(document.getElementById('saleDetailsModal'));
+          modal.show();
+      })
+      .catch(error => {
+          console.error('Error:', error);
+          Swal.fire({
+              icon: 'error',
+              title: 'Error',
+              text: 'Error al cargar los detalles de la venta'
           });
+      });
+  }
+
+  function openAddProductModal() {
+      document.getElementById('saleIdForProduct').value = currentSaleId;
+      document.getElementById('addProductForm').reset();
+      const modal = new bootstrap.Modal(document.getElementById('addProductModal'));
+      modal.show();
+  }
+
+  function addProductToSale() {
+      const saleDetail = {
+          sale: { id: document.getElementById('saleIdForProduct').value },
+          inventory: { id: document.getElementById('productId').value },
+          amount: document.getElementById('productQuantity').value,
+          priceUnit: document.getElementById('productPrice').value
+      };
+
+      fetch('/sale-detail/save', {
+          method: 'POST',
+          headers: {
+              'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(saleDetail),
+      })
+      .then(response => {
+          if (!response.ok) {
+              throw new Error('Error al añadir el producto');
+          }
+          return response.json();
+      })
+      .then(data => {
+          bootstrap.Modal.getInstance(document.getElementById('addProductModal')).hide();
+          viewSaleDetails(currentSaleId); // Refresh the details modal
+          Swal.fire('Éxito', 'Producto añadido a la venta.', 'success');
+      })
+      .catch(error => {
+          Swal.fire('Error', error.message, 'error');
+      });
   }
 
   // Auto-ocultar alertas después de 5 segundos
@@ -259,6 +387,21 @@
           bsAlert.close();
       });
   }, 5000);
+
+  function exportToExcel() {
+      const table = document.getElementById('dataTable');
+      const wb = XLSX.utils.table_to_book(table, {sheet: "Ventas"});
+      XLSX.writeFile(wb, 'ventas.xlsx');
+  }
+
+  function exportToPDF() {
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF();
+
+      doc.autoTable({ html: '#dataTable' });
+
+      doc.save('ventas.pdf');
+  }
 </script>
 </body>
 </html>

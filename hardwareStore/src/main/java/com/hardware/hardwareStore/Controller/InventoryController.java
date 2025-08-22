@@ -20,17 +20,10 @@ public class InventoryController {
     private SupplierService supplierService;
 
     @GetMapping
-    public List<Inventory> getAllInventories() {
-        return inventoryService.getAllInventories();
-    }
-
-
-
     public String inventoryPage(Model model) {
         model.addAttribute("inventories", inventoryService.getAllInventories());
         model.addAttribute("suppliers", supplierService.getAllSuppliers());
         return "inventory/index";
-
     }
 
     @PostMapping("/save")

@@ -1,51 +1,77 @@
 <!DOCTYPE html>
-<html lang="en">
-    <head>
-        <meta charset="utf-8" />
-        <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
-        <meta name="description" content="" />
-        <meta name="author" content="" />
-        <title>404 Error - SB Admin</title>
-        <link href="css/styles.css" rel="stylesheet" />
-        <script src="https://use.fontawesome.com/releases/v6.3.0/js/all.js" crossorigin="anonymous"></script>
-    </head>
-    <body>
-        <div id="layoutError">
-            <div id="layoutError_content">
-                <main>
-                    <div class="container">
-                        <div class="row justify-content-center">
-                            <div class="col-lg-6">
-                                <div class="text-center mt-4">
-                                    <h1 class="display-1">500</h1>
-                                    <p class="lead">Internal Server Error</p>
-                                    <a href="index.html">
-                                        <i class="fas fa-arrow-left me-1"></i>
-                                        Return to Dashboard
-                                    </a>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </main>
-            </div>
-            <div id="layoutError_footer">
-                <footer class="py-4 bg-light mt-auto">
-                    <div class="container-fluid px-4">
-                        <div class="d-flex align-items-center justify-content-between small">
-                            <div class="text-muted">Copyright &copy; Your Website 2023</div>
-                            <div>
-                                <a href="#">Privacy Policy</a>
-                                &middot;
-                                <a href="#">Terms &amp; Conditions</a>
-                            </div>
-                        </div>
-                    </div>
-                </footer>
-            </div>
-        </div>
-        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js" crossorigin="anonymous"></script>
-        <script src="js/scripts.js"></script>
-    </body>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Error 500 - ForgeMax</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+          background: linear-gradient(135deg, #f8f9fa, #ffe8d6);
+          color: #5c4033;
+          text-align: center;
+          min-height: 100vh;
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          font-family: "Segoe UI", sans-serif;
+        }
+        .error-box {
+          max-width: 600px;
+          background: #ffffffcc;
+          padding: 2rem;
+          border-radius: 20px;
+          box-shadow: 0px 4px 15px rgba(0,0,0,0.1);
+        }
+        .error-code {
+          font-size: 6rem;
+          font-weight: 700;
+          margin-top: 1rem;
+          color: #a0522d;
+        }
+        .error-text {
+          font-size: 1.3rem;
+          margin-bottom: 1.5rem;
+          color: #5c4033;
+        }
+        .btn-home {
+          background: #a0522d;
+          color: white;
+          border-radius: 50px;
+          padding: 0.6rem 1.5rem;
+          font-weight: 500;
+          transition: 0.3s;
+          text-decoration: none;
+        }
+        .btn-home:hover {
+          background: #8b3e22;
+          color: #fff;
+        }
+        .capibara {
+          width: 220px;
+          margin-bottom: 1rem;
+          animation: float 3s ease-in-out infinite;
+        }
+        @keyframes float {
+          0%, 100% { transform: translateY(0px); }
+          50% { transform: translateY(-10px); }
+        }
+    </style>
+</head>
+<body>
+<div class="error-box">
+
+    <!-- Imagen del capibara -->
+    <img th:src="@{/assets/img/505.png}" alt="Capibara reparando" class="capibara">
+
+    <!-- Texto -->
+    <h1 class="error-code">500</h1>
+    <p class="error-text">¡Ups! Nuestro capibara está reparando el servidor 🔧</p>
+    <a th:href="@{/}" class="btn-home">
+        <i class="fas fa-arrow-left me-2"></i>Volver al Dashboard
+    </a>
+</div>
+
+<script src="https://kit.fontawesome.com/a2d9d6a64d.js" crossorigin="anonymous"></script>
+</body>
 </html>
