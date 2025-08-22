@@ -39,4 +39,11 @@ public class OrderBuyController {
         orderBuyService.deleteOrder(id);
         return "redirect:/orderbuy";
     }
+
+    @GetMapping("/api/{id}")
+    @ResponseBody
+    public OrderBuy getOrderBuyById(@PathVariable Long id) {
+        return orderBuyService.getOrderById(id)
+                .orElseThrow(() -> new RuntimeException("No se encontro la orden"));
+    }
 }

@@ -47,7 +47,7 @@
             <div class="modal fade" id="entryModal" tabindex="-1" aria-hidden="true">
               <div class="modal-dialog">
                 <div class="modal-content">
-                  <form id="entryForm" th:action="@{/entries/save}" method="post">
+                  <form id="entryForm" th:action="@{/entry/save}" method="post">
                     <input type="hidden" name="id" id="entryId">
                     <input type="hidden" name="dateEntry" id="entryDate">
                     <div class="modal-header">
@@ -102,7 +102,7 @@
 
             <!-- Tabla de entradas -->
             <div class="table-responsive">
-              <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
+              <table class="table table-bordered table-striped table-hover" id="dataTable" width="100%" cellspacing="0">
                 <thead>
                 <tr>
                   <th>ID</th>
@@ -149,7 +149,7 @@
               url: '//cdn.datatables.net/plug-ins/1.13.6/i18n/es-ES.json'
           },
           ajax: {
-              url: '/api/entries',
+              url: '/entry/api/entry',
               dataSrc: ''
           },
           columns: [
@@ -260,7 +260,7 @@
           employee: { id: form.querySelector('#entryEmployee').value }
       };
 
-      const url = entryData.id ? `/api/entries/${entryData.id}` : '/api/entries';
+      const url = entryData.id ? `/entry/api/entry/${entryData.id}` : '/entry/api/entry';
       const method = entryData.id ? 'PUT' : 'POST';
 
       fetch(url, {
@@ -284,7 +284,7 @@
 
   // Preparar formulario para editar entrada
   function prepareEditEntry(id) {
-      fetch(`/api/entries/${id}`)
+      fetch(`/entry/api/entry/${id}`)
           .then(response => {
               if (!response.ok) throw new Error('Error al cargar la entrada');
               return response.json();
@@ -320,7 +320,7 @@
           cancelButtonText: 'Cancelar'
       }).then(result => {
           if (result.isConfirmed) {
-              fetch(`/api/entries/${id}`, { method: 'DELETE' })
+              fetch(`/entry/api/entry/${id}`, { method: 'DELETE' })
                   .then(response => {
                       if (!response.ok) throw new Error('Error al eliminar la entrada');
                       return response.json();

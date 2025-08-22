@@ -29,14 +29,20 @@ public class SaleDetailController {
     }
 
     @PostMapping("/save")
-    public String saveSaleDetail(@ModelAttribute SaleDetail detail) {
-        saleDetailService.createSaleDetail(detail);
-        return "redirect:/sale-detail";
+    @ResponseBody
+    public SaleDetail saveSaleDetail(@RequestBody SaleDetail detail) {
+        return saleDetailService.createSaleDetail(detail);
     }
 
     @DeleteMapping("/delete/{id}")
     public String deleteSaleDetail(@PathVariable Long id) {
         saleDetailService.deleteSaleDetail(id);
         return "redirect:/sale-detail";
+    }
+
+    @GetMapping("/api/sale/{saleId}")
+    @ResponseBody
+    public List<SaleDetail> getSaleDetailsBySaleId(@PathVariable Long saleId) {
+        return saleDetailService.getSaleDetailsBySaleId(saleId);
     }
 }

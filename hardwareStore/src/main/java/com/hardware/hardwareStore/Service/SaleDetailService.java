@@ -30,4 +30,8 @@ public class SaleDetailService {
     public void deleteSaleDetail(Long id) {
         saleDetailRepository.deleteById(id);
     }
+
+    public List<SaleDetail> getSaleDetailsBySaleId(Long saleId) {
+        return saleDetailRepository.findBySaleId(saleId);
+    }
 }

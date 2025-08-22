@@ -16,11 +16,19 @@
       <div class="container-fluid px-4">
         <h1 class="mt-4">Gestión de Salidas</h1>
 
-        <!-- Botón de Nueva Salida -->
-        <button type="button" class="btn btn-primary mb-3" data-bs-toggle="modal"
-                data-bs-target="#issueModal" onclick="prepareNewIssue()">
-          <i class="fas fa-plus me-1"></i> Nueva Salida
-        </button>
+        <!-- Botones de acción -->
+        <div class="mb-3">
+            <button type="button" class="btn btn-primary" data-bs-toggle="modal"
+                    data-bs-target="#issueModal" onclick="prepareNewIssue()">
+                <i class="fas fa-plus me-1"></i> Nueva Salida
+            </button>
+            <button type="button" class="btn btn-success" onclick="exportToExcel()">
+                <i class="fas fa-file-excel me-1"></i> Exportar a Excel
+            </button>
+            <button type="button" class="btn btn-danger" onclick="exportToPDF()">
+                <i class="fas fa-file-pdf me-1"></i> Exportar a PDF
+            </button>
+        </div>
 
         <!-- Tarjeta con la Tabla -->
         <div class="card mb-4">
@@ -28,62 +36,10 @@
             <i class="fas fa-sign-out-alt me-1"></i>
             Salidas registradas
           </div>
-
-
-            <!-- Modal para formulario -->
-            <div class="modal fade" id="issueModal" tabindex="-1" aria-hidden="true">
-              <div class="modal-dialog">
-                <div class="modal-content">
-                  <form id="issueForm" th:action="@{/issues/save}" method="post">
-                    <input type="hidden" name="id" id="issueId">
-                    <div class="modal-header">
-                      <h5 class="modal-title" id="modalTitle">Nuevo Incidente</h5>
-                      <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                    </div>
-                    <div class="modal-body">
-                      <div class="mb-3">
-                        <label class="form-label">Producto</label>
-                        <select class="form-select" name="inventory.id" required>
-                          <option th:each="inventory : ${inventories}" th:value="${inventory.id}" th:text="${inventory.name}"></option>
-                        </select>
-                      </div>
-                      <div class="mb-3">
-                        <label class="form-label">Cantidad</label>
-                        <input type="number" class="form-control" name="amount" required min="1">
-                      </div>
-                      <div class="mb-3">
-                        <label class="form-label">Motivo</label>
-                        <input type="text" class="form-control" name="reason" required>
-                      </div>
-                      <div class="mb-3">
-                        <label class="form-label">Fecha</label>
-                        <input type="date" class="form-control" name="dateIssue">
-                      </div>
-                      <div class="mb-3">
-                        <label class="form-label">Empleado</label>
-                        <select class="form-select" name="employee.id" required>
-                          <option th:each="employee : ${employees}" th:value="${employee.id}" th:text="${employee.name}"></option>
-                        </select>
-                      </div>
-                      <div class="mb-3">
-                        <label class="form-label">Observaciones</label>
-                        <textarea class="form-control" name="observation" rows="3"></textarea>
-                      </div>
-                    </div>
-                    <div class="modal-footer">
-                      <button type="submit" class="btn btn-primary">Guardar</button>
-                      <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                    </div>
-                  </form>
-                </div>
-              </div>
-            </div>
-
-            <!-- Tabla de incidentes -->
           <div class="card-body">
             <!-- Tabla de Salidas (DataTable) -->
             <div class="table-responsive">
-              <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
+              <table class="table table-bordered table-striped table-hover" id="dataTable" width="100%" cellspacing="0">
                 <thead>
                 <tr>
                   <th>ID</th>
@@ -97,27 +53,6 @@
                 </tr>
                 </thead>
                 <tbody>
-                <tr th:each="issue : ${issues}">
-                  <td th:text="${issue.id}"></td>
-                  <td th:text="${issue.inventory?.name ?: 'N/A'}"></td>
-                  <td th:text="${issue.amount ?: 0}"></td>
-                  <td th:text="${issue.reason ?: 'N/A'}"></td>
-                  <td th:text="${issue.dateIssue != null ? #dates.format(issue.dateIssue, 'dd/MM/yyyy') : 'Sin fecha'}"></td>
-                  <td th:text="${issue.employee?.name ?: 'N/A'}"></td>
-                  <td th:text="${issue.observation ?: 'Sin observación'}"></td>
-                  <td class="text-center">
-                    <button class="btn btn-warning btn-sm me-1"
-                            th:data-id="${issue.id}" onclick="prepareEditIssue(this)">
-                      <i class="fas fa-edit"></i>
-                    </button>
-                    <form th:action="@{'/delete/issue/' + ${issue.id}}" method="post" style="display:inline;">
-                      <button type="button" class="btn btn-danger btn-sm"
-                              onclick="confirmDelete(this)">
-                        <i class="fas fa-trash-alt"></i>
-                      </button>
-                    </form>
-                  </td>
-                </tr>
                 </tbody>
               </table>
             </div>
@@ -130,7 +65,7 @@
     <div class="modal fade" id="issueModal" tabindex="-1" aria-hidden="true">
       <div class="modal-dialog">
         <div class="modal-content">
-          <form id="issueForm" th:action="@{/issues/save}" method="post">
+          <form id="issueForm" th:action="@{/issue/save}" method="post">
             <input type="hidden" name="id" id="issueId">
             <div class="modal-header">
               <h5 class="modal-title" id="modalTitle">Nueva Salida</h5>
@@ -205,13 +140,50 @@
 <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
 <script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
 
+<!-- Export to Excel and PDF -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
+
 <script>
   // Inicializar DataTable
   $(document).ready(function () {
-      $('#dataTable').DataTable({
+      const table = $('#dataTable').DataTable({
           language: {
               url: '//cdn.datatables.net/plug-ins/1.13.6/i18n/es-ES.json'
-          }
+          },
+          ajax: {
+              url: '/issue/api/issue',
+              dataSrc: ''
+          },
+          columns: [
+              { data: 'id' },
+              { data: 'inventory.name', defaultContent: 'N/A' },
+              { data: 'amount', defaultContent: 0 },
+              { data: 'reason', defaultContent: 'N/A' },
+              {
+                  data: 'dateIssue',
+                  render: function (data) {
+                      const date = new Date(data);
+                      return `${date.getDate().toString().padStart(2, '0')}/${(date.getMonth() + 1).toString().padStart(2, '0')}/${date.getFullYear()}`;
+                  }
+              },
+              { data: 'employee.name', defaultContent: 'N/A' },
+              { data: 'observation', defaultContent: 'N/A' },
+              {
+                  data: null,
+                  render: function (data, type, row) {
+                      return `
+                          <button class="btn btn-warning btn-sm me-1" onclick="prepareEditIssue(${row.id})">
+                              <i class="fas fa-edit"></i>
+                          </button>
+                          <button class="btn btn-danger btn-sm" onclick="deleteIssue(${row.id})">
+                              <i class="fas fa-trash-alt"></i>
+                          </button>
+                      `;
+                  }
+              }
+          ]
       });
   });
 
@@ -223,14 +195,46 @@
       document.getElementById('dateIssueInput').valueAsDate = new Date();
   }
 
+  // Guardar salida
+  function saveIssue() {
+      const form = document.getElementById('issueForm');
+      const issueData = {
+          id: form.querySelector('#issueId').value || null,
+          inventory: { id: form.querySelector('select[name="inventory.id"]').value },
+          amount: form.querySelector('input[name="amount"]').value,
+          reason: form.querySelector('select[name="reason"]').value,
+          dateIssue: form.querySelector('#dateIssueInput').value,
+          employee: { id: form.querySelector('select[name="employee.id"]').value },
+          observation: form.querySelector('textarea[name="observation"]').value
+      };
+
+      const url = issueData.id ? `/issue/api/issue/${issueData.id}` : '/issue/api/issue';
+      const method = issueData.id ? 'PUT' : 'POST';
+
+      fetch(url, {
+          method: method,
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(issueData)
+      })
+      .then(response => {
+          if (!response.ok) throw new Error('Error al guardar la salida');
+          return response.json();
+      })
+      .then(() => {
+          Swal.fire('Guardado', 'La salida se ha guardado correctamente', 'success');
+          $('#dataTable').DataTable().ajax.reload();
+          bootstrap.Modal.getInstance(document.getElementById('issueModal')).hide();
+      })
+      .catch(error => {
+          Swal.fire('Error', error.message, 'error');
+      });
+  }
+
   // Preparar formulario para editar salida
-  function prepareEditIssue(button) {
-      const issueId = button.getAttribute('data-id');
-      fetch(`/api/issue/${issueId}`)
+  function prepareEditIssue(id) {
+      fetch(`/issue/api/issue/${id}`)
           .then(response => {
-              if (!response.ok) {
-                  throw new Error('Error al obtener los datos');
-              }
+              if (!response.ok) throw new Error('Error al cargar la salida');
               return response.json();
           })
           .then(issue => {
@@ -258,27 +262,49 @@
               modal.show();
           })
           .catch(error => {
-              console.error('Error:', error);
-              alert('Error al cargar los datos de la salida');
+              Swal.fire('Error', error.message, 'error');
           });
   }
 
-  // Confirmar eliminación
-  function confirmDelete(button) {
+  // Eliminar salida
+  function deleteIssue(id) {
       Swal.fire({
           title: '¿Estás seguro?',
-          text: "No podrás revertir esta acción",
+          text: 'No podrás revertir esta acción',
           icon: 'warning',
           showCancelButton: true,
           confirmButtonColor: '#d33',
           cancelButtonColor: '#3085d6',
           confirmButtonText: 'Sí, eliminar',
           cancelButtonText: 'Cancelar'
-      }).then((result) => {
+      }).then(result => {
           if (result.isConfirmed) {
-              button.closest('form').submit();
+              fetch(`/issue/api/issue/${id}`, { method: 'DELETE' })
+                  .then(response => {
+                      if (!response.ok) throw new Error('Error al eliminar la salida');
+                      $('#dataTable').DataTable().ajax.reload();
+                      Swal.fire('Eliminado', 'La salida ha sido eliminada', 'success');
+                  })
+                  .catch(error => {
+                      Swal.fire('Error', error.message, 'error');
+                  });
           }
       });
+  }
+
+  function exportToExcel() {
+      const table = document.getElementById('dataTable');
+      const wb = XLSX.utils.table_to_book(table, {sheet: "Salidas"});
+      XLSX.writeFile(wb, 'salidas.xlsx');
+  }
+
+  function exportToPDF() {
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF();
+
+      doc.autoTable({ html: '#dataTable' });
+
+      doc.save('salidas.pdf');
   }
 </script>
 </body>

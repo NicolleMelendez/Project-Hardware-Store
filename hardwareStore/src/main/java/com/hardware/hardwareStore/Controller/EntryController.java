@@ -26,13 +26,6 @@ public class EntryController {
 
 
     @GetMapping
-    public String showEntriesPage(Model model) {
-        model.addAttribute("entries", entryService.getAllEntries());
-        model.addAttribute("inventories", inventoryService.getAllInventories());
-        return "entry/index";
-    }
-
-
     public String entryPage(Model model) {
         model.addAttribute("entries", entryService.getAllEntries());
         model.addAttribute("inventories", inventoryService.getAllInventories());
@@ -41,29 +34,28 @@ public class EntryController {
         return "entry/index";
     }
 
-    @PostMapping("/save")
-    public String createEntry(@ModelAttribute Entry entry) {
-        entryService.createEntry(entry);
-        return "redirect:/entry"; // Actualizado para coincidir con el RequestMapping
+    @GetMapping("/api/entry")
+    @ResponseBody
+    public List<Entry> getAllEntries() {
+        return entryService.getAllEntries();
     }
 
-
-    @PostMapping("/update/{id}")
-    public String updateEntry(@PathVariable Long id, @ModelAttribute Entry entryDetails) {
-        entryService.updateEntry(id, entryDetails);
-        return "redirect:/entry";
+    @PostMapping("/api/entry")
+    @ResponseBody
+    public Entry createEntry(@RequestBody Entry entry) {
+        return entryService.createEntry(entry);
     }
 
-    @GetMapping("/delete/{id}")
-    public String saveEntry(@ModelAttribute Entry entry) {
-        entryService.createEntry(entry);
-        return "redirect:/entry";
+    @PutMapping("/api/entry/{id}")
+    @ResponseBody
+    public Entry updateEntry(@PathVariable Long id, @RequestBody Entry entryDetails) {
+        return entryService.updateEntry(id, entryDetails);
     }
 
-    @DeleteMapping("/delete/{id}")
-    public String deleteEntry(@PathVariable Long id) {
+    @DeleteMapping("/api/entry/{id}")
+    @ResponseBody
+    public void deleteEntry(@PathVariable Long id) {
         entryService.deleteEntry(id);
-        return "redirect:/entry";
     }
 
     @GetMapping("/api/entry/{id}")
