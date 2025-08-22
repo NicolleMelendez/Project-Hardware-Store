@@ -5,6 +5,7 @@ import com.hardware.hardwareStore.Service.EmployeeService;
 import com.hardware.hardwareStore.Service.OrderBuyService;
 import com.hardware.hardwareStore.model.OrderBuy;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -40,10 +41,10 @@ public class OrderBuyController {
         return "redirect:/orderbuy";
     }
 
-    @GetMapping("/api/{id}")
+    @DeleteMapping("/api/orderBuy/{id}")
     @ResponseBody
-    public OrderBuy getOrderBuyById(@PathVariable Long id) {
-        return orderBuyService.getOrderById(id)
-                .orElseThrow(() -> new RuntimeException("No se encontro la orden"));
+    public ResponseEntity<Void> deleteOrderBuyApi(@PathVariable Long id) {
+        orderBuyService.deleteOrder(id);
+        return ResponseEntity.noContent().build();
     }
 }

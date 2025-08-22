@@ -1,6 +1,7 @@
 package com.hardware.hardwareStore.Service;
 
 import com.hardware.hardwareStore.Repository.SaleDetailRepository;
+import com.hardware.hardwareStore.Repository.SaleRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
