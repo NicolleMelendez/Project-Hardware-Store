@@ -9,6 +9,8 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @Controller
 @RequestMapping("/issue")
 public class IssueController {
@@ -28,16 +30,28 @@ public class IssueController {
         return "issue/index";
     }
 
-    @PostMapping("/save")
-    public String saveIssue(@ModelAttribute Issue issue) {
-        issueService.createIssue(issue);
-        return "redirect:/issue";
+    @GetMapping("/api/issue")
+    @ResponseBody
+    public List<Issue> getAllIssues() {
+        return issueService.getAllIssues();
     }
 
-    @DeleteMapping("/delete/{id}")
-    public String deleteIssue(@PathVariable Long id) {
+    @PostMapping("/api/issue")
+    @ResponseBody
+    public Issue createIssue(@RequestBody Issue issue) {
+        return issueService.createIssue(issue);
+    }
+
+    @PutMapping("/api/issue/{id}")
+    @ResponseBody
+    public Issue updateIssue(@PathVariable Long id, @RequestBody Issue issueDetails) {
+        return issueService.updateIssue(id, issueDetails);
+    }
+
+    @DeleteMapping("/api/issue/{id}")
+    @ResponseBody
+    public void deleteIssue(@PathVariable Long id) {
         issueService.deleteIssue(id);
-        return "redirect:/issue";
     }
 
     @GetMapping("/api/issue/{id}")
