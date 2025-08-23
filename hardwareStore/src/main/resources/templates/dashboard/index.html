@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/head :: head('Dashboard')}">
+    <meta charset="UTF-8">
+</head>
+<body class="sb-nav-fixed">
+<!-- Navbar -->
+<div th:replace="~{fragments/navbar :: navbar}"></div>
+
+<div id="layoutSidenav">
+    <!-- Sidebar -->
+    <div th:replace="~{fragments/sidebar :: sidebar}"></div>
+
+    <div id="layoutSidenav_content">
+        <main>
+            <div class="container-fluid px-4">
+                <h1 class="mt-4">Dashboard</h1>
+                <ol class="breadcrumb mb-4">
+                    <li class="breadcrumb-item active">Resumen del sistema</li>
+                </ol>
+
+                <div class="row">
+                    <div class="col-xl-4">
+                        <div class="card mb-4">
+                            <div class="card-header">
+                                <i class="fas fa-chart-bar me-1"></i>
+                                Top 5 Productos Más Vendidos
+                            </div>
+                            <div class="card-body">
+                                <table class="table table-striped">
+                                    <thead>
+                                        <tr>
+                                            <th>Producto</th>
+                                            <th>Cantidad Vendida</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr th:each="product : ${topProducts}">
+                                            <td th:text="${product.name}"></td>
+                                            <td th:text="${product.quantity}"></td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-xl-4">
+                        <div class="card mb-4">
+                            <div class="card-header">
+                                <i class="fas fa-user-tie me-1"></i>
+                                Top 5 Clientes con Más Compras
+                            </div>
+                            <div class="card-body">
+                                <table class="table table-striped">
+                                    <thead>
+                                        <tr>
+                                            <th>Cliente</th>
+                                            <th>Total Comprado</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr th:each="customer : ${topCustomers}">
+                                            <td th:text="${customer.name}"></td>
+                                            <td th:text="'$' + ${#numbers.formatInteger(customer.total, 0, 'POINT')}"></td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-xl-4">
+                        <div class="card mb-4">
+                            <div class="card-header">
+                                <i class="fas fa-user-friends me-1"></i>
+                                Top 5 Empleados con Más Ventas
+                            </div>
+                            <div class="card-body">
+                                <table class="table table-striped">
+                                    <thead>
+                                        <tr>
+                                            <th>Empleado</th>
+                                            <th>Total Vendido</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr th:each="employee : ${topEmployees}">
+                                            <td th:text="${employee.name}"></td>
+                                            <td th:text="'$' + ${#numbers.formatInteger(employee.total, 0, 'POINT')}"></td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+        <!-- Footer -->
+        <footer th:replace="~{fragments/footer :: footer}"></footer>
+    </div>
+</div>
+</body>
+</html>

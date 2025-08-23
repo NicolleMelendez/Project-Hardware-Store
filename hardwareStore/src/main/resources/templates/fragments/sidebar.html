@@ -1,87 +1,70 @@
 <div th:fragment="sidebar" id="layoutSidenav_nav" xmlns:th="http://www.w3.org/1999/xhtml">
   <nav class="sb-sidenav accordion sb-sidenav-dark">
     <div class="sb-sidenav-menu">
-      <!-- Encabezado más prominente -->
+
+      <!-- Encabezado con logo -->
       <div class="sb-sidenav-header text-center py-4">
-        <img th:src="@{/assets/img/logo2.png}"
+        <img th:src="@{/assets/img/logoo.png}"
              alt="Logo Ferretería"
-             class="rounded-circle"
-             style="width: 70px; height: 70px; object-fit: cover; border: 3px solid white; margin-bottom: 15px;">
-        <h4 class="text-white mb-0" style="font-size: 1.3rem; font-weight: 500;">ForgeMax</h4>
+             class="rounded-circle shadow"
+             style="width: 70px; height: 70px; object-fit: cover; border: 3px solid #0d6efd; margin-bottom: 15px;">
+        <h4 class="text-white mb-0" style="font-size: 1.3rem; font-weight: 600;">ForgeMax</h4>
+        <small class="text-secondary">Panel de administración</small>
       </div>
 
-      <!-- Menú con mejor espaciado -->
-      <div class="nav" style="padding-left: 1rem;">
-        <!-- Items con menos espacio -->
-        <div style="margin-bottom: 0.3rem;">
-          <a class="nav-link d-flex align-items-center py-2" th:href="@{/}" style="font-size: 1rem;">
-            <i class="fas fa-home me-3" style="font-size: 1rem; width: 25px;"></i>
-            <span>Dashboard</span>
-          </a>
-        </div>
+      <!-- Secciones con títulos -->
+      <div class="nav px-2">
 
-        <div style="margin-bottom: 0.3rem;">
-          <a class="nav-link d-flex align-items-center py-2" th:href="@{/clients}" style="font-size: 1rem;">
-            <i class="fas fa-users me-3" style="font-size: 1rem; width: 25px;"></i>
-            <span>Clientes</span>
-          </a>
-        </div>
+        <!-- Grupo: General -->
+        <div class="sb-sidenav-menu-heading text-uppercase small text-secondary">General</div>
+        <a class="nav-link d-flex align-items-center py-2" th:href="@{/}">
+          <i class="fas fa-home me-2" style="width: 20px;"></i>
+          <span>Dashboard</span>
+        </a>
 
-        <div style="margin-bottom: 0.3rem;">
-          <a class="nav-link d-flex align-items-center py-2" th:href="@{/supplier}" style="font-size: 1rem;">
-            <i class="fas fa-truck me-3" style="font-size: 1rem; width: 25px;"></i>
-            <span>Proveedores</span>
-          </a>
-        </div>
+        <!-- Grupo: Gestión -->
+        <div class="sb-sidenav-menu-heading text-uppercase small text-secondary mt-3">Gestión</div>
+        <a class="nav-link d-flex align-items-center py-2" th:href="@{/clients}">
+          <i class="fas fa-users me-2" style="width: 20px;"></i>
+          <span>Clientes</span>
+          <span class="badge bg-primary ms-auto">24</span> <!-- contador dinámico -->
+        </a>
+        <a class="nav-link d-flex align-items-center py-2" th:href="@{/supplier}">
+          <i class="fas fa-truck me-2" style="width: 20px;"></i>
+          <span>Proveedores</span>
+        </a>
+        <a class="nav-link d-flex align-items-center py-2" th:href="@{/employee}">
+          <i class="fas fa-user-tie me-2" style="width: 20px;"></i>
+          <span>Empleados</span>
+        </a>
 
-        <div style="margin-bottom: 0.3rem;">
-          <a class="nav-link d-flex align-items-center py-2" th:href="@{/employee}" style="font-size: 1rem;">
-            <i class="fas fa-user-tie me-3" style="font-size: 1rem; width: 25px;"></i>
-            <span>Empleados</span>
-          </a>
-        </div>
+        <!-- Grupo: Inventario -->
+        <div class="sb-sidenav-menu-heading text-uppercase small text-secondary mt-3">Inventario</div>
+        <a class="nav-link d-flex align-items-center py-2" th:href="@{/inventory}">
+          <i class="fas fa-boxes me-2" style="width: 20px;"></i>
+          <span>Productos</span>
+        </a>
+        <a class="nav-link d-flex align-items-center py-2" th:href="@{/entry}">
+          <i class="fas fa-sign-in-alt me-2" style="width: 20px;"></i>
+          <span>Entradas</span>
+        </a>
+        <a class="nav-link d-flex align-items-center py-2" th:href="@{/issue}">
+          <i class="fas fa-sign-out-alt me-2" style="width: 20px;"></i>
+          <span>Salidas</span>
+        </a>
 
-        <div style="margin-bottom: 0.3rem;">
-          <a class="nav-link d-flex align-items-center py-2" th:href="@{/inventory}" style="font-size: 1rem;">
-            <i class="fas fa-boxes me-3" style="font-size: 1rem; width: 25px;"></i>
-            <span>Productos</span>
-          </a>
-        </div>
+        <!-- Grupo: Operaciones -->
+        <div class="sb-sidenav-menu-heading text-uppercase small text-secondary mt-3">Operaciones</div>
+        <a class="nav-link d-flex align-items-center py-2" th:href="@{/sales}">
+          <i class="fas fa-cash-register me-2" style="width: 20px;"></i>
+          <span>Ventas</span>
+        </a>
+        <a class="nav-link d-flex align-items-center py-2" th:href="@{/orderbuy}">
+          <i class="fas fa-shopping-cart me-2" style="width: 20px;"></i>
+          <span>Órdenes de compra</span>
+        </a>
 
-        <div style="margin-bottom: 0.3rem;">
-          <a class="nav-link d-flex align-items-center py-2" th:href="@{/entry}" style="font-size: 1rem;">
-            <i class="fas fa-sign-in-alt me-3" style="font-size: 1rem; width: 25px;"></i>
-            <span>Entradas</span>
-          </a>
-        </div>
 
-        <div style="margin-bottom: 0.3rem;">
-          <a class="nav-link d-flex align-items-center py-2" th:href="@{/issue}" style="font-size: 1rem;">
-            <i class="fas fa-sign-out-alt me-3" style="font-size: 1rem; width: 25px;"></i>
-            <span>Salidas</span>
-          </a>
-        </div>
-
-        <div style="margin-bottom: 0.3rem;">
-          <a class="nav-link d-flex align-items-center py-2" th:href="@{/sale}" style="font-size: 1rem;">
-            <i class="fas fa-cash-register me-3" style="font-size: 1rem; width: 25px;"></i>
-            <span>Ventas</span>
-          </a>
-        </div>
-
-        <div style="margin-bottom: 0.3rem;">
-          <a class="nav-link d-flex align-items-center py-2" th:href="@{/orderbuy}" style="font-size: 1rem;">
-            <i class="fas fa-shopping-cart me-3" style="font-size: 1rem; width: 25px;"></i>
-            <span>Órdenes de compra</span>
-          </a>
-        </div>
-
-        <div style="margin-bottom: 0.3rem;">
-          <a class="nav-link d-flex align-items-center py-2" th:href="@{/}" style="font-size: 1rem;">
-            <i class="fas fa-chart-bar me-3" style="font-size: 1rem; width: 25px;"></i>
-            <span>Reporte</span>
-          </a>
-        </div>
       </div>
     </div>
   </nav>

@@ -92,10 +92,6 @@ public class EntryService {
     }
 
     private void updateInventoryStock(Inventory inventory, int amount) {
-        Inventory managedInventory = inventoryService.getInventoryById(inventory.getId())
-                .orElseThrow(() -> new RuntimeException("No se encontro el producto"));
-
-        managedInventory.setStock(managedInventory.getStock() + amount);
-        inventoryService.saveInventory(managedInventory);
+        inventoryService.updateStock(inventory.getId(), amount);
     }
 }

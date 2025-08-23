@@ -5,6 +5,7 @@ import com.hardware.hardwareStore.Service.EmployeeService;
 import com.hardware.hardwareStore.Service.OrderBuyService;
 import com.hardware.hardwareStore.model.OrderBuy;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -38,5 +39,12 @@ public class OrderBuyController {
     public String deleteOrderBuy(@PathVariable Long id) {
         orderBuyService.deleteOrder(id);
         return "redirect:/orderbuy";
+    }
+
+    @DeleteMapping("/api/orderBuy/{id}")
+    @ResponseBody
+    public ResponseEntity<Void> deleteOrderBuyApi(@PathVariable Long id) {
+        orderBuyService.deleteOrder(id);
+        return ResponseEntity.noContent().build();
     }
 }
