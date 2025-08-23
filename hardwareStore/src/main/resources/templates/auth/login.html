@@ -28,19 +28,16 @@
                         <p class="text-muted">Iniciar Sesión</p>
                     </div>
 
-                    <!-- Mensajes de error -->
                     <div th:if="${error}" class="alert alert-danger" role="alert">
                         <i class="bi bi-exclamation-triangle"></i>
                         <span th:text="${error}"></span>
                     </div>
 
-                    <!-- Mensaje de logout exitoso -->
                     <div th:if="${msg}" class="alert alert-success" role="alert">
                         <i class="bi bi-check-circle"></i>
                         <span th:text="${msg}"></span>
                     </div>
 
-                    <!-- Mensaje de registro exitoso -->
                     <div th:if="${param.registered}" class="alert alert-info" role="alert">
                         <i class="bi bi-info-circle"></i>
                         Usuario registrado exitosamente. Puedes iniciar sesión.
@@ -72,6 +69,10 @@
                             <label class="form-check-label" for="rememberMe">
                                 Recordarme
                             </label>
+                        </div>
+
+                        <div class="mb-3 text-end">
+                            <a th:href="@{/forgot-password}" class="text-primary">¿Olvidaste tu contraseña?</a>
                         </div>
 
                         <button type="submit" class="btn btn-primary w-100 mb-3">
