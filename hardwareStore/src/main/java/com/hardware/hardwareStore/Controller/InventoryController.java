@@ -32,7 +32,8 @@ public class InventoryController {
         return "redirect:/inventory";
     }
 
-    @DeleteMapping("/delete/{id}")
+
+    @PostMapping("/delete/{id}")
     public String deleteInventory(@PathVariable Long id) {
         inventoryService.deleteInventory(id);
         return "redirect:/inventory";

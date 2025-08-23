@@ -119,17 +119,18 @@
                   <td th:text="${inventory.category}"></td>
                   <td th:text="${inventory.price != null ? '$' + #numbers.formatInteger(inventory.price, 0, 'POINT') : ''}"></td>
                   <td th:text="${inventory.stock}"></td>
-                  <td th:text="${inventory.supplier?.name ?: 'N/A'}"></td>
+                  <td th:text="${inventory.supplier.name}"></td>
                   <td th:text="${inventory.minStock}"></td>
                   <td class="text-center">
-                    <form sec:authorize="hasAnyRole('ADMIN','MANAGER')">
                     <button class="btn btn-warning btn-sm me-1"
                             th:data-id="${inventory.id}" onclick="prepareEditInventory(this)">
                       <i class="fas fa-edit"></i>
                     </button>
-                    </form>
-
-                    <form sec:authorize="hasAnyRole('ADMIN','MANAGER')" th:action="@{'/delete/inventory/' + ${inventory.id}}" method="post" style="display:inline;">
+                    <form sec:authorize="hasAnyRole('ADMIN','MANAGER')"
+                          th:action="@{'/inventory/delete/' + ${inventory.id}}"
+                          method="post"
+                          style="display:inline;">
+                      <input type="hidden" name="_method" value="delete" />
                       <button type="button" class="btn btn-danger btn-sm"
                               onclick="confirmDelete(this)">
                         <i class="fas fa-trash-alt"></i>
@@ -299,7 +300,7 @@
               form.querySelector('input[name="stock"]').value = inventory.stock || '';
 
               // Manejar el select de proveedor con seguridad
-              const supplierSelect = form.querySelector('select[name="supplier.id"]');
+              const supplierSelect = form.querySelector('select[name="id.supplier"]');
               if (inventory.supplier && inventory.supplier.id) {
                   supplierSelect.value = inventory.supplier.id;
               } else {
