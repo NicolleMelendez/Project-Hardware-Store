@@ -34,7 +34,9 @@ public class InventoryService {
     public List<Inventory> getAllInventories() {
         return inventoryRepository.findAll();
     }
-
+    public List<Inventory> findAll() {
+        return inventoryRepository.findAll();
+    }
     @Transactional(readOnly = true)
     public Optional<Inventory> getInventoryById(Long id) {
         return inventoryRepository.findById(id);

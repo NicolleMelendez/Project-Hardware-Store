@@ -16,7 +16,7 @@ public class DashboardController {
 
     @GetMapping
     public String dashboardPage(Model model) {
-        model.addAttribute("topProducts", dashboardService.getTop5SoldProducts());
+        //model.addAttribute("topProducts", dashboardService.getTop5SoldProducts());
         model.addAttribute("topCustomers", dashboardService.getTop5Customers());
         model.addAttribute("topEmployees", dashboardService.getTop5Employees());
         return "dashboard/index";

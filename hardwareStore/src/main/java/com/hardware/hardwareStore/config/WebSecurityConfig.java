@@ -56,4 +56,6 @@ public class WebSecurityConfig implements WebMvcConfigurer {
         registry.addResourceHandler("/static/**")
                 .addResourceLocations("classpath:/static/");
     }
+
+
 }

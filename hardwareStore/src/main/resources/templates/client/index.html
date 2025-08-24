@@ -2,8 +2,14 @@
 <html xmlns:th="http://www.thymeleaf.org">
 <head th:replace="~{fragments/head :: head('Clientes')}">
     <meta charset="UTF-8">
+    <title>Clientes</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" rel="stylesheet">
 </head>
+
 <body class="sb-nav-fixed">
+
 <div th:replace="~{fragments/navbar :: navbar}"></div>
 
 <div id="layoutSidenav">
@@ -29,23 +35,6 @@
                     </div>
                 </div>
 
-                <div class="d-flex justify-content-between align-items-center mb-3">
-                    <div class="d-flex align-items-center">
-                        <label for="entries" class="me-2 mb-0">Mostrar:</label>
-                        <select id="entries" class="form-select d-inline-block w-auto">
-                            <option value="10">10</option>
-                            <option value="25">25</option>
-                            <option value="50">50</option>
-                            <option value="-1">Todos</option>
-                        </select>
-                        <span class="ms-3" id="totalRecords">Total de registros: <span th:text="${clients.size()}"></span></span>
-                    </div>
-                    <div>
-                        <label for="dataTable_filter" class="me-2 mb-0">Buscar:</label>
-                        <input type="search" id="dataTable_filter" class="form-control d-inline-block w-auto">
-                    </div>
-                </div>
-
                 <div class="modal fade" id="clientModal" tabindex="-1" aria-hidden="true">
                     <div class="modal-dialog">
                         <div class="modal-content">
@@ -64,8 +53,8 @@
                                     <div class="mb-3">
                                         <label class="form-label">Teléfono</label>
                                         <input type="text" class="form-control" name="phone" required
-                                               oninput="formatPhoneInput(this)"
-                                               maxlength="10" placeholder="Ej: 320-222-2222">
+                                               oninput="this.value = this.value.replace(/[^0-9]/g, '')"
+                                               maxlength="10" placeholder="Ej: 3202222222">
                                     </div>
                                     <div class="mb-3">
                                         <label class="form-label">Dirección</label>
@@ -85,6 +74,22 @@
                     </div>
                 </div>
 
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <div class="d-flex align-items-center">
+                        <label for="entries" class="me-2 mb-0">Mostrar:</label>
+                        <select id="entries" class="form-select d-inline-block" style="width: 80px;">
+                            <option value="10">10</option>
+                            <option value="25">25</option>
+                            <option value="50">50</option>
+                            <option value="-1">Todos</option>
+                        </select>
+                    </div>
+                    <div class="d-flex align-items-center">
+                        <label for="search" class="me-2 mb-0">Buscar:</label>
+                        <input type="search" id="search" class="form-control d-inline-block w-auto">
+                    </div>
+                </div>
+
                 <div class="card mb-4">
                     <div class="card-body">
                         <table class="table table-bordered table-striped table-hover" id="dataTable" width="100%" cellspacing="0">
@@ -100,19 +105,24 @@
                             </tr>
                             </thead>
                             <tbody>
-                            <tr th:each="client : ${clients}">
+                            <tr th:each="client : ${clients}"
+                                th:data-id="${client.id}"
+                                th:data-name="${client.name}"
+                                th:data-phone="${client.phone}"
+                                th:data-address="${client.address}"
+                                th:data-email="${client.email}"
+                                th:data-date="${client.dateClient}">
                                 <td th:text="${client.id}"></td>
                                 <td th:text="${client.name}"></td>
-                                <td th:text="${#strings.length(client.phone) == 10 ?
-                                                     #strings.substring(client.phone,0,3) + '-' +
-                                                     #strings.substring(client.phone,3,6) + '-' +
-                                                     #strings.substring(client.phone,6) : client.phone}"></td>
+                                <td th:text="${client.phone}"></td>
                                 <td th:text="${client.address}"></td>
                                 <td th:text="${client.email}"></td>
                                 <td th:text="${#dates.format(client.dateClient, 'dd/MM/yyyy')}"></td>
                                 <td class="text-center">
                                     <button class="btn btn-warning btn-sm me-1"
-                                            th:data-id="${client.id}" onclick="prepareEditClient(this)">
+                                            data-bs-toggle="modal"
+                                            data-bs-target="#clientModal"
+                                            onclick="prepareEditClient(this)">
                                         <i class="fas fa-edit"></i>
                                     </button>
                                     <form th:action="@{/clients/delete/{id}(id=${client.id})}" method="post" style="display:inline;">
@@ -129,6 +139,7 @@
                 </div>
             </div>
         </main>
+
         <footer th:replace="~{fragments/footer :: footer}"></footer>
     </div>
 </div>
@@ -139,64 +150,17 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/sockjs-client/1.5.0/sockjs.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/stomp.js/2.3.3/stomp.min.js"></script>
-
 <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
 <script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
 
+
 <script>
-    let stompClient = null;
+    // Variable global para la instancia de la tabla
+    let dataTable;
 
-    // ... (el resto de tus funciones JavaScript)
-
-    function connectAndSubscribe() {
-        const socket = new SockJS('/websocket-endpoint');
-        stompClient = Stomp.over(socket);
-        stompClient.connect({}, function (frame) {
-            console.log('Conectado: ' + frame);
-            stompClient.subscribe('/topic/client-updates', function (message) {
-                const clientData = JSON.parse(message.body);
-                showClientNotification(clientData);
-            });
-        }, function (error) {
-            console.error('Error de conexión WebSocket: ' + error);
-        });
-    }
-
-    function showClientNotification(client) {
-        let title, text, icon;
-        if (client.action === 'CREATED') {
-            title = 'Nuevo Cliente Añadido';
-            text = `¡El cliente ${client.name} ha sido registrado!`;
-            icon = 'success';
-        } else if (client.action === 'UPDATED') {
-            title = 'Cliente Actualizado';
-            text = `Los datos del cliente ${client.name} han sido modificados.`;
-            icon = 'info';
-        } else if (client.action === 'DELETED') {
-            title = 'Cliente Eliminado';
-            text = `El cliente ${client.name} ha sido eliminado.`;
-            icon = 'error';
-        } else {
-            return;
-        }
-
-        Swal.fire({
-            icon: icon,
-            title: title,
-            text: text,
-            position: 'top-end',
-            toast: true,
-            showConfirmButton: false,
-            timer: 5000,
-            timerProgressBar: true,
-        });
-
-        setTimeout(() => {
-            window.location.reload();
-        }, 3000);
-    }
+    /* ==========================================================================
+       Funciones de Interacción (Modales, Alertas, Exportaciones)
+       ========================================================================== */
 
     function confirmDelete(button) {
         Swal.fire({
@@ -215,148 +179,158 @@
         });
     }
 
-    function formatPhoneInput(input) {
-        let phone = input.value.replace(/\D/g,'');
-        if(phone.length >= 10) {
-            input.value = phone.replace(/(\d{3})(\d{3})(\d{4})/, '$1-$2-$3');
-        } else {
-            input.value = phone;
-        }
-    }
-
     function exportToExcel() {
         try {
             const table = document.getElementById('dataTable');
-            const rows = Array.from(table.querySelectorAll('tbody tr')).map(row => {
-                const cells = Array.from(row.children).slice(0, -1);
-                return cells.map(cell => cell.innerText);
-            });
+            // Usamos una copia visible de los datos para la exportación
+            const dataToExport = dataTable.rows({ search: 'applied' }).data().toArray();
             const headers = Array.from(table.querySelectorAll('thead th')).slice(0, -1).map(th => th.innerText);
-            const worksheet = XLSX.utils.json_to_sheet([headers, ...rows]);
-            const workbook = XLSX.utils.book_new();
-            XLSX.utils.book_append_sheet(workbook, worksheet, 'Clientes');
-            XLSX.writeFile(workbook, 'clientes.xlsx');
+
+            let content = dataToExport.map(row => {
+                let newRow = {};
+                headers.forEach((header, index) => {
+                    newRow[header] = row[index];
+                });
+                return newRow;
+            });
+
+            const ws = XLSX.utils.json_to_sheet(content);
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, 'Clientes');
+            XLSX.writeFile(wb, 'clientes.xlsx');
         } catch (error) {
             console.error("Error al exportar a Excel:", error);
+            Swal.fire('Error', 'No se pudo exportar a Excel.', 'error');
         }
     }
 
     function exportToPDF() {
         try {
-            const table = document.getElementById('dataTable');
-            const columns = Array.from(table.querySelectorAll('thead th')).slice(0, -1).map(th => ({
-                header: th.innerText,
-                dataKey: th.innerText
-            }));
-            const rows = Array.from(table.querySelectorAll('tbody tr')).map(row => {
-                const cells = Array.from(row.children).slice(0, -1);
-                const rowData = {};
-                columns.forEach((col, index) => {
-                    rowData[col.dataKey] = cells[index].innerText;
-                });
-                return rowData;
-            });
             const { jsPDF } = window.jspdf;
             const doc = new jsPDF();
             doc.autoTable({
-                columns: columns,
-                body: rows
+                html: '#dataTable',
+                // Excluimos la última columna (Acciones)
+                columns: [0, 1, 2, 3, 4, 5]
             });
             doc.save('clientes.pdf');
         } catch (error) {
             console.error("Error al exportar a PDF:", error);
+            Swal.fire('Error', 'No se pudo exportar a PDF.', 'error');
         }
     }
 
     function prepareNewClient() {
+        const form = document.getElementById('clientForm');
+        form.reset();
         document.getElementById('modalTitle').textContent = 'Nuevo Cliente';
         document.getElementById('clientId').value = '';
-        document.getElementById('clientDate').value = new Date().toISOString();
-        document.getElementById('clientForm').reset();
+
+        const now = new Date();
+        now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+        document.getElementById('clientDate').value = now.toISOString().split('T')[0];
     }
 
     function prepareEditClient(button) {
-        const clientId = button.getAttribute('data-id');
-        fetch(`/api/clients/${clientId}`)
-            .then(response => response.json())
-            .then(client => {
-                document.getElementById('modalTitle').textContent = 'Editar Cliente';
-                document.getElementById('clientId').value = client.id;
-                document.getElementById('clientDate').value = client.dateClient;
-                const form = document.getElementById('clientForm');
-                form.querySelector('input[name="name"]').value = client.name || '';
-                let phone = client.phone || '';
-                phone = phone.replace(/\D/g, '');
-                if(phone.length >= 10) {
-                    phone = phone.replace(/(\d{3})(\d{3})(\d{4})/, '$1-$2-$3');
-                }
-                form.querySelector('input[name="phone"]').value = phone;
-                form.querySelector('input[name="address"]').value = client.address || '';
-                form.querySelector('input[name="email"]').value = client.email || '';
-                const modal = new bootstrap.Modal(document.getElementById('clientModal'));
-                modal.show();
-            });
+        const row = button.closest('tr');
+        const form = document.getElementById('clientForm');
+
+        document.getElementById('modalTitle').textContent = 'Editar Cliente';
+
+        // Usamos los atributos data-* para obtener los valores originales
+        document.getElementById('clientId').value = row.getAttribute('data-id');
+        document.getElementById('clientDate').value = row.getAttribute('data-date');
+        form.querySelector('[name="name"]').value = row.getAttribute('data-name') || '';
+        form.querySelector('[name="phone"]').value = row.getAttribute('data-phone') || '';
+        form.querySelector('[name="address"]').value = row.getAttribute('data-address') || '';
+        form.querySelector('[name="email"]').value = row.getAttribute('data-email') || '';
     }
 
     function checkFlashMessages() {
-        const successMessage = '[[${success}]]' === 'null' ? null : '[[${success}]]';
-        const errorMessage = '[[${error}]]' === 'null' ? null : '[[${error}]]';
-        if (successMessage) {
+        // Thymeleaf inyectará el valor real aquí
+        const successMessage = "[[${success}]]";
+        const errorMessage = "[[${error}]]";
+
+        if (successMessage && successMessage !== 'null') {
             Swal.fire({
-                icon: 'success',
-                title: 'Éxito',
-                text: successMessage,
-                timer: 3000,
-                showConfirmButton: false
+                icon: 'success', title: 'Éxito', text: successMessage,
+                timer: 3000, showConfirmButton: false
             });
         }
-        if (errorMessage) {
+        if (errorMessage && errorMessage !== 'null') {
             Swal.fire({
-                icon: 'error',
-                title: 'Error',
-                text: errorMessage,
+                icon: 'error', title: 'Error', text: errorMessage,
                 confirmButtonText: 'Entendido'
             });
         }
     }
 
-    // Inicializar DataTables y demás funciones al cargar el documento
+    /* ==========================================================================
+       Inicialización de la página cuando el documento está listo
+       ========================================================================== */
+
     $(document).ready(function() {
-        // Deshabilitar la paginación y el filtro por defecto de DataTables
-        const dataTable = $('#dataTable').DataTable({
+        // 1. INICIALIZACIÓN DE DATATABLES
+        dataTable = $('#dataTable').DataTable({
+            // Idioma en español
             language: {
-                url: '//cdn.datatables.net/plug-ins/1.13.6/i18n/es-ES.json'
+                "sProcessing": "Procesando...",
+                "sLengthMenu": "Mostrar _MENU_ entradas",
+                "sZeroRecords": "No se encontraron resultados",
+                "sEmptyTable": "Ningún cliente disponible en esta tabla",
+                "sInfo": "Mostrando _START_ a _END_ de un total de _TOTAL_ entradas",
+                "sInfoEmpty": "Mostrando 0 a 0 de un total de 0 entradas",
+                "sInfoFiltered": "(filtrado de un total de _MAX_ entradas)",
+                "sSearch": "Buscar:",
+                "oPaginate": { "sFirst": "Primero", "sLast": "Último", "sNext": "Siguiente", "sPrevious": "Anterior" }
             },
+
+            // Definimos la estructura: 't' = tabla, 'i' = info, 'p' = paginación
+            // Esto oculta los controles por defecto de DataTables (búsqueda y selector de entradas)
+            dom: '<"row"<"col-sm-12"t>><"row"<"col-sm-12 col-md-5"i><"col-sm-12 col-md-7"p>>',
+
+            // Hacemos que la tabla sea responsive si el ancho de pantalla es pequeño
+            responsive: true,
+
+            // Definición de columnas para configurar renderizado
             columnDefs: [
                 {
+                    // Apuntamos a la tercera columna (índice 2, el teléfono)
                     targets: 2,
                     render: function(data, type, row) {
+                        // Solo aplicamos el formato para la vista 'display'
                         if (type === 'display' && data && data.length === 10) {
                             return data.replace(/(\d{3})(\d{3})(\d{4})/, '$1-$2-$3');
                         }
+                        // Para cualquier otro caso (ordenar, filtrar, etc.), usamos el dato original
                         return data;
                     }
+                },
+                {
+                    // Ocultamos la columna de acciones al exportar
+                    targets: 6, // Índice de la columna 'Acciones'
+                    visible: true,
+                    searchable: false,
+                    orderable: false
                 }
-            ],
-            // Opciones para deshabilitar los controles de DataTables
-            searching: false,
-            paging: false,
-            info: false,
-            lengthChange: false
+            ]
         });
 
-        // Conectar los controles externos de búsqueda y mostrar entradas
-        $('#dataTable_filter').on('keyup', function() {
+        // 2. CONECTAMOS NUESTROS CONTROLES PERSONALIZADOS CON DATATABLES
+        // Conectar el input de búsqueda personalizado
+        $('#search').on('keyup', function() {
             dataTable.search(this.value).draw();
         });
 
+        // Conectar el selector de número de entradas personalizado
         $('#entries').on('change', function() {
             dataTable.page.len(this.value).draw();
         });
 
-        connectAndSubscribe();
+        // 3. Revisar si hay mensajes flash para mostrar al cargar la página
         checkFlashMessages();
     });
 </script>
+
 </body>
 </html>

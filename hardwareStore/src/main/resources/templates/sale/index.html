@@ -1,407 +1,188 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
-<head th:replace="~{fragments/head :: head('Ventas')}">
-  <meta charset="UTF-8">
-</head>
+<head th:replace="~{fragments/head :: head('Ventas')}"></head>
 <body class="sb-nav-fixed">
-<!-- Navbar -->
 <div th:replace="~{fragments/navbar :: navbar}"></div>
-
 <div id="layoutSidenav">
-  <!-- Sidebar -->
   <div th:replace="~{fragments/sidebar :: sidebar}"></div>
-
   <div id="layoutSidenav_content">
     <main>
       <div class="container-fluid px-4">
         <h1 class="mt-4">Gestión de Ventas</h1>
 
-        <!-- Mensajes de éxito/error -->
-        <div th:if="${successMessage}" class="alert alert-success alert-dismissible fade show" role="alert">
-          <span th:text="${successMessage}"></span>
-          <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-        </div>
-        <div th:if="${errorMessage}" class="alert alert-danger alert-dismissible fade show" role="alert">
-          <span th:text="${errorMessage}"></span>
-          <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-        </div>
-
-        <!-- Botones de acción -->
         <div class="mb-3">
-            <button type="button" class="btn btn-primary" data-bs-toggle="modal"
-                    data-bs-target="#saleModal" onclick="prepareNewSale()">
-                <i class="fas fa-plus me-1"></i> Nueva Venta
-            </button>
-            <button type="button" class="btn btn-success" onclick="exportToExcel()">
-                <i class="fas fa-file-excel me-1"></i> Exportar a Excel
-            </button>
-            <button type="button" class="btn btn-danger" onclick="exportToPDF()">
-                <i class="fas fa-file-pdf me-1"></i> Exportar a PDF
-            </button>
+          <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#saleModal" onclick="prepareNewSale()"><i class="fas fa-plus me-1"></i> Nueva Venta</button>
+          <button type="button" class="btn btn-success" onclick="exportToExcel()"><i class="fas fa-file-excel me-1"></i> Exportar a Excel</button>
+          <button type="button" class="btn btn-danger" onclick="exportToPDF()"><i class="fas fa-file-pdf me-1"></i> Exportar a PDF</button>
         </div>
 
-        <!-- Tarjeta con la Tabla -->
-        <div class="card mb-4">
-          <div class="card-header">
-            <i class="fas fa-shopping-cart me-1"></i>
-            Ventas registradas
-          </div>
-          <div class="card-body">
-            <!-- Tabla de Ventas (DataTable) -->
-            <div class="table-responsive">
-              <table class="table table-bordered table-striped table-hover" id="dataTable" width="100%" cellspacing="0">
-                <thead>
-                <tr>
-                  <th>ID</th>
-                  <th>Cliente</th>
-                  <th>Empleado</th>
-                  <th>Fecha</th>
-                  <th>Total</th>
-                  <th>Estado</th>
-                  <th>Detalle</th>
-                </tr>
-                </thead>
-                <tbody>
-                <tr th:each="sale : ${sales}">
-                  <td th:text="${sale.id}"></td>
-                  <td th:text="${sale.client?.name ?: 'N/A'}"></td>
-                  <td th:text="${sale.employee?.name ?: 'N/A'}"></td>
-                  <td th:text="${sale.dateSale != null ? #dates.format(sale.dateSale, 'dd/MM/yyyy') : 'Sin fecha'}"></td>
-                  <td th:text="${sale.total != null ? '$' + #numbers.formatInteger(sale.total, 0, 'POINT') : ''}"></td>
-                  <td>
-                      <span th:class="${sale.status == 'COMPLETADA' ? 'badge bg-success' :
-                                     sale.status == 'PENDIENTE' ? 'badge bg-warning text-dark' :
-                                     'badge bg-danger'}"
-                            th:text="${sale.status ?: 'SIN ESTADO'}"></span>
-                  </td>
-                  <td class="text-center">
-                    <button class="btn btn-info btn-sm"
-                            th:onclick="'viewSaleDetails(' + ${sale.id} + ')'"
-                            title="Ver detalles de la venta">
-                      <i class="fas fa-eye"></i>
-                    </button>
-                  </td>
-                </tr>
-                </tbody>
-              </table>
-            </div>
-          </div>
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <div><label for="entries" class="me-2 mb-0">Mostrar:</label><select id="entries" class="form-select d-inline-block" style="width: 80px;"><option value="10">10</option><option value="25">25</option><option value="50">50</option><option value="-1">Todos</option></select></div>
+          <div><label for="search" class="me-2 mb-0">Buscar:</label><input type="search" id="search" class="form-control d-inline-block w-auto"></div>
         </div>
+
+        <div class="card mb-4"><div class="card-body"><div class="table-responsive">
+          <table class="table table-bordered table-striped table-hover" id="dataTable" width="100%" cellspacing="0">
+            <thead><tr><th>ID</th><th>Cliente</th><th>Empleado</th><th>Fecha</th><th>Total</th><th>Estado</th><th>Acciones</th></tr></thead>
+            <tbody>
+            <tr th:each="sale : ${sales}" th:attr="data-id=${sale.id}, data-client-id=${sale.client?.id}, data-client-name=${sale.client?.name}, data-employee-id=${sale.employee?.id}, data-employee-name=${sale.employee?.name}, data-date=${#dates.format(sale.dateSale, 'yyyy-MM-dd')}, data-status=${sale.status}, data-total=${sale.total}">
+              <td th:text="${sale.id}"></td><td th:text="${sale.client?.name ?: 'N/A'}"></td><td th:text="${sale.employee?.name ?: 'N/A'}"></td>
+              <td th:text="${#dates.format(sale.dateSale, 'dd/MM/yyyy')}"></td><td th:text="${sale.total}"></td>
+              <td><span th:classappend="${sale.status == 'COMPLETADA' ? 'bg-success' : sale.status == 'PENDIENTE' ? 'bg-warning text-dark' : 'bg-danger'}" class="badge" th:text="${sale.status}"></span></td>
+              <td class="text-center">
+                <button class="btn btn-info btn-sm me-1" th:onclick="'viewSaleDetails(' + ${sale.id} + ')'" title="Ver detalles"><i class="fas fa-eye"></i></button>
+                <button class="btn btn-warning btn-sm" data-bs-toggle="modal" data-bs-target="#saleModal" th:onclick="prepareEditSale(this)" title="Editar Estado"><i class="fas fa-edit"></i></button>
+              </td>
+            </tr>
+            </tbody>
+          </table>
+        </div></div></div>
       </div>
     </main>
 
-    <!-- Modal para Formulario -->
-    <div class="modal fade" id="saleModal" tabindex="-1" aria-hidden="true">
-      <div class="modal-dialog">
-        <div class="modal-content">
-          <form id="saleForm" th:action="@{/sales/save}" method="post">
-            <input type="hidden" name="id" id="saleId">
-            <div class="modal-header">
-              <h5 class="modal-title" id="modalTitle">Nueva Venta</h5>
-              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-              <div class="mb-3">
-                <label class="form-label">Cliente</label>
-                <select class="form-select" name="client.id" required>
-                  <option value="">Seleccione cliente</option>
-                  <option th:each="client : ${clients}"
-                          th:value="${client.id}"
-                          th:text="${client.name}"></option>
-                </select>
-              </div>
-              <div class="mb-3">
-                <label class="form-label">Empleado</label>
-                <select class="form-select" name="employee.id" required>
-                  <option value="">Seleccione empleado</option>
-                  <option th:each="employee : ${employees}"
-                          th:value="${employee.id}"
-                          th:text="${employee.name}"></option>
-                </select>
-              </div>
-              <div class="mb-3">
-                <label class="form-label">Fecha</label>
-                <input type="date" class="form-control" name="dateSale" id="dateSaleInput" required>
-              </div>
-              <div class="mb-3">
-                <label class="form-label">Total</label>
-                <div class="input-group">
-                  <span class="input-group-text">$</span>
-                  <input type="number" class="form-control" name="total" required min="0" step="1">
-                </div>
-              </div>
-              <div class="mb-3">
-                <label class="form-label">Estado</label>
-                <select class="form-select" name="status" required>
-                  <option value="COMPLETADA">COMPLETADA</option>
-                  <option value="PENDIENTE">PENDIENTE</option>
-                  <option value="CANCELADA">CANCELADA</option>
-                </select>
-              </div>
-            </div>
-            <div class="modal-footer">
-              <button type="submit" class="btn btn-primary">Guardar Venta</button>
-              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-            </div>
-          </form>
-        </div>
-      </div>
-    </div>
-
-    <!-- Modal para Detalles de Venta -->
-    <div class="modal fade" id="saleDetailsModal" tabindex="-1" aria-hidden="true">
-      <div class="modal-dialog modal-lg">
-        <div class="modal-content">
-          <div class="modal-header">
-            <h5 class="modal-title">Detalles de la Venta</h5>
-            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+    <div class="modal fade" id="saleModal" tabindex="-1"><div class="modal-dialog"><div class="modal-content">
+      <form id="saleForm" th:action="@{/sales/save}" method="post">
+        <input type="hidden" name="id" id="saleId">
+        <div class="modal-header"><h5 class="modal-title" id="modalTitle"></h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+        <div class="modal-body">
+          <div id="newSaleFields">
+            <div class="mb-3"><label class="form-label">Cliente</label><select class="form-select" name="client.id" id="saleClient" required><option value="">Seleccione...</option><option th:each="c : ${clients}" th:value="${c.id}" th:text="${c.name}"></option></select></div>
+            <div class="mb-3"><label class="form-label">Empleado</label><select class="form-select" name="employee.id" id="saleEmployee" required><option value="">Seleccione...</option><option th:each="e : ${employees}" th:value="${e.id}" th:text="${e.name}"></option></select></div>
+            <div class="mb-3"><label class="form-label">Fecha</label><input type="date" class="form-control" name="dateSale" id="dateSaleInput" required></div>
+            <div class="mb-3"><label class="form-label">Total Inicial</label><div class="input-group"><span class="input-group-text">$</span><input type="number" class="form-control" name="total" id="saleTotalInput" value="0" min="0" required></div></div>
           </div>
-          <div class="modal-body" id="saleDetailsContent">
-            <!-- Contenido cargado dinámicamente -->
-          </div>
-          <div class="modal-footer">
-            <button type="button" class="btn btn-primary" id="addProductBtn" onclick="openAddProductModal()">Añadir Producto</button>
-            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+          <div id="editStatusField" class="mb-3">
+            <label class="form-label">Estado de la Venta</label>
+            <select class="form-select" name="status" id="saleStatus"><option value="PENDIENTE">PENDIENTE</option><option value="COMPLETADA">COMPLETADA</option><option value="CANCELADA">CANCELADA</option></select>
           </div>
         </div>
-      </div>
-    </div>
+        <div class="modal-footer"><button type="submit" class="btn btn-primary" id="formSubmitButton"></button><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button></div>
+      </form>
+    </div></div></div>
 
-    <!-- Modal para Añadir Producto a Venta -->
-    <div class="modal fade" id="addProductModal" tabindex="-1" aria-hidden="true">
-      <div class="modal-dialog">
-        <div class="modal-content">
-          <form id="addProductForm">
-            <input type="hidden" id="saleIdForProduct">
-            <div class="modal-header">
-              <h5 class="modal-title">Añadir Producto a la Venta</h5>
-              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-              <div class="mb-3">
-                <label class="form-label">Producto</label>
-                <select class="form-select" id="productId" required>
-                  <option value="">Seleccione un producto</option>
-                  <option th:each="inventory : ${inventories}"
-                          th:value="${inventory.id}"
-                          th:text="${inventory.name}"
-                          th:attr="data-price=${inventory.price}"></option>
-                </select>
-              </div>
-              <div class="mb-3">
-                <label class="form-label">Cantidad</label>
-                <input type="number" class="form-control" id="productQuantity" required min="1">
-              </div>
-              <div class="mb-3">
-                <label class="form-label">Precio Unitario</label>
-                <input type="number" class="form-control" id="productPrice" required min="0">
-              </div>
-            </div>
-            <div class="modal-footer">
-              <button type="button" class="btn btn-primary" onclick="addProductToSale()">Guardar Producto</button>
-              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-            </div>
-          </form>
-        </div>
-      </div>
-    </div>
+    <div class="modal fade" id="saleDetailsModal" tabindex="-1"><div class="modal-dialog modal-lg"><div class="modal-content">
+      <div class="modal-header"><h5 class="modal-title" id="saleDetailsTitle"></h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+      <div class="modal-body" id="saleDetailsContent"></div>
+      <div class="modal-footer"><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button></div>
+    </div></div></div>
 
-    <!-- Footer -->
     <footer th:replace="~{fragments/footer :: footer}"></footer>
   </div>
 </div>
 
-<!-- SweetAlert2 -->
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-
-<!-- Bootstrap JS -->
+<script src="https://code.jquery.com/jquery-3.7.0.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
-
-<!-- DataTables JS -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
 <script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
-
-<!-- Export to Excel and PDF -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
 
-<script>
-  let currentSaleId = null;
+<script th:inline="javascript">
+  /*<![CDATA[*/
+      let dataTable;
 
-  // Inicializar DataTable
-  $(document).ready(function () {
-      $('#dataTable').DataTable({
-          language: {
-              url: '//cdn.datatables.net/plug-ins/1.13.6/i18n/es-ES.json'
-          },
-          columnDefs: [{
-              targets: 4, // Columna de total
-              render: function(data, type) {
-                  if (type === 'display' && data) {
-                      return '$' + parseInt(data).toLocaleString('es-CO');
-                  }
-                  return data;
-              }
-          }],
-          order: [[0, 'desc']] // Ordenar por ID descendente
-      });
-
-      $('#productId').on('change', function() {
-          const selectedOption = $(this).find('option:selected');
-          const price = selectedOption.data('price');
-          $('#productPrice').val(price);
-      });
-  });
-
-  // Preparar formulario para nueva venta
-  function prepareNewSale() {
-      document.getElementById('modalTitle').textContent = 'Nueva Venta';
-      document.getElementById('saleId').value = '';
-      document.getElementById('saleForm').reset();
-      document.getElementById('dateSaleInput').valueAsDate = new Date();
-      document.querySelector('select[name="status"]').value = 'COMPLETADA';
-  }
-
-  // Ver detalles de venta
-  function viewSaleDetails(saleId) {
-      currentSaleId = saleId;
-      Promise.all([
-          fetch(`/sales/api/${saleId}`).then(res => res.json()),
-          fetch(`/sale-detail/api/sale/${saleId}`).then(res => res.json())
-      ])
-      .then(([sale, details]) => {
-          let detailsHtml = '<p>No hay productos en esta venta.</p>';
-          if (details.length > 0) {
-              detailsHtml = `
-                  <table class="table table-striped">
-                      <thead>
-                          <tr>
-                              <th>Producto</th>
-                              <th>Cantidad</th>
-                              <th>Precio Unitario</th>
-                              <th>Subtotal</th>
-                          </tr>
-                      </thead>
-                      <tbody>
-                          ${details.map(d => `
-                              <tr>
-                                  <td>${d.inventory.name}</td>
-                                  <td>${d.amount}</td>
-                                  <td>$${parseInt(d.priceUnit).toLocaleString('es-CO')}</td>
-                                  <td>$${(d.amount * d.priceUnit).toLocaleString('es-CO')}</td>
-                              </tr>
-                          `).join('')}
-                      </tbody>
-                  </table>
-              `;
-          }
-
-          const content = `
-              <div class="row">
-                  <div class="col-md-6">
-                      <h6><strong>Información General</strong></h6>
-                      <p><strong>ID:</strong> ${sale.id}</p>
-                      <p><strong>Fecha:</strong> ${new Date(sale.dateSale).toLocaleDateString('es-CO')}</p>
-                      <p><strong>Estado:</strong>
-                          <span class="badge ${sale.status === 'COMPLETADA' ? 'bg-success' :
-                                             sale.status === 'PENDIENTE' ? 'bg-warning text-dark' :
-                                             'bg-danger'}">${sale.status}</span>
-                      </p>
-                  </div>
-                  <div class="col-md-6">
-                      <h6><strong>Cliente y Empleado</strong></h6>
-                      <p><strong>Cliente:</strong> ${sale.client?.name || 'N/A'}</p>
-                      <p><strong>Empleado:</strong> ${sale.employee?.name || 'N/A'}</p>
-                      <p><strong>Total:</strong> <span class="h5 text-primary">$${parseInt(sale.total).toLocaleString('es-CO')}</span></p>
-                  </div>
-              </div>
-              <hr>
-              <h6><strong>Productos Vendidos</strong></h6>
-              ${detailsHtml}
-          `;
-
-          document.getElementById('saleDetailsContent').innerHTML = content;
-          const addProductBtn = document.getElementById('addProductBtn');
-          if (sale.status === 'COMPLETADA') {
-              addProductBtn.style.display = 'none';
-          } else {
-              addProductBtn.style.display = 'block';
-          }
-          const modal = new bootstrap.Modal(document.getElementById('saleDetailsModal'));
-          modal.show();
-      })
-      .catch(error => {
-          console.error('Error:', error);
-          Swal.fire({
-              icon: 'error',
-              title: 'Error',
-              text: 'Error al cargar los detalles de la venta'
-          });
-      });
-  }
-
-  function openAddProductModal() {
-      document.getElementById('saleIdForProduct').value = currentSaleId;
-      document.getElementById('addProductForm').reset();
-      const modal = new bootstrap.Modal(document.getElementById('addProductModal'));
-      modal.show();
-  }
-
-  function addProductToSale() {
-      const saleDetail = {
-          sale: { id: document.getElementById('saleIdForProduct').value },
-          inventory: { id: document.getElementById('productId').value },
-          amount: document.getElementById('productQuantity').value,
-          priceUnit: document.getElementById('productPrice').value
+      const formatCurrency = v => new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(Number(v) || 0);
+      const checkFlashMessages = () => {
+          const success = /*[[${success}]]*/ null;
+          const error = /*[[${error}]]*/ null;
+          if (success) Swal.fire({ icon: 'success', title: 'Éxito', text: success, timer: 2500, showConfirmButton: false });
+          if (error) Swal.fire({ icon: 'error', title: 'Error', text: error });
       };
 
-      fetch('/sale-detail/save', {
-          method: 'POST',
-          headers: {
-              'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(saleDetail),
-      })
-      .then(response => {
-          if (!response.ok) {
-              throw new Error('Error al añadir el producto');
+      $(document).ready(() => {
+          dataTable = $('#dataTable').DataTable({
+              language: { url: 'https://cdn.datatables.net/plug-ins/1.13.6/i18n/es-ES.json' },
+              dom: '<"row"<"col-sm-12"t>><"row"<"col-sm-12 col-md-5"i><"col-sm-12 col-md-7"p>>',
+              order: [[0, 'desc']],
+              columnDefs: [
+                  { targets: 4, render: (d, t) => t === 'display' ? formatCurrency(d) : d },
+                  { targets: 6, orderable: false, searchable: false }
+              ]
+          });
+          $('#search').on('keyup', function() { dataTable.search(this.value).draw(); });
+          $('#entries').on('change', function() { dataTable.page.len(this.value).draw(); });
+          checkFlashMessages();
+      });
+
+      function prepareNewSale() {
+          const form = $('#saleForm');
+          form.attr('action', /*[[@{/sales/save}]]*/ '/sales/save');
+          form.trigger('reset');
+          $('#modalTitle').text('Registrar Nueva Venta');
+          $('#formSubmitButton').text('Crear Venta');
+
+          // Habilitamos todos los campos para crear
+          $('#newSaleFields').find('input, select').prop('disabled', false).prop('required', true);
+          $('#editStatusField').find('select').prop('disabled', true).prop('required', false);
+
+          // Mostramos y ocultamos los contenedores correctos
+          $('#newSaleFields').show();
+          $('#editStatusField').hide();
+
+          $('#dateSaleInput').val(new Date().toISOString().split('T')[0]);
+      }
+
+      function prepareEditSale(button) {
+          const form = $('#saleForm');
+          const row = $(button).closest('tr');
+          form.attr('action', /*[[@{/sales/updateStatus}]]*/ '/sales/updateStatus');
+
+          $('#modalTitle').text(`Cambiar Estado de Venta #${row.data('id')}`);
+          form.find('#saleId').val(row.data('id'));
+
+          // Rellenamos los campos con la info de la fila y los DESHABILITAMOS
+          $('#saleClient').val(row.data('client-id')).prop('disabled', true);
+          $('#saleEmployee').val(row.data('employee-id')).prop('disabled', true);
+          $('#dateSaleInput').val(row.data('date')).prop('disabled', true);
+          $('#saleTotalInput').val(row.data('total')).prop('disabled', true);
+
+          // Habilitamos y rellenamos solo el campo de estado
+          $('#editStatusField').find('select').prop('disabled', false).prop('required', true);
+          form.find('#saleStatus').val(row.data('status'));
+
+          // Mostramos todos los campos (unos habilitados, otros no)
+          $('#newSaleFields').show();
+          $('#editStatusField').show();
+
+          $('#formSubmitButton').text('Guardar Cambios');
+      }
+
+      async function viewSaleDetails(saleId) {
+          const modal = new bootstrap.Modal(document.getElementById('saleDetailsModal'));
+          const saleRowData = $(`tr[data-id=${saleId}]`).data();
+
+          $('#saleDetailsTitle').text(`Detalles de Venta #${saleId}`);
+          $('#saleDetailsContent').html('<div class="text-center p-4"><div class="spinner-border" role="status"></div></div>');
+          modal.show();
+
+          try {
+              const response = await fetch(`/api/sale-details/sale/${saleId}`);
+              if (!response.ok) throw new Error('No se pudieron cargar los detalles');
+
+              const details = await response.json();
+              let detailsHtml = '<div class="alert alert-secondary">Esta venta no tiene productos.</div>';
+              if (details.length > 0) {
+                  detailsHtml = `<table class="table table-sm table-striped"><thead><tr><th>Producto</th><th>Cant.</th><th>Precio</th><th>Subtotal</th></tr></thead><tbody>
+                      ${details.map(d => `<tr><td>${d.inventory?.name || 'N/A'}</td><td>${d.amount}</td><td>${formatCurrency(d.priceUnit)}</td><td>${formatCurrency(d.amount * d.priceUnit)}</td></tr>`).join('')}
+                  </tbody></table>`;
+              }
+
+              const content = `
+                  <div class="row"><div class="col-md-6"><p><strong>Cliente:</strong> ${saleRowData.clientName}</p><p><strong>Atendido por:</strong> ${saleRowData.employeeName}</p></div>
+                  <div class="col-md-6"><p><strong>Fecha:</strong> ${new Date(saleRowData.date + 'T05:00:00').toLocaleDateString('es-CO')}</p><p><strong>Total:</strong> <span class="h5">${formatCurrency(saleRowData.total)}</span></p></div></div><hr>${detailsHtml}`;
+
+              $('#saleDetailsContent').html(content);
+          } catch (error) {
+              $('#saleDetailsContent').html('<div class="alert alert-danger">Error al cargar los detalles.</div>');
           }
-          return response.json();
-      })
-      .then(data => {
-          bootstrap.Modal.getInstance(document.getElementById('addProductModal')).hide();
-          viewSaleDetails(currentSaleId); // Refresh the details modal
-          Swal.fire('Éxito', 'Producto añadido a la venta.', 'success');
-      })
-      .catch(error => {
-          Swal.fire('Error', error.message, 'error');
-      });
-  }
+      }
 
-  // Auto-ocultar alertas después de 5 segundos
-  setTimeout(function() {
-      const alerts = document.querySelectorAll('.alert');
-      alerts.forEach(function(alert) {
-          const bsAlert = new bootstrap.Alert(alert);
-          bsAlert.close();
-      });
-  }, 5000);
+      function exportToExcel(){try{const h=Array.from(document.querySelectorAll('#dataTable thead th')).slice(0,-1).map(t=>t.textContent.trim()),b=dataTable.rows({search:'applied'}).data().toArray().map(r=>r.slice(0,-1)),d=b.map(r=>{let o={};return h.forEach((h,i)=>{o[h]='Total'===h?Number(r[i]):r[i]}),o}),t=XLSX.utils.json_to_sheet(d),e=XLSX.utils.book_new();XLSX.utils.book_append_sheet(e,t,"Ventas"),XLSX.writeFile(e,"ventas.xlsx")}catch(h){Swal.fire('Error','No se pudo generar el Excel.','error')}}
+      function exportToPDF(){try{const h=Array.from(document.querySelectorAll('#dataTable thead th')).slice(0,-1).map(t=>t.textContent.trim()),b=dataTable.rows({search:'applied'}).data().toArray().map(r=>r.slice(0,-1)),{jsPDF:d}=window.jspdf,t=new d;t.autoTable({head:[h],body:b,didParseCell:function(h){4===h.column.dataKey&&(h.cell.text=[formatCurrency(h.cell.raw)])}}),t.save("ventas.pdf")}catch(h){Swal.fire('Error','No se pudo generar el PDF.','error')}}
 
-  function exportToExcel() {
-      const table = document.getElementById('dataTable');
-      const wb = XLSX.utils.table_to_book(table, {sheet: "Ventas"});
-      XLSX.writeFile(wb, 'ventas.xlsx');
-  }
-
-  function exportToPDF() {
-      const { jsPDF } = window.jspdf;
-      const doc = new jsPDF();
-
-      doc.autoTable({ html: '#dataTable' });
-
-      doc.save('ventas.pdf');
-  }
+  /*]]>*/
 </script>
 </body>
 </html>
