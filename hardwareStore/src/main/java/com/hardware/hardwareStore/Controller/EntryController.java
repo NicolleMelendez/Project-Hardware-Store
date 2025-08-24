@@ -30,7 +30,7 @@ public class EntryController {
     @GetMapping
     public String entryPage(Model model) {
         model.addAttribute("entries", entryService.getAllEntries());
-        model.addAttribute("inventories", inventoryService.getAllInventories());
+        model.addAttribute("inventories", inventoryService.findAll());
         model.addAttribute("suppliers", supplierService.getAllSuppliers());
         model.addAttribute("employees", employeeService.getAllEmployees());
         return "entry/index";

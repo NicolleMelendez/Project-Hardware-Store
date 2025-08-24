@@ -1,26 +1,23 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.w3.org/1999/xhtml">
-<head th:replace="~{fragments/head :: head('Inventario')}">
-  <meta charset="UTF-8">
-</head>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/head :: head('Inventario')}"></head>
+
 <body class="sb-nav-fixed">
-<!-- Navbar -->
+
 <div th:replace="~{fragments/navbar :: navbar}"></div>
 
 <div id="layoutSidenav">
-  <!-- Sidebar -->
   <div th:replace="~{fragments/sidebar :: sidebar}"></div>
-
   <div id="layoutSidenav_content">
     <main>
       <div class="container-fluid px-4">
         <h1 class="mt-4">Gestión de Inventario</h1>
-        <!-- Botones superiores -->
+
         <div class="d-flex justify-content-between align-items-center mb-3">
           <div>
             <button type="button" class="btn btn-primary me-2" data-bs-toggle="modal"
-                    data-bs-target="#inventoryModal" onclick="prepareNewInventory()">
-              <i class="fas fa-plus me-1"></i> Nuevo Inventario
+                    data-bs-target="#inventoryModal" onclick="prepareNewItem()">
+              <i class="fas fa-plus me-1"></i> Nuevo Producto
             </button>
             <button type="button" class="btn btn-success me-2" onclick="exportToExcel()">
               <i class="fas fa-file-excel me-1"></i> Descargar Excel
@@ -29,299 +26,298 @@
               <i class="fas fa-file-pdf me-1"></i> Descargar PDF
             </button>
           </div>
-          <div>
-            <label for="entries" class="me-2">Mostrar:</label>
-            <select id="entries" class="form-select d-inline-block w-auto">
+        </div>
+
+        <div class="modal fade" id="inventoryModal" tabindex="-1" aria-hidden="true">
+          <div class="modal-dialog">
+            <div class="modal-content">
+              <form id="inventoryForm" th:action="@{/inventory/save}" th:object="${inventory}" method="post">
+                <input type="hidden" th:field="*{id}" id="inventoryId">
+                <div class="modal-header">
+                  <h5 class="modal-title" id="modalTitle">Nuevo Producto</h5>
+                  <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                  <div class="mb-3">
+                    <label class="form-label">Nombre</label>
+                    <input type="text" class="form-control" th:field="*{name}" required>
+                  </div>
+                  <div class="mb-3">
+                    <label class="form-label">Categoría</label>
+                    <select class="form-select" th:field="*{category}" required>
+                      <option value="">-- Seleccione una categoría --</option>
+                      <option value="Ferretería">Ferretería</option>
+                      <option value="Electricidad">Electricidad</option>
+                      <option value="Fontanería">Fontanería</option>
+                      <option value="Construcción">Construcción</option>
+                      <option value="Herramientas">Herramientas</option>
+                      <option value="Pintura">Pintura</option>
+                      <option value="Jardinería">Jardinería</option>
+                    </select>
+                  </div>
+                  <div class="mb-3">
+                    <label class="form-label">Unidad de Medida</label>
+                    <select class="form-select" th:field="*{unit_measure}" required>
+                      <option value="">-- Seleccione unidad --</option>
+                      <option value="Unidad">Unidad</option>
+                      <option value="Metro">Metro</option>
+                      <option value="Kilogramo">Kilogramo</option>
+                      <option value="Litro">Litro</option>
+                      <option value="Caja">Caja</option>
+                      <option value="Paquete">Paquete</option>
+                      <option value="Rollo">Rollo</option>
+                    </select>
+                  </div>
+                  <div class="mb-3">
+                    <label class="form-label">Peso Unitario</label>
+                    <input type="number" step="0.01" class="form-control" th:field="*{unit_weight}" required>
+                  </div>
+                  <div class="mb-3">
+                    <label class="form-label">Precio</label>
+                    <input type="number" step="0.01" class="form-control" th:field="*{price}" required>
+                  </div>
+                  <div class="mb-3">
+                    <label class="form-label">Stock</label>
+                    <input type="number" class="form-control" th:field="*{stock}" required>
+                  </div>
+                  <div class="mb-3" id="minStockGroup">
+                    <label class="form-label">Stock Mínimo</label>
+                    <input type="number" class="form-control" th:field="*{minStock}" required>
+                  </div>
+                  <div class="mb-3">
+                    <label class="form-label">Proveedor</label>
+                    <select class="form-select" th:field="*{supplier}">
+                      <option value="">-- Seleccione un proveedor --</option>
+                      <option th:each="sup : ${suppliers}" th:value="${sup.id}" th:text="${sup.name}"></option>
+                    </select>
+                  </div>
+                </div>
+                <div class="modal-footer">
+                  <button type="submit" class="btn btn-primary">Guardar</button>
+                  <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <div class="d-flex align-items-center">
+            <label for="entries" class="me-2 mb-0">Mostrar:</label>
+            <select id="entries" class="form-select d-inline-block" style="width: 80px;">
               <option value="10">10</option>
               <option value="25">25</option>
               <option value="50">50</option>
               <option value="-1">Todos</option>
             </select>
-            <span class="ms-3" id="totalRecords">Total de registros: <span th:text="${inventories.size()}"></span></span>
+          </div>
+          <div class="d-flex align-items-center">
+            <label for="search" class="me-2 mb-0">Buscar:</label>
+            <input type="search" id="search" class="form-control d-inline-block w-auto">
           </div>
         </div>
 
-
-            <!-- Modal para formulario -->
-            <div class="modal fade" id="inventoryModal" tabindex="-1" aria-hidden="true">
-              <div class="modal-dialog">
-                <div class="modal-content">
-                  <form id="inventoryForm" th:action="@{/inventory/save}" method="post">
-                    <input type="hidden" name="id" id="inventoryId">
-                    <div class="modal-header">
-                      <h5 class="modal-title" id="modalTitle">Nuevo Producto</h5>
-                      <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                    </div>
-                    <div class="modal-body">
-                      <div class="mb-3">
-                        <label class="form-label">Nombre</label>
-                        <input type="text" class="form-control" name="name" required>
-                      </div>
-                      <div class="mb-3">
-                        <!-- CORREGIDO: Categoría como select con opciones reales -->
-                        <label class="form-label">Categoría</label>
-                        <select class="form-select" name="category" required>
-                          <option value="">Seleccionar Categoría</option>
-                          <option th:each="inventory : ${inventories}" th:value="${inventory.category}" th:text="${inventory.category}"></option>
-                        </select>
-                      </div>
-                      <div class="mb-3">
-                        <label class="form-label">Precio Venta</label>
-                        <div class="input-group">
-                          <span class="input-group-text">$</span>
-                          <input type="number" class="form-control" name="price" required min="0" step="1">
-                        </div>
-                      </div>
-                      <div class="mb-3">
-                        <label class="form-label">Stock Actual</label>
-                        <input type="number" class="form-control" name="stock" required min="0">
-                      </div>
-                      <div class="mb-3">
-                        <label class="form-label">Proveedor</label>
-                        <select class="form-select" name="supplier.id">
-                          <option value="">Seleccione proveedor</option>
-                          <option th:each="supplier : ${suppliers}" th:value="${supplier.id}" th:text="${supplier.name}"></option>
-                        </select>
-                      </div>
-                      <div class="mb-3">
-                        <label class="form-label">Stock Mínimo</label>
-                        <input type="number" class="form-control" name="minStock" min="0" value="10" readonly>
-                      </div>
-                    </div>
-                    <div class="modal-footer">
-                      <button type="submit" class="btn btn-primary">Guardar</button>
-                      <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                    </div>
-                  </form>
-                </div>
-              </div>
-            </div>
-
-            <!-- Tabla de inventario -->
-            <div class="table-responsive">
-              <table class="table table-bordered table-striped table-hover" id="dataTable" width="100%" cellspacing="0">
-                <thead>
-                <tr>
-                  <th>ID</th>
-                  <th>Nombre</th>
-                  <th>Categoría</th>
-                  <th>Precio</th>
-                  <th>Stock</th>
-                  <th>Proveedor</th>
-                  <th>Stock Mín</th>
-                  <th>Acciones</th>
-                </tr>
-                </thead>
-                <tbody>
-                <tr th:each="inventory : ${inventories}">
-                  <td th:text="${inventory.id}"></td>
-                  <td th:text="${inventory.name}"></td>
-                  <td th:text="${inventory.category}"></td>
-                  <td th:text="${inventory.price != null ? '$' + #numbers.formatInteger(inventory.price, 0, 'POINT') : ''}"></td>
-                  <td th:text="${inventory.stock}"></td>
-                  <td th:text="${inventory.supplier.name}"></td>
-                  <td th:text="${inventory.minStock}"></td>
-                  <td class="text-center">
-                    <button class="btn btn-warning btn-sm me-1"
-                            th:data-id="${inventory.id}" onclick="prepareEditInventory(this)">
-                      <i class="fas fa-edit"></i>
+        <div class="card mb-4">
+          <div class="card-body">
+            <table class="table table-bordered table-striped table-hover" id="dataTable" width="100%">
+              <thead>
+              <tr>
+                <th>ID</th>
+                <th>Nombre</th>
+                <th>Categoría</th>
+                <th>Peso Unitario</th>
+                <th>Unidad</th>
+                <th>Precio</th>
+                <th>Stock</th>
+                <th>Proveedor</th>
+                <th>Acciones</th>
+              </tr>
+              </thead>
+              <tbody>
+              <tr th:each="item : ${inventoryList}"
+                  th:data-id="${item.id}"
+                  th:data-name="${item.name}"
+                  th:data-category="${item.category}"
+                  th:data-unit_weight="${item.unit_weight}"
+                  th:data-unit_measure="${item.unit_measure}"
+                  th:data-price="${item.price}"
+                  th:data-stock="${item.stock}"
+                  th:data-minstock="${item.minStock}"
+                  th:data-supplier-id="${item.supplier?.id}">
+                <td th:text="${item.id}"></td>
+                <td th:text="${item.name}"></td>
+                <td th:text="${item.category}"></td>
+                <td th:text="${item.unit_weight}"></td>
+                <td th:text="${item.unit_measure}"></td>
+                <td th:text="'$' + ${#numbers.formatDecimal(item.price, 0, 'POINT', 2, 'COMMA')}"></td>
+                <td th:text="${item.stock}"></td>
+                <td th:text="${item.supplier?.name}"></td>
+                <td class="text-center">
+                  <button class="btn btn-warning btn-sm me-1"
+                          data-bs-toggle="modal" data-bs-target="#inventoryModal"
+                          onclick="prepareEditItem(this)">
+                    <i class="fas fa-edit"></i>
+                  </button>
+                  <form th:action="@{/inventory/delete/{id}(id=${item.id})}" method="post" style="display:inline;">
+                    <button type="button" class="btn btn-danger btn-sm" onclick="confirmDelete(this)">
+                      <i class="fas fa-trash-alt"></i>
                     </button>
-                    <form sec:authorize="hasAnyRole('ADMIN','MANAGER')"
-                          th:action="@{'/inventory/delete/' + ${inventory.id}}"
-                          method="post"
-                          style="display:inline;">
-                      <input type="hidden" name="_method" value="delete" />
-                      <button type="button" class="btn btn-danger btn-sm"
-                              onclick="confirmDelete(this)">
-                        <i class="fas fa-trash-alt"></i>
-                      </button>
-                    </form>
-                  </td>
-                </tr>
-                </tbody>
-              </table>
-            </div>
+                  </form>
+                </td>
+              </tr>
+              </tbody>
+            </table>
           </div>
         </div>
       </div>
     </main>
-
-    <!-- Footer -->
     <footer th:replace="~{fragments/footer :: footer}"></footer>
   </div>
 </div>
 
-<!-- SweetAlert2 -->
+<script src="https://code.jquery.com/jquery-3.7.0.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-<!-- Bootstrap JS (requerido para dropdown) -->
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
-
-<!-- JS -->
-<script>
-  function confirmDelete(button) {
-      Swal.fire({
-          title: '¿Estás seguro?',
-          text: "No podrás revertir esta acción",
-          icon: 'warning',
-          showCancelButton: true,
-          confirmButtonColor: '#d33',
-          cancelButtonColor: '#3085d6',
-          confirmButtonText: 'Sí, eliminar',
-          cancelButtonText: 'Cancelar'
-      }).then((result) => {
-          if (result.isConfirmed) {
-              button.closest('form').submit();
-          }
-      });
-  }
-</script>
-<!-- Bootstrap JS -->
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
-<!-- DataTables JS -->
-<script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
-<script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
-<!-- Export to Excel and PDF -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
+
 <script>
-  // Inicializar DataTable
-  $(document).ready(function () {
-      $('#dataTable').DataTable({
-          language: {
-              url: '//cdn.datatables.net/plug-ins/1.13.6/i18n/es-ES.json'
-          },
-          columnDefs: [{
-              targets: 3, // Columna de precio
-              render: function(data) {
-                  if (!data) return '';
-                  return '$' + parseInt(data).toLocaleString('es-CO');
-              }
-          }]
+  let dataTable;
+
+  function confirmDelete(button) {
+    Swal.fire({
+      title: '¿Estás seguro?',
+      text: "No podrás revertir esta acción.",
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#d33',
+      cancelButtonColor: '#3085d6',
+      confirmButtonText: 'Sí, eliminar',
+      cancelButtonText: 'Cancelar'
+    }).then((result) => {
+      if (result.isConfirmed) {
+        button.closest('form').submit();
+      }
+    });
+  }
+
+  function checkFlashMessages() {
+    const successMessage = "[[${success}]]";
+    const errorMessage = "[[${error}]]";
+    if (successMessage && successMessage !== 'null') {
+      Swal.fire({
+        icon: 'success',
+        title: 'Éxito',
+        text: successMessage,
+        timer: 2000,
+        showConfirmButton: false
       });
+    }
+    if (errorMessage && errorMessage !== 'null') {
+      Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: errorMessage
+      });
+    }
+  }
+
+  function prepareNewItem() {
+    document.getElementById('inventoryForm').reset();
+    document.getElementById('modalTitle').textContent = 'Nuevo Producto';
+    document.getElementById('inventoryId').value = '';
+  }
+
+  function prepareEditItem(button) {
+    document.getElementById('modalTitle').textContent = 'Editar Producto';
+    const row = button.closest('tr');
+    const form = document.getElementById('inventoryForm');
+    form.querySelector('[name="id"]').value = row.getAttribute('data-id');
+    form.querySelector('[name="name"]').value = row.getAttribute('data-name');
+    form.querySelector('[name="category"]').value = row.getAttribute('data-category');
+    form.querySelector('[name="unit_weight"]').value = row.getAttribute('data-unit_weight');
+    form.querySelector('[name="unit_measure"]').value = row.getAttribute('data-unit_measure');
+    form.querySelector('[name="price"]').value = row.getAttribute('data-price');
+    form.querySelector('[name="stock"]').value = row.getAttribute('data-stock');
+    form.querySelector('[name="minStock"]').value = row.getAttribute('data-minstock');
+    form.querySelector('[name="supplier"]').value = row.getAttribute('data-supplier-id');
+
+    // Ocultar el campo minStock en "Editar"
+    document.getElementById('minStockGroup').style.display = 'none';
+  }
+
+  function exportToExcel() {
+    try {
+      const table = document.getElementById('dataTable');
+      const headers = Array.from(table.querySelectorAll('thead th')).slice(0, -1).map(th => th.innerText);
+      const dataToExport = dataTable.rows({ search: 'applied' }).data().toArray();
+      let content = dataToExport.map(row => {
+        let newRow = {};
+        headers.forEach((header, index) => {
+          newRow[header] = String(row[index]).replace(/<.*?>/g, '');
+        });
+        return newRow;
+      });
+      const ws = XLSX.utils.json_to_sheet(content);
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, 'Inventario');
+      XLSX.writeFile(wb, 'inventario.xlsx');
+    } catch (error) {
+      Swal.fire('Error', 'No se pudo exportar a Excel.', 'error');
+    }
+  }
+
+  function exportToPDF() {
+    try {
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF();
+      doc.autoTable({
+        html: '#dataTable',
+        columns: [0, 1, 2, 3, 4, 5, 6, 7] // Ignora la última columna "Acciones"
+      });
+      doc.save('inventario.pdf');
+    } catch(error) {
+      Swal.fire('Error', 'No se pudo exportar a PDF.', 'error');
+    }
+  }
+
+  $(document).ready(function() {
+    dataTable = $('#dataTable').DataTable({
+      language: {
+        "sProcessing": "Procesando...",
+        "sLengthMenu": "Mostrar _MENU_ entradas",
+        "sZeroRecords": "No se encontraron resultados",
+        "sEmptyTable": "Ningún producto disponible",
+        "sInfo": "Mostrando _START_ a _END_ de _TOTAL_ entradas",
+        "sInfoEmpty": "Mostrando 0 a 0 de 0 entradas",
+        "sInfoFiltered": "(filtrado de un total de _MAX_ entradas)",
+        "sSearch": "Buscar:",
+        "oPaginate": {
+          "sFirst": "Primero",
+          "sLast": "Último",
+          "sNext": "Siguiente",
+          "sPrevious": "Anterior"
+        }
+      },
+      dom: '<"row"<"col-sm-12"t>><"row"<"col-sm-12 col-md-5"i><"col-sm-12 col-md-7"p>>',
+      responsive: true,
+      columnDefs: [{ targets: 8, orderable: false, searchable: false }]
+    });
+
+    // Conexión de los controles personalizados
+    $('#search').on('keyup', function() {
+      dataTable.search(this.value).draw();
+    });
+    $('#entries').on('change', function() {
+      dataTable.page.len(this.value).draw();
+    });
+
+    checkFlashMessages();
   });
-
-  // Exportar a Excel
-    function exportToExcel() {
-        try {
-            const table = document.getElementById('dataTable');
-            const rows = Array.from(table.querySelectorAll('tbody tr')).map(row => {
-                // Ignorar la última columna ("Acciones")
-                const cells = Array.from(row.children).slice(0, -1);
-                return cells.map(cell => cell.innerText);
-            });
-
-            // Crear encabezados excluyendo la columna "Acciones"
-            const headers = Array.from(table.querySelectorAll('thead th')).slice(0, -1).map(th => th.innerText);
-
-            const worksheet = XLSX.utils.json_to_sheet([headers, ...rows]);
-            const workbook = XLSX.utils.book_new();
-            XLSX.utils.book_append_sheet(workbook, worksheet, 'Inventarios');
-            XLSX.writeFile(workbook, 'inventarios.xlsx');
-        } catch (error) {
-            console.error("Error al exportar a Excel:", error);
-        }
-    }
-
-    // Exportar a PDF
-    function exportToPDF() {
-        try {
-            const table = document.getElementById('dataTable');
-
-            // Configurar jsPDF-AutoTable para ignorar la columna "Acciones"
-            const columns = Array.from(table.querySelectorAll('thead th')).slice(0, -1).map(th => ({
-                header: th.innerText,
-                dataKey: th.innerText
-            }));
-
-            const rows = Array.from(table.querySelectorAll('tbody tr')).map(row => {
-                const cells = Array.from(row.children).slice(0, -1); // Ignorar la última columna
-                const rowData = {};
-                columns.forEach((col, index) => {
-                    rowData[col.dataKey] = cells[index].innerText;
-                });
-                return rowData;
-            });
-
-            const { jsPDF } = window.jspdf;
-            const doc = new jsPDF();
-
-            doc.autoTable({
-                columns: columns,
-                body: rows
-            });
-
-            doc.save('inventories.pdf');
-        } catch (error) {
-            console.error("Error al exportar a PDF:", error);
-        }
-    }
-
-  // Preparar formulario para nuevo producto
-  function prepareNewInventory() {
-      document.getElementById('modalTitle').textContent = 'Nuevo Producto';
-      document.getElementById('inventoryId').value = '';
-      document.getElementById('inventoryForm').reset();
-      document.getElementById('inventoryForm').querySelector('input[name="minStock"]').value = '10';
-  }
-
-  // Preparar formulario para editar producto (CORREGIDO)
-  function prepareEditInventory(button) {
-      const inventoryId = button.getAttribute('data-id');
-      // CORREGIDO: URL con "s" al final (inventories)
-      fetch(`/api/inventories/${inventoryId}`)
-          .then(response => {
-              if (!response.ok) {
-                  throw new Error('Error al cargar el producto');
-              }
-              return response.json();
-          })
-          .then(inventory => {
-              document.getElementById('modalTitle').textContent = 'Editar Producto';
-              document.getElementById('inventoryId').value = inventory.id;
-
-              // Llenar los campos del formulario
-              const form = document.getElementById('inventoryForm');
-              form.querySelector('input[name="name"]').value = inventory.name || '';
-
-              // Manejar el select de categoría con seguridad
-              const categorySelect = form.querySelector('select[name="category"]');
-              const categoryValue = inventory.category || '';
-
-              // Buscar y seleccionar la categoría correcta
-              for (let i = 0; i < categorySelect.options.length; i++) {
-                  if (categorySelect.options[i].value === categoryValue) {
-                      categorySelect.selectedIndex = i;
-                      break;
-                  }
-              }
-
-              form.querySelector('input[name="price"]').value = inventory.price || '';
-              form.querySelector('input[name="stock"]').value = inventory.stock || '';
-
-              // Manejar el select de proveedor con seguridad
-              const supplierSelect = form.querySelector('select[name="id.supplier"]');
-              if (inventory.supplier && inventory.supplier.id) {
-                  supplierSelect.value = inventory.supplier.id;
-              } else {
-                  supplierSelect.value = '';
-              }
-
-              form.querySelector('input[name="minStock"]').value = inventory.minStock || '10';
-
-              // Mostrar modal
-              const modal = new bootstrap.Modal(document.getElementById('inventoryModal'));
-              modal.show();
-          })
-          .catch(error => {
-              console.error('Error:', error);
-              Swal.fire({
-                  icon: 'error',
-                  title: 'Error',
-                  text: 'No se pudo cargar el producto para editar'
-              });
-          });
-  }
 </script>
+
 </body>
 </html>

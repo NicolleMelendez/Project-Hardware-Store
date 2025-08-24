@@ -70,7 +70,7 @@ public class EntryService {
         if (entry.getInventory() == null || entry.getInventory().getId() == null) {
             throw new RuntimeException("Debe seleccionar un inventario válido");
         }
-        Inventory inventory = inventoryService.getInventoryById(entry.getInventory().getId())
+        Inventory inventory = inventoryService.findById(entry.getInventory().getId())
                 .orElseThrow(() -> new RuntimeException("Inventario no encontrado"));
         entry.setInventory(inventory);
 

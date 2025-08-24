@@ -91,7 +91,7 @@ public class IssueService {
     }
 
     private void validateRelations(Issue issue) {
-        if (!inventoryService.getInventoryById(issue.getInventory().getId()).isPresent()) {
+        if (!inventoryService.findById(issue.getInventory().getId()).isPresent()) {
             throw new RuntimeException("No se encontro el producto");
         }
 

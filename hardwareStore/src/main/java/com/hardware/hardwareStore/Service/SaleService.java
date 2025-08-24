@@ -1,11 +1,11 @@
 package com.hardware.hardwareStore.Service;
 
-import com.hardware.hardwareStore.Exception.SaleNotFoundException;
 import com.hardware.hardwareStore.model.Sale;
 import com.hardware.hardwareStore.Repository.SaleRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
 import java.util.List;
 
 @Service
@@ -15,41 +15,60 @@ public class SaleService {
     @Autowired
     private SaleRepository saleRepository;
 
-    // Se mantiene igual para crear nuevas ventas
+    /**
+     * Devuelve una lista de todas las ventas.
+     * Este es el método que tu controlador está buscando.
+     */
+    @Transactional(readOnly = true)
+    public List<Sale> findAll() {
+        return saleRepository.findAll();
+    }
+
+    /**
+     * Guarda una nueva venta o actualiza una existente.
+     */
     public Sale save(Sale sale) {
         if (sale.getId() == null) {
+            // Para una venta nueva, solo asignamos el estado.
+            // El total y los demás datos vienen del formulario.
             sale.setStatus("PENDIENTE");
         }
-
-        validateNewSale(sale);
+        validateSale(sale);
         return saleRepository.save(sale);
     }
 
-    // ¡NUEVO MÉTODO! Específico para actualizar solo el estado.
+    /**
+     * Actualiza únicamente el estado de una venta existente.
+     */
     public Sale updateStatus(Long saleId, String status) {
         if (status == null || status.trim().isEmpty() || !List.of("COMPLETADA", "PENDIENTE", "CANCELADA").contains(status)) {
             throw new IllegalArgumentException("Estado no válido.");
         }
-
-        Sale sale = findById(saleId); // Reutilizamos el método para encontrar la venta
+        Sale sale = findById(saleId);
         sale.setStatus(status);
-        return saleRepository.save(sale); // Guardamos la venta con el estado actualizado
+        return saleRepository.save(sale);
     }
 
-    @Transactional(readOnly = true)
-    public List<Sale> getAllSale() {
-        return saleRepository.findAll();
-    }
-
+    /**
+     * Busca una venta por su ID.
+     */
     @Transactional(readOnly = true)
     public Sale findById(Long id) {
         return saleRepository.findById(id)
-                .orElseThrow(() -> new SaleNotFoundException("No se encontró la venta con ID: " + id));
+                .orElseThrow(() -> new RuntimeException("No se encontró la venta con ID: " + id));
     }
 
-    private void validateNewSale(Sale sale) {
-        if (sale.getClient() == null || sale.getClient().getId() == null) throw new IllegalArgumentException("El cliente es requerido.");
-        if (sale.getEmployee() == null || sale.getEmployee().getId() == null) throw new IllegalArgumentException("El empleado es requerido.");
-        if (sale.getDateSale() == null) throw new IllegalArgumentException("La fecha de venta es requerida.");
+    /**
+     * Valida los datos principales de una venta.
+     */
+    private void validateSale(Sale sale) {
+        if (sale.getClient() == null || sale.getEmployee() == null || sale.getDateSale() == null) {
+            throw new IllegalArgumentException("Cliente, empleado y fecha son requeridos.");
+        }
+        if (sale.getTotal() == null || sale.getTotal() < 0) {
+            throw new IllegalArgumentException("El total es requerido y no puede ser negativo.");
+        }
     }
+
+
 }

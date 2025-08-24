@@ -3,6 +3,7 @@ package com.hardware.hardwareStore.Service;
 import com.hardware.hardwareStore.model.Inventory;
 import com.hardware.hardwareStore.model.Sale;
 import com.hardware.hardwareStore.model.SaleDetail;
+import com.hardware.hardwareStore.model.SaleDetailId;
 import com.hardware.hardwareStore.Repository.InventoryRepository;
 import com.hardware.hardwareStore.Repository.SaleDetailRepository;
 import com.hardware.hardwareStore.Repository.SaleRepository;
@@ -20,10 +21,10 @@ public class SaleDetailService {
     private SaleDetailRepository saleDetailRepository;
 
     @Autowired
-    private SaleRepository saleRepository; // Necesario para actualizar la Venta
+    private SaleRepository saleRepository;
 
     @Autowired
-    private InventoryRepository inventoryRepository; // Necesario para manejar el stock
+    private InventoryRepository inventoryRepository;
 
     /**
      * Busca todos los detalles asociados a un ID de venta.
@@ -36,9 +37,7 @@ public class SaleDetailService {
 
     /**
      * Guarda un nuevo detalle de venta (añade un producto a una venta).
-     * Este método contiene la lógica de negocio principal.
-     * @param saleDetail El nuevo detalle de venta a guardar.
-     * @return El detalle de venta guardado.
+     * Este es el método que te faltaba.
      */
     public SaleDetail save(SaleDetail saleDetail) {
         // 1. Validar que la venta y el producto existan en la base de datos
@@ -57,10 +56,15 @@ public class SaleDetailService {
         inventory.setStock(inventory.getStock() - saleDetail.getAmount());
         inventoryRepository.save(inventory);
 
-        // 4. Guardar el nuevo detalle de la venta
+        // 4. Configurar la clave compuesta para el nuevo detalle
+        saleDetail.setId(new SaleDetailId(sale.getId(), inventory.getId()));
+        saleDetail.setSale(sale);
+        saleDetail.setInventory(inventory);
+
+        // 5. Guardar el nuevo detalle de la venta
         SaleDetail savedDetail = saleDetailRepository.save(saleDetail);
 
-        // 5. Recalcular el total de la venta principal y guardarla
+        // 6. Recalcular el total de la venta principal y guardarla
         recalculateSaleTotal(sale.getId());
 
         return savedDetail;
@@ -68,7 +72,6 @@ public class SaleDetailService {
 
     /**
      * Método privado para recalcular el total de una venta basado en sus detalles.
-     * @param saleId El ID de la venta a recalcular.
      */
     private void recalculateSaleTotal(Long saleId) {
         Sale sale = saleRepository.findById(saleId).orElseThrow(() -> new RuntimeException("Venta no encontrada"));
