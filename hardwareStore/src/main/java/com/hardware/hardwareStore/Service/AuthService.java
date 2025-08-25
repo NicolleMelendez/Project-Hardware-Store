@@ -25,7 +25,7 @@ public class AuthService {
     @Autowired
     private PasswordResetTokenRepository passwordResetTokenRepository;
     @Autowired
-    private EmailService emailService; // 🔹 Inyectar el nuevo servicio
+    private EmailService emailService;
 
     public Users registerUser(String name, String email, String plainPassword, String roleName) {
         if (userRepository.findByEmail(email).isPresent()) {
@@ -40,14 +40,21 @@ public class AuthService {
         return userRepository.save(u);
     }
 
-    // AuthService.java
+    /**
+     * ✅ MÉTODO AÑADIDO
+     * Verifica si ya existe un token activo para un email.
+     * Devuelve true si el token existe, false si no.
+     */
+    public boolean tokenExistsForEmail(String email) {
+        return passwordResetTokenRepository.findByEmail(email).isPresent();
+    }
+
     @Transactional
     public String createPasswordResetToken(String email) {
         if (userRepository.findByEmail(email).isEmpty()) {
             throw new RuntimeException("Usuario no encontrado con ese email.");
         }
 
-        // 🔹 CORRECCIÓN: Eliminar cualquier token antiguo antes de crear uno nuevo.
         passwordResetTokenRepository.deleteByEmail(email);
 
         String tokenValue = UUID.randomUUID().toString();
