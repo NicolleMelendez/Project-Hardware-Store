@@ -17,296 +17,407 @@
         <h1 class="mt-4">Gestión de Pedidos</h1>
 
         <!-- Botones de acción -->
-        <div class="mb-3">
-            <button type="button" class="btn btn-primary" data-bs-toggle="modal"
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <div>
+            <button type="button" class="btn btn-primary me-2" data-bs-toggle="modal"
                     data-bs-target="#orderModal" onclick="prepareNewOrder()">
-                <i class="fas fa-plus me-1"></i> Nuevo Pedido
+              <i class="fas fa-plus me-1"></i> Nuevo Pedido
             </button>
-            <button type="button" class="btn btn-success" onclick="exportToExcel()">
-                <i class="fas fa-file-excel me-1"></i> Exportar a Excel
+            <button type="button" class="btn btn-success me-2" onclick="exportToExcel()">
+              <i class="fas fa-file-excel me-1"></i> Descargar Excel
             </button>
             <button type="button" class="btn btn-danger" onclick="exportToPDF()">
-                <i class="fas fa-file-pdf me-1"></i> Exportar a PDF
+              <i class="fas fa-file-pdf me-1"></i> Descargar PDF
             </button>
+          </div>
+        </div>
+
+        <div class="modal fade" id="orderModal" tabindex="-1" aria-hidden="true">
+          <div class="modal-dialog">
+            <div class="modal-content">
+              <form id="orderForm" th:action="@{/orderbuy/save}" method="post">
+                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+                <input type="hidden" name="id" id="orderId">
+
+                <div class="modal-header">
+                  <h5 class="modal-title" id="modalTitle">Nuevo Pedido</h5>
+                  <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                </div>
+                <div class="modal-body">
+                  <div class="mb-3">
+                    <label class="form-label">Cliente</label>
+                    <select class="form-select" name="client.id" required>
+                      <option value="">Seleccione un cliente</option>
+                      <option th:each="client : ${clients}"
+                              th:value="${client.id}"
+                              th:text="${client.name}"></option>
+                    </select>
+                  </div>
+                  <div class="mb-3">
+                    <label class="form-label">Empleado</label>
+                    <select class="form-select" name="employee.id" required>
+                      <option value="">Seleccione un empleado</option>
+                      <option th:each="employee : ${employees}"
+                              th:value="${employee.id}"
+                              th:text="${employee.name}"></option>
+                    </select>
+                  </div>
+                  <div class="mb-3">
+                    <label class="form-label">Fecha del pedido</label>
+                    <input type="date" class="form-control" name="dateOrder" id="dateOrderInput" required>
+                  </div>
+                  <div class="mb-3">
+                    <label class="form-label">Total</label>
+                    <div class="input-group">
+                      <span class="input-group-text">$</span>
+                      <input type="number" class="form-control" name="total" required min="0" step="1" placeholder="0">
+                    </div>
+                  </div>
+                  <div class="mb-3">
+                    <label class="form-label">Estado del pedido</label>
+                    <select class="form-select" name="status" required>
+                      <option value="PENDIENTE">PENDIENTE</option>
+                      <option value="PROCESADO">PROCESADO</option>
+                      <option value="ENVIADO">ENVIADO</option>
+                      <option value="ENTREGADO">ENTREGADO</option>
+                      <option value="CANCELADO">CANCELADO</option>
+                    </select>
+                  </div>
+                </div>
+                <div class="modal-footer">
+                  <button type="submit" class="btn btn-primary">Guardar cambios</button>
+                  <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+
+        <!-- Modal para editar estado -->
+        <div class="modal fade" id="editStatusModal" tabindex="-1" aria-hidden="true">
+          <div class="modal-dialog">
+            <div class="modal-content">
+              <form id="editStatusForm" method="post" th:action="@{/orderbuy/update/status}">
+                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+                <input type="hidden" name="id" id="editOrderId">
+
+                <div class="modal-header">
+                  <h5 class="modal-title">Editar Estado de Pedido</h5>
+                  <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                  <div class="mb-3">
+                    <label class="form-label">Estado</label>
+                    <select class="form-select" name="status" id="editOrderStatus" required>
+                      <option value="PENDIENTE">PENDIENTE</option>
+                      <option value="PROCESADO">PROCESADO</option>
+                      <option value="ENVIADO">ENVIADO</option>
+                      <option value="ENTREGADO">ENTREGADO</option>
+                      <option value="CANCELADO">CANCELADO</option>
+                    </select>
+                  </div>
+                </div>
+                <div class="modal-footer">
+                  <button type="submit" class="btn btn-primary">Actualizar Estado</button>
+                  <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+
+        <!-- Modal para ver detalles -->
+        <div class="modal fade" id="viewOrderModal" tabindex="-1" aria-hidden="true">
+          <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+              <div class="modal-header">
+                <h5 class="modal-title">Detalles de Pedido</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+              </div>
+              <div class="modal-body">
+                <!-- Los detalles se cargarán dinámicamente -->
+              </div>
+              <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <div class="d-flex align-items-center">
+            <label for="entries" class="me-2 mb-0">Mostrar:</label>
+            <select id="entries" class="form-select d-inline-block" style="width: 80px;">
+              <option value="10">10</option>
+              <option value="25">25</option>
+              <option value="50">50</option>
+              <option value="-1">Todos</option>
+            </select>
+          </div>
+          <div class="d-flex align-items-center">
+            <label for="search" class="me-2 mb-0">Buscar:</label>
+            <input type="search" id="search" class="form-control d-inline-block w-auto" placeholder="Buscar...">
+          </div>
         </div>
 
         <!-- Tarjeta con la Tabla -->
         <div class="card mb-4">
-          <div class="card-header">
-            <i class="fas fa-shopping-cart me-1"></i>
-            Pedidos registrados
-          </div>
           <div class="card-body">
-
-            <!-- Tabla de pedidos -->
-            <div class="table-responsive">
-              <table class="table table-bordered table-striped table-hover" id="dataTable" width="100%" cellspacing="0">
-                <thead>
-                <tr>
-                  <th>ID</th>
-                  <th>Cliente</th>
-                  <th>Empleado</th>
-                  <th>Fecha</th>
-                  <th>Total</th>
-                  <th>Estado</th>
-                  <th>Acciones</th>
-                </tr>
-                </thead>
-                <tbody>
-                <tr th:each="order : ${orders}" data-bs-toggle="tooltip" th:title="'Total: $' + ${order.total}">
-                  <td th:text="${order.id}"></td>
-                  <td th:text="${order.client?.name ?: 'No especificado'}"></td>
-                  <td th:text="${order.employee?.name ?: 'No especificado'}"></td>
-                  <td th:text="${order.dateOrder != null ? #dates.format(order.dateOrder, 'dd/MM/yyyy') : 'Sin fecha'}"></td>
-                  <td th:text="${order.total != null ? '$' + #numbers.formatInteger(order.total, 0, 'POINT') : '$0'}"></td>
-                  <td>
-                    <span th:class="${order.status == 'PENDIENTE' ? 'badge bg-warning text-dark' :
-                                   order.status == 'PROCESADO' ? 'badge bg-info' :
-                                   order.status == 'ENVIADO' ? 'badge bg-primary' :
-                                   order.status == 'ENTREGADO' ? 'badge bg-success' :
-                                   'badge bg-danger'}"
-                          th:text="${order.status ?: 'SIN ESTADO'}"></span>
-                  </td>
-                  <td class="text-center">
-                    <button class="btn btn-warning btn-sm me-1"
-                            th:data-id="${order.id}" onclick="prepareEditOrder(this)">
-                      <i class="fas fa-edit"></i>
-                    </button>
-                    <button class="btn btn-danger btn-sm"
-                            th:onclick="'confirmDelete(' + ${order.id} + ')'">
-                      <i class="fas fa-trash-alt"></i>
-                    </button>
-                  </td>
-                </tr>
-                </tbody>
-              </table>
-            </div>
+            <table class="table table-bordered table-striped table-hover" id="dataTable" width="100%">
+              <thead>
+              <tr>
+                <th>ID</th>
+                <th>Cliente</th>
+                <th>Empleado</th>
+                <th>Fecha</th>
+                <th>Total</th>
+                <th>Estado</th>
+                <th>Acciones</th>
+              </tr>
+              </thead>
+              <tbody>
+              <tr th:each="order : ${orders}">
+                <td th:text="${order.id}"></td>
+                <td th:text="${order.client?.name ?: 'No especificado'}"></td>
+                <td th:text="${order.employee?.name ?: 'No especificado'}"></td>
+                <td th:text="${order.dateOrder != null ? #dates.format(order.dateOrder, 'dd/MM/yyyy') : 'Sin fecha'}"></td>
+                <td th:text="${order.total != null ? '$' + #numbers.formatInteger(order.total, 0, 'POINT') : '$0'}"></td>
+                <td>
+                  <span th:class="${order.status == 'PENDIENTE' ? 'badge bg-warning text-dark' :
+                                 order.status == 'PROCESADO' ? 'badge bg-info' :
+                                 order.status == 'ENVIADO' ? 'badge bg-primary' :
+                                 order.status == 'ENTREGADO' ? 'badge bg-success' :
+                                 'badge bg-danger'}"
+                        th:text="${order.status ?: 'SIN ESTADO'}"></span>
+                </td>
+                <td class="text-center">
+                  <button class="btn btn-info btn-sm me-1" th:onclick="'viewOrderDetails(' + ${order.id} + ')'" title="Ver Detalles">
+                    <i class="fas fa-eye"></i>
+                  </button>
+                  <button class="btn btn-warning btn-sm" th:onclick="'prepareEditStatus(' + ${order.id} + ')'" title="Editar Estado">
+                    <i class="fas fa-edit"></i>
+                  </button>
+                </td>
+              </tr>
+              </tbody>
+            </table>
           </div>
         </div>
       </div>
     </main>
-
-    <!-- Modal para formulario -->
-    <div class="modal fade" id="orderModal" tabindex="-1" aria-hidden="true">
-      <div class="modal-dialog">
-        <div class="modal-content">
-          <form id="orderForm" th:action="@{/orderbuy/save}" method="post">
-            <input type="hidden" name="id" id="orderId">
-            <div class="modal-header">
-              <h5 class="modal-title" id="modalTitle">Nuevo Pedido</h5>
-              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
-            </div>
-            <div class="modal-body">
-              <div class="mb-3">
-                <label class="form-label">Cliente</label>
-                <select class="form-select" name="client.id" required>
-                  <option value="">Seleccione un cliente</option>
-                  <option th:each="client : ${clients}"
-                          th:value="${client.id}"
-                          th:text="${client.name}"></option>
-                </select>
-              </div>
-              <div class="mb-3">
-                <label class="form-label">Empleado</label>
-                <select class="form-select" name="employee.id" required>
-                  <option value="">Seleccione un empleado</option>
-                  <option th:each="employee : ${employees}"
-                          th:value="${employee.id}"
-                          th:text="${employee.name}"></option>
-                </select>
-              </div>
-              <div th:if="${param.error}">
-                <div class="alert alert-danger" role="alert">
-                  <span th:text="${param.error}"></span>
-                </div>
-              </div>
-              <div th:if="${param.success}">
-                <div class="alert alert-success" role="alert">
-                  <span th:text="${param.success}"></span>
-                </div>
-              </div>
-              <div class="mb-3">
-                <label class="form-label">Fecha del pedido</label>
-                <input type="date" class="form-control" name="dateOrder" id="dateOrderInput" required>
-              </div>
-              <div class="mb-3">
-                <label class="form-label">Total</label>
-                <div class="input-group">
-                  <span class="input-group-text">$</span>
-                  <input type="number" class="form-control" name="total" required min="0" step="1" placeholder="0">
-                </div>
-              </div>
-              <div class="mb-3">
-                <label class="form-label">Estado del pedido</label>
-                <select class="form-select" name="status" required>
-                  <option value="PENDIENTE">PENDIENTE</option>
-                  <option value="PROCESADO">PROCESADO</option>
-                  <option value="ENVIADO">ENVIADO</option>
-                  <option value="ENTREGADO">ENTREGADO</option>
-                  <option value="CANCELADO">CANCELADO</option>
-                </select>
-              </div>
-            </div>
-            <div class="modal-footer">
-              <button type="submit" class="btn btn-primary">Guardar cambios</button>
-              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-            </div>
-          </form>
-        </div>
-      </div>
-    </div>
 
     <!-- Footer -->
     <footer th:replace="~{fragments/footer :: footer}"></footer>
   </div>
 </div>
 
-
-
+<!-- jQuery -->
+<script src="https://code.jquery.com/jquery-3.7.0.js"></script>
+<!-- Bootstrap JS -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
 <!-- SweetAlert2 -->
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-<!-- Bootstrap JS (requerido para dropdown) -->
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
-
 <!-- Export to Excel and PDF -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
-
-<!-- JS -->
-<script>
-  function confirmDelete(id) {
-      Swal.fire({
-          title: '¿Estás seguro?',
-          text: "No podrás revertir esta acción",
-          icon: 'warning',
-          showCancelButton: true,
-          confirmButtonColor: '#d33',
-          cancelButtonColor: '#3085d6',
-          confirmButtonText: 'Sí, eliminar',
-          cancelButtonText: 'Cancelar'
-      }).then((result) => {
-          if (result.isConfirmed) {
-              fetch(`/orderbuy/delete/${id}`, {
-                  method: 'DELETE'
-              }).then(response => {
-                  if (response.ok) {
-                      window.location.reload();
-                  } else {
-                      Swal.fire({
-                          icon: 'error',
-                          title: 'Error',
-                          text: 'Error al eliminar el pedido.'
-                      });
-                  }
-              });
-          }
-      });
-  }
-</script>
-<!-- Bootstrap JS -->
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
 <!-- DataTables JS -->
 <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
 <script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
-<!-- Bootstrap JS (requerido para dropdown) -->
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
 
 <script>
-  // Preparar formulario para editar pedido
-  function prepareEditOrder(button) {
-      const orderId = button.getAttribute('data-id');
-      fetch(`/orderbuy/api/${orderId}`)
+  // Variable global para la instancia de la tabla
+  let dataTable;
+  const orderModal = new bootstrap.Modal(document.getElementById('orderModal'));
+  const editStatusModal = new bootstrap.Modal(document.getElementById('editStatusModal'));
+  const viewOrderModal = new bootstrap.Modal(document.getElementById('viewOrderModal'));
+
+  /* ==========================================================================
+     Funciones de Interacción (Modales, Alertas, Exportaciones)
+     ========================================================================== */
+
+  function prepareNewOrder() {
+      document.getElementById('orderForm').reset();
+      document.getElementById('modalTitle').textContent = 'Nuevo Pedido';
+      document.getElementById('orderId').value = '';
+
+      // Establecer fecha actual
+      const today = new Date().toISOString().split('T')[0];
+      document.getElementById('dateOrderInput').value = today;
+
+      orderModal.show();
+  }
+
+  function prepareEditStatus(orderId) {
+      fetch(`/orderbuy/api/orderBuy/${orderId}`)
           .then(response => {
-              if (!response.ok) {
-                  throw new Error('Error al obtener los datos del pedido');
-              }
+              if (!response.ok) throw new Error('Error al cargar pedido');
               return response.json();
           })
           .then(order => {
-              document.getElementById('modalTitle').textContent = 'Editar Pedido';
-              document.getElementById('orderId').value = order.id;
-
-              const form = document.getElementById('orderForm');
-              form.querySelector('select[name="client.id"]').value = order.client?.id || '';
-              form.querySelector('select[name="employee.id"]').value = order.employee?.id || '';
-
-              // Formatear fecha correctamente
-              const dateInput = document.getElementById('dateOrderInput');
-              if (order.dateOrder) {
-                  // Si la fecha viene como string ISO (de la API)
-                  if (typeof order.dateOrder === 'string') {
-                      dateInput.value = order.dateOrder.split('T')[0];
-                  }
-                  // Si viene como timestamp
-                  else if (order.dateOrder instanceof Date || (typeof order.dateOrder === 'object' && order.dateOrder.getDate)) {
-                      dateInput.value = order.dateOrder.toISOString().split('T')[0];
-                  }
-              } else {
-                  dateInput.value = new Date().toISOString().split('T')[0];
-              }
-
-              form.querySelector('input[name="total"]').value = order.total || '0';
-              form.querySelector('select[name="status"]').value = order.status || 'PENDIENTE';
-
-              // Mostrar modal
-              const modal = new bootstrap.Modal(document.getElementById('orderModal'));
-              modal.show();
+              document.getElementById('editOrderId').value = order.id;
+              document.getElementById('editOrderStatus').value = order.status || 'PENDIENTE';
+              editStatusModal.show();
           })
-          .catch(error => {
-              console.error('Error:', error);
-              Swal.fire({
-                  icon: 'error',
-                  title: 'Error',
-                  text: 'Error al cargar los datos del pedido. Por favor intente nuevamente.'
-              });
+          .catch(err => {
+              console.error('Error:', err);
+              Swal.fire('Error', 'No se pudo cargar los datos del pedido', 'error');
           });
   }
 
-  // Manejar el envío del formulario con fetch para mejor manejo de errores
-  document.getElementById('orderForm').addEventListener('submit', function(e) {
-      e.preventDefault();
+  function viewOrderDetails(orderId) {
+      fetch(`/orderbuy/api/orderBuy/${orderId}`)
+          .then(response => {
+              if (!response.ok) throw new Error('Error al cargar detalles');
+              return response.json();
+          })
+          .then(order => {
+              const modalBody = document.querySelector('#viewOrderModal .modal-body');
+              let detailsHtml = `
+                  <div class="row mb-3">
+                      <div class="col-md-6"><strong>ID:</strong> ${order.id}</div>
+                      <div class="col-md-6"><strong>Fecha:</strong> ${order.dateOrder ? new Date(order.dateOrder).toLocaleDateString() : 'Sin fecha'}</div>
+                  </div>
+                  <div class="row mb-3">
+                      <div class="col-md-6"><strong>Cliente:</strong> ${order.client?.name || 'No especificado'}</div>
+                      <div class="col-md-6"><strong>Empleado:</strong> ${order.employee?.name || 'No especificado'}</div>
+                  </div>
+                  <div class="row mb-3">
+                      <div class="col-md-6"><strong>Total:</strong> $${order.total?.toLocaleString() || '0'}</div>
+                      <div class="col-md-6"><strong>Estado:</strong> <span class="badge ${getStatusBadgeClass(order.status)}">${order.status || 'SIN ESTADO'}</span></div>
+                  </div>`;
 
-      const formData = new FormData(this);
-      const url = this.getAttribute('action');
-
-      fetch(url, {
-          method: 'POST',
-          body: formData
-      })
-      .then(response => {
-          if (response.redirected) {
-              window.location.href = response.url;
-          }
-      })
-      .catch(error => {
-          console.error('Error:', error);
-          Swal.fire({
-              icon: 'error',
-              title: 'Error',
-              text: 'Error al procesar la solicitud. Por favor intente nuevamente.'
+              modalBody.innerHTML = detailsHtml;
+              viewOrderModal.show();
+          })
+          .catch(err => {
+              console.error('Error:', err);
+              Swal.fire('Error', 'No se pudo cargar los detalles del pedido', 'error');
           });
-      });
-  });
+  }
 
-  // Inicializar tooltips
-  const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]')
-  const tooltipList = [...tooltipTriggerList].map(tooltipTriggerEl => new bootstrap.Tooltip(tooltipTriggerEl))
+  function getStatusBadgeClass(status) {
+      switch(status) {
+          case 'PENDIENTE': return 'bg-warning text-dark';
+          case 'PROCESADO': return 'bg-info';
+          case 'ENVIADO': return 'bg-primary';
+          case 'ENTREGADO': return 'bg-success';
+          case 'CANCELADO': return 'bg-danger';
+          default: return 'bg-secondary';
+      }
+  }
 
   function exportToExcel() {
-      const table = document.getElementById('dataTable');
-      const wb = XLSX.utils.table_to_book(table, {sheet: "Pedidos"});
-      XLSX.writeFile(wb, 'pedidos.xlsx');
+      try {
+          const table = document.getElementById('dataTable');
+          const dataToExport = dataTable.rows({ search: 'applied' }).data().toArray();
+          const headers = Array.from(table.querySelectorAll('thead th')).slice(0, -1).map(th => th.innerText);
+
+          let content = dataToExport.map(row => {
+              let newRow = {};
+              headers.forEach((header, index) => {
+                  newRow[header] = row[index];
+              });
+              return newRow;
+          });
+
+          const ws = XLSX.utils.json_to_sheet(content);
+          const wb = XLSX.utils.book_new();
+          XLSX.utils.book_append_sheet(wb, ws, 'Pedidos');
+          XLSX.writeFile(wb, 'pedidos.xlsx');
+      } catch (error) {
+          console.error("Error al exportar a Excel:", error);
+          Swal.fire('Error', 'No se pudo exportar a Excel.', 'error');
+      }
   }
 
   function exportToPDF() {
-      const { jsPDF } = window.jspdf;
-      const doc = new jsPDF();
-
-      doc.autoTable({ html: '#dataTable' });
-
-      doc.save('pedidos.pdf');
+      try {
+          const { jsPDF } = window.jspdf;
+          const doc = new jsPDF();
+          doc.autoTable({
+              html: '#dataTable',
+              columns: [0, 1, 2, 3, 4, 5] // Ignora la columna de acciones
+          });
+          doc.save('pedidos.pdf');
+      } catch(error) {
+          console.error("Error al exportar a PDF:", error);
+          Swal.fire('Error', 'No se pudo exportar a PDF.', 'error');
+      }
   }
+
+  function checkFlashMessages() {
+      // Thymeleaf inyectará el valor real aquí
+      const successMessage = "[[${success}]]";
+      const errorMessage = "[[${error}]]";
+
+      if (successMessage && successMessage !== 'null') {
+          Swal.fire({
+              icon: 'success', title: 'Éxito', text: successMessage,
+              timer: 3000, showConfirmButton: false
+          });
+      }
+      if (errorMessage && errorMessage !== 'null') {
+          Swal.fire({
+              icon: 'error', title: 'Error', text: errorMessage,
+              confirmButtonText: 'Entendido'
+          });
+      }
+  }
+
+  /* ==========================================================================
+     Inicialización de la página cuando el documento está listo
+     ========================================================================== */
+
+  $(document).ready(function() {
+      // 1. INICIALIZACIÓN DE DATATABLES
+      dataTable = $('#dataTable').DataTable({
+          // Idioma en español
+          language: {
+              "sProcessing": "Procesando...",
+              "sLengthMenu": "Mostrar _MENU_ entradas",
+              "sZeroRecords": "No se encontraron resultados",
+              "sEmptyTable": "Ningún pedido disponible en esta tabla",
+              "sInfo": "Mostrando _START_ a _END_ de un total de _TOTAL_ entradas",
+              "sInfoEmpty": "Mostrando 0 a 0 de un total de 0 entradas",
+              "sInfoFiltered": "(filtrado de un total de _MAX_ entradas)",
+              "sSearch": "Buscar:",
+              "oPaginate": { "sFirst": "Primero", "sLast": "Último", "sNext": "Siguiente", "sPrevious": "Anterior" }
+          },
+
+          // Definimos la estructura: 't' = tabla, 'i' = info, 'p' = paginación
+          // Esto oculta los controles por defecto de DataTables (búsqueda y selector de entradas)
+          dom: '<"row"<"col-sm-12"t>><"row"<"col-sm-12 col-md-5"i><"col-sm-12 col-md-7"p>>',
+
+          // Hacemos que la tabla sea responsive si el ancho de pantalla es pequeño
+          responsive: true,
+
+          // Definición de columnas para configurar renderizado
+          columnDefs: [
+              {
+                  // Ocultamos la columna de acciones al exportar
+                  targets: 6, // Índice de la columna 'Acciones'
+                  visible: true,
+                  searchable: false,
+                  orderable: false
+              }
+          ]
+      });
+
+      // 2. CONECTAMOS NUESTROS CONTROLES PERSONALIZADOS CON DATATABLES
+      // Conectar el input de búsqueda personalizado
+      $('#search').on('keyup', function() {
+          dataTable.search(this.value).draw();
+      });
+
+      // Conectar el selector de número de entradas personalizado
+      $('#entries').on('change', function() {
+          dataTable.page.len(this.value).draw();
+      });
+
+      // 3. Revisar si hay mensajes flash para mostrar al cargar la página
+      checkFlashMessages();
+  });
 </script>
 </body>
 </html>

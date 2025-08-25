@@ -31,7 +31,7 @@ public interface SaleRepository extends JpaRepository<Sale, Long> {
     Long countByStatus(@Param("status") String status);
 
     @Query("SELECT SUM(s.total) FROM Sale s WHERE s.status = 'COMPLETADA'")
-    Double getTotalCompletedSales();
+    Integer getTotalCompletedSales();
 
     @Query("SELECT s FROM Sale s WHERE LOWER(s.client.name) LIKE LOWER(CONCAT('%', :clientName, '%'))")
     List<Sale> findByClientNameContaining(@Param("clientName") String clientName);

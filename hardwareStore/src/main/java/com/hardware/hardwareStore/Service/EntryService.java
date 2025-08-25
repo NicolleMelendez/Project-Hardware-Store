@@ -1,16 +1,14 @@
 package com.hardware.hardwareStore.Service;
 
-import com.hardware.hardwareStore.model.*;
+import com.hardware.hardwareStore.model.Entry;
 import com.hardware.hardwareStore.Repository.EntryRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
 
 @Service
-@Transactional
 public class EntryService {
 
     @Autowired
@@ -19,79 +17,87 @@ public class EntryService {
     @Autowired
     private InventoryService inventoryService;
 
-    @Autowired
-    private SupplierService supplierService;
-
-    @Autowired
-    private EmployeeService employeeService;
-
     public List<Entry> getAllEntries() {
         return entryRepository.findAll();
+    }
+
+    public Entry createEntry(Entry entry) {
+        // Validar que los campos requeridos no sean nulos
+        validateEntry(entry);
+
+        // Actualizar el stock del inventario
+        if (entry.getInventory() != null && entry.getInventory().getId() != null && entry.getAmount() != null) {
+            inventoryService.updateStock(entry.getInventory().getId(), entry.getAmount());
+        }
+
+        // Los campos createdAt y updatedAt se auto-generan con @CreationTimestamp y @UpdateTimestamp
+        return entryRepository.save(entry);
+    }
+
+    public Entry updateEntry(Long id, Entry entryDetails) {
+        Optional<Entry> optionalEntry = entryRepository.findById(id);
+        if (optionalEntry.isPresent()) {
+            Entry entry = optionalEntry.get();
+
+            // Validar los nuevos datos
+            validateEntry(entryDetails);
+
+            // Si cambia la cantidad, actualizar el stock
+            if (!entry.getAmount().equals(entryDetails.getAmount()) && entry.getInventory() != null) {
+                int difference = entryDetails.getAmount() - entry.getAmount();
+                inventoryService.updateStock(entry.getInventory().getId(), difference);
+            }
+
+            // Actualizar campos
+            entry.setInventory(entryDetails.getInventory());
+            entry.setSupplier(entryDetails.getSupplier());
+            entry.setAmount(entryDetails.getAmount());
+            entry.setPriceBuy(entryDetails.getPriceBuy());
+            entry.setDateEntry(entryDetails.getDateEntry());
+            entry.setEmployee(entryDetails.getEmployee());
+
+            // updatedAt se auto-actualiza con @UpdateTimestamp
+            return entryRepository.save(entry);
+        }
+        throw new RuntimeException("Entrada no encontrada con ID: " + id);
+    }
+
+    public void deleteEntry(Long id) {
+        Optional<Entry> optionalEntry = entryRepository.findById(id);
+        if (optionalEntry.isPresent()) {
+            Entry entry = optionalEntry.get();
+            // Revertir el stock al eliminar la entrada
+            if (entry.getInventory() != null && entry.getAmount() != null) {
+                inventoryService.updateStock(entry.getInventory().getId(), -entry.getAmount());
+            }
+            entryRepository.deleteById(id);
+        } else {
+            throw new RuntimeException("Entrada no encontrada con ID: " + id);
+        }
     }
 
     public Optional<Entry> getEntryById(Long id) {
         return entryRepository.findById(id);
     }
 
-    public Entry createEntry(Entry entry) {
-        validateAndLoadRelations(entry);
-        updateInventoryStock(entry.getInventory(), entry.getAmount());
-        return entryRepository.save(entry);
-    }
-
-    public Entry updateEntry(Long id, Entry entryDetails) {
-        Entry existingEntry = entryRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("No se encontro la entrada"));
-
-        validateAndLoadRelations(entryDetails);
-        int quantityDifference = entryDetails.getAmount() - existingEntry.getAmount();
-        updateInventoryStock(entryDetails.getInventory(), quantityDifference);
-
-        existingEntry.setInventory(entryDetails.getInventory());
-        existingEntry.setSupplier(entryDetails.getSupplier());
-        existingEntry.setAmount(entryDetails.getAmount());
-        existingEntry.setPriceBuy(entryDetails.getPriceBuy());
-        existingEntry.setDateEntry(entryDetails.getDateEntry());
-        existingEntry.setEmployee(entryDetails.getEmployee());
-
-        return entryRepository.save(existingEntry);
-    }
-
-    public void deleteEntry(Long id) {
-        Entry entry = entryRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("No se encontro la entrada"));
-
-        updateInventoryStock(entry.getInventory(), -entry.getAmount());
-        entryRepository.delete(entry);
-    }
-
-    private void validateAndLoadRelations(Entry entry) {
-        // Validar Inventory
-        if (entry.getInventory() == null || entry.getInventory().getId() == null) {
-            throw new RuntimeException("Debe seleccionar un inventario válido");
+    private void validateEntry(Entry entry) {
+        if (entry.getInventory() == null) {
+            throw new IllegalArgumentException("El inventario es requerido");
         }
-        Inventory inventory = inventoryService.getInventoryById(entry.getInventory().getId())
-                .orElseThrow(() -> new RuntimeException("Inventario no encontrado"));
-        entry.setInventory(inventory);
-
-        // Validar Supplier
-        if (entry.getSupplier() == null || entry.getSupplier().getId() == null) {
-            throw new RuntimeException("Debe seleccionar un proveedor válido");
+        if (entry.getSupplier() == null) {
+            throw new IllegalArgumentException("El proveedor es requerido");
         }
-        Supplier supplier = supplierService.getSupplierById(entry.getSupplier().getId())
-                .orElseThrow(() -> new RuntimeException("Proveedor no encontrado"));
-        entry.setSupplier(supplier);
-
-        // Validar Employee
-        if (entry.getEmployee() == null || entry.getEmployee().getId() == null) {
-            throw new RuntimeException("Debe seleccionar un empleado válido");
+        if (entry.getEmployee() == null) {
+            throw new IllegalArgumentException("El empleado es requerido");
         }
-        Employee employee = employeeService.getEmployeeById(entry.getEmployee().getId())
-                .orElseThrow(() -> new RuntimeException("Empleado no encontrado"));
-        entry.setEmployee(employee);
-    }
-
-    private void updateInventoryStock(Inventory inventory, int amount) {
-        inventoryService.updateStock(inventory.getId(), amount);
+        if (entry.getAmount() == null || entry.getAmount() <= 0) {
+            throw new IllegalArgumentException("La cantidad debe ser mayor a 0");
+        }
+        if (entry.getPriceBuy() == null || entry.getPriceBuy() <= 0) {
+            throw new IllegalArgumentException("El precio de compra debe ser mayor a 0");
+        }
+        if (entry.getDateEntry() == null) {
+            throw new IllegalArgumentException("La fecha de entrada es requerida");
+        }
     }
 }

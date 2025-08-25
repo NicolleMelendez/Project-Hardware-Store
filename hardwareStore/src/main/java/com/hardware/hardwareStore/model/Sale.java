@@ -33,6 +33,9 @@ public class Sale {
     @Min(value = 0, message = "El total debe ser mayor o igual a 0")
     private Integer total;
 
+    @OneToMany(mappedBy = "sale", cascade = CascadeType.ALL, orphanRemoval = true)
+    private java.util.List<SaleDetail> saleDetails;
+
     @NotBlank(message = "El estado es requerido")
     @Pattern(regexp = "COMPLETADA|PENDIENTE|CANCELADA",
             message = "Estado no válido. Debe ser: COMPLETADA, PENDIENTE o CANCELADA")
@@ -78,6 +81,14 @@ public class Sale {
 
     public void setTotal(Integer total) {
         this.total = total;
+    }
+
+    public java.util.List<SaleDetail> getSaleDetails() {
+        return saleDetails;
+    }
+
+    public void setSaleDetails(java.util.List<SaleDetail> saleDetails) {
+        this.saleDetails = saleDetails;
     }
 
     public String getStatus() {

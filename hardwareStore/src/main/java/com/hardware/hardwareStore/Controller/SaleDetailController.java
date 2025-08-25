@@ -1,50 +1,40 @@
 package com.hardware.hardwareStore.Controller;
 
-import com.hardware.hardwareStore.Service.InventoryService;
-import com.hardware.hardwareStore.Service.SaleDetailService;
-import com.hardware.hardwareStore.Service.SaleService;
 import com.hardware.hardwareStore.model.SaleDetail;
+import com.hardware.hardwareStore.Service.SaleDetailService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Controller;
-import org.springframework.ui.Model;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
 import java.util.List;
 
-@Controller
-@RequestMapping("/sale-detail")
+@RestController
+@RequestMapping("/api/sale-details") // ¡Ruta base para la API de detalles!
 public class SaleDetailController {
 
     @Autowired
     private SaleDetailService saleDetailService;
-    @Autowired
-    private SaleService saleService;
-    @Autowired
-    private InventoryService inventoryService;
 
-    @GetMapping
-    public String saleDetailPage(Model model) {
-        model.addAttribute("details", saleDetailService.getAllSaleDetails());
-        model.addAttribute("sales", saleService.getAllSale());
-        model.addAttribute("inventories", inventoryService.getAllInventories());
-        return "saledetail/index";
+    /**
+     * API para obtener los detalles de una venta específica.
+     * El JavaScript llamará a esta URL: GET /api/sale-details/sale/{id}
+     */
+    @GetMapping("/sale/{saleId}")
+    public ResponseEntity<List<SaleDetail>> getDetailsBySaleId(@PathVariable Long saleId) {
+        List<SaleDetail> details = saleDetailService.findBySaleId(saleId);
+        return ResponseEntity.ok(details);
     }
 
-    @PostMapping("/save")
-    @ResponseBody
-    public SaleDetail saveSaleDetail(@RequestBody SaleDetail detail) {
-        return saleDetailService.createSaleDetail(detail);
-    }
-
-    @DeleteMapping("/delete/{id}")
-    public String deleteSaleDetail(@PathVariable Long id) {
-        saleDetailService.deleteSaleDetail(id);
-        return "redirect:/sale-detail";
-    }
-
-    @GetMapping("/api/sale/{saleId}")
-    @ResponseBody
-    public List<SaleDetail> getSaleDetailsBySaleId(@PathVariable Long saleId) {
-        return saleDetailService.getSaleDetailsBySaleId(saleId);
+    /**
+     * API para guardar un nuevo detalle de venta (añadir un producto).
+     * El JavaScript llamará a esta URL: POST /api/sale-details
+     */
+    @PostMapping
+    public ResponseEntity<?> saveSaleDetail(@RequestBody SaleDetail saleDetail) {
+        try {
+            SaleDetail savedDetail = saleDetailService.save(saleDetail);
+            return ResponseEntity.ok(savedDetail);
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
     }
 }
