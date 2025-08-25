@@ -1,0 +1,114 @@
+/* --- Google Font: Poppins --- */
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap');
+
+/* --- Variables de Color de Ferretería --- */
+:root {
+    --color-primary: #005A9C; /* Azul oscuro, corporativo y fiable */
+    --color-accent: #FFC107;  /* Amarillo vibrante, como herramientas o señales */
+    --color-background: #EAECEE; /* Gris claro, como concreto o metal */
+    --color-text: #343A40;     /* Gris oscuro para texto legible */
+    --color-light-gray: #F8F9FA;
+}
+
+body {
+    font-family: 'Poppins', sans-serif;
+    color: var(--color-text);
+}
+
+.auth-container {
+    min-height: 100vh;
+    padding: 2rem 0;
+    background-color: var(--color-background);
+    background-image: url('https://www.transparenttextures.com/patterns/concrete-wall-2.png'); /* Textura sutil */
+}
+
+.auth-form {
+    background: #ffffff;
+    border-radius: 8px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    border-top: 5px solid var(--color-accent); /* Borde de acento amarillo */
+    animation: fadeIn 0.8s ease-out;
+    padding: 2.5rem;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: scale(0.95); }
+    to { opacity: 1; transform: scale(1); }
+}
+
+/* --- Logo --- */
+.auth-logo {
+    display: block;
+    margin: 0 auto 1rem auto;
+    width: 80px;  /* Ajusta el tamaño según necesites */
+    height: 80px;
+    border-radius: 50%;
+    border: 3px solid var(--color-primary);
+}
+
+.auth-form h2 {
+    color: var(--color-primary);
+    font-weight: 600;
+}
+
+.auth-form .text-muted {
+    color: #6c757d !important;
+}
+
+/* --- Estilos de los campos --- */
+.form-control {
+    border: 1px solid #ced4da;
+    height: 48px;
+    transition: all 0.2s ease-in-out;
+}
+
+.form-control:focus {
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 0.25rem rgba(0, 90, 156, 0.25);
+}
+
+/* --- Iconos --- */
+.input-group-text {
+    background: var(--color-light-gray);
+    border: 1px solid #ced4da;
+    border-right: 0;
+}
+.icon-input .form-control {
+    border-left: 0;
+}
+.icon-input i {
+    color: #6c757d;
+}
+
+/* --- Botón Principal --- */
+.btn-primary {
+    background-color: var(--color-primary);
+    border: none;
+    padding: 12px;
+    font-weight: 500;
+    transition: background-color 0.3s ease, transform 0.2s ease;
+}
+
+.btn-primary:hover {
+    background-color: #004a80; /* Un azul más oscuro */
+    transform: translateY(-2px);
+}
+
+/* --- Links --- */
+a {
+    color: var(--color-primary);
+    text-decoration: none;
+    font-weight: 500;
+}
+a:hover {
+    text-decoration: underline;
+}
+
+/* --- Alertas --- */
+.alert {
+    display: flex;
+    align-items: center;
+}
+.alert i {
+    margin-right: 0.75rem;
+}
