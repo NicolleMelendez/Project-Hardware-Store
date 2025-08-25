@@ -7,6 +7,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class OrderBuyService {
@@ -43,6 +44,16 @@ public class OrderBuyService {
 
 
         return orderBuyRepository.save(order);
+    }
+    public void updateStatus(Long id, String status) {
+        Optional<OrderBuy> optionalOrder = orderBuyRepository.findById(id);
+        if (optionalOrder.isPresent()) {
+            OrderBuy order = optionalOrder.get();
+            order.setStatus(status);
+            orderBuyRepository.save(order);
+        } else {
+            throw new RuntimeException("Pedido no encontrado con ID: " + id);
+        }
     }
 
     @Transactional

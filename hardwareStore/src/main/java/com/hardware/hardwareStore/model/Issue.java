@@ -13,7 +13,7 @@ public class Issue {
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "inventory_id", nullable = false)
+    @JoinColumn(name = "id_inventory", nullable = false)
     private Inventory inventory;
 
     @Column(nullable = false)
@@ -24,83 +24,36 @@ public class Issue {
 
     @Column(name = "date_issue", nullable = false)
     @Temporal(TemporalType.TIMESTAMP)
+    @DateTimeFormat(pattern = "yyyy-MM-dd'T'HH:mm")
     private Date dateIssue = new Date();
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "employee_id", nullable = false)
+    @JoinColumn(name = "id_employee", nullable = false)
     private Employee employee;
 
     @Column(length = 500)
     private String observation;
 
+    // --- Getters y Setters Manuales ---
 
-    // Constructors
-    public Issue() {}
+    public Long getId() { return id; }
+    public void setId(Long id) { this.id = id; }
 
+    public Inventory getInventory() { return inventory; }
+    public void setInventory(Inventory inventory) { this.inventory = inventory; }
 
-    public Issue(Inventory inventory, Integer amount, String reason,
-                 Employee employee, String observation) {
-        this.inventory = inventory;
-        this.amount = amount;
-        this.reason = reason;
-        this.employee = employee;
-        this.observation = observation;
-    }
+    public Integer getAmount() { return amount; }
+    public void setAmount(Integer amount) { this.amount = amount; }
 
-    // Getters and setters...
-    public Long getId() {
-        return id;
-    }
+    public String getReason() { return reason; }
+    public void setReason(String reason) { this.reason = reason; }
 
-    public void setId(Long id) {
-        this.id = id;
-    }
+    public Date getDateIssue() { return dateIssue; }
+    public void setDateIssue(Date dateIssue) { this.dateIssue = dateIssue; }
 
-    public Inventory getInventory() {
-        return inventory;
-    }
+    public Employee getEmployee() { return employee; }
+    public void setEmployee(Employee employee) { this.employee = employee; }
 
-    public void setInventory(Inventory inventory) {
-        this.inventory = inventory;
-    }
-
-    public Integer getAmount() {
-        return amount;
-    }
-
-    public void setAmount(Integer amount) {
-        this.amount = amount;
-    }
-
-    public Date getDateIssue() {
-        return dateIssue;
-    }
-
-    public void setDateIssue(Date dateIssue) {
-        this.dateIssue = dateIssue;
-    }
-
-    public String getReason() {
-        return reason;
-    }
-
-    public void setReason(String reason) {
-        this.reason = reason;
-    }
-
-    public Employee getEmployee() {
-        return employee;
-    }
-
-    public void setEmployee(Employee employee) {
-        this.employee = employee;
-    }
-
-    public String getObservation() {
-        return observation;
-    }
-
-    public void setObservation(String observation) {
-        this.observation = observation;
-    }
+    public String getObservation() { return observation; }
+    public void setObservation(String observation) { this.observation = observation; }
 }

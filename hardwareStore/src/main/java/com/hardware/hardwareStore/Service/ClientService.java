@@ -16,6 +16,9 @@ public class ClientService {
     @Autowired
     private ClientRepository clientRepository;
 
+    @Autowired
+    private WebSocketService webSocketService;
+
     public List<Client> findAll() {
         return clientRepository.findAll();
     }
@@ -29,7 +32,9 @@ public class ClientService {
         if (client.getEmail() != null && clientRepository.existsByEmail(client.getEmail())) {
             throw new RuntimeException("El email ya está registrado");
         }
-        return clientRepository.save(client);
+        Client createdClient = clientRepository.save(client);
+        webSocketService.notifyClientUpdate(createdClient, "CREATED");
+        return createdClient;
     }
 
     public Client update(Long id, Client client) {
@@ -44,11 +49,14 @@ public class ClientService {
             }
             existingClient.setEmail(client.getEmail());
         }
-        return clientRepository.save(existingClient);
+        Client updatedClient = clientRepository.save(existingClient);
+        webSocketService.notifyClientUpdate(updatedClient, "UPDATED");
+        return updatedClient;
     }
 
     public void delete(Long id) {
         Client client = findById(id);
         clientRepository.delete(client);
+        webSocketService.notifyClientUpdate(client, "DELETED");
     }
 }

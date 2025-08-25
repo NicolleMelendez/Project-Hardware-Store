@@ -12,6 +12,12 @@ public class Inventory {
     @Column(nullable = false, length = 100)
     private String name;
 
+    @Column(nullable = false)
+    private Double unit_weight;
+
+    @Column(nullable = false, length = 50)
+    private String unit_measure;
+
     @Column(nullable = false, length = 50)
     private String category;
 
@@ -31,8 +37,10 @@ public class Inventory {
     // Constructors
     public Inventory() {}
 
-    public Inventory(String name, String category, Integer price, Supplier supplier) {
+    public Inventory(String name, Double unit_weight, String unit_measure, String category, Integer price, Supplier supplier) {
         this.name = name;
+        this.unit_weight = unit_weight;
+        this.unit_measure = unit_measure;
         this.category = category;
         this.price = price;
         this.supplier = supplier;
@@ -53,6 +61,23 @@ public class Inventory {
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    public Double getUnit_weight() {
+        return unit_weight;
+    }
+
+    public void setUnit_weight(Double unit_weight) {
+        this.unit_weight = unit_weight;
+    }
+
+
+    public String getUnit_measure() {
+        return unit_measure;
+    }
+
+    public void setUnit_measure(String unit_measure) {
+        this.unit_measure = unit_measure;
     }
 
     public String getCategory() {

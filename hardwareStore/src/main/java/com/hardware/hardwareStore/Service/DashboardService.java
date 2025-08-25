@@ -17,9 +17,7 @@ public class DashboardService {
     @Autowired
     private SaleRepository saleRepository;
 
-    public List<Map<String, Object>> getTop5SoldProducts() {
-        return saleDetailRepository.findTop5SoldProducts();
-    }
+
 
     public List<Map<String, Object>> getTop5Customers() {
         return saleRepository.findTop5Customers();

@@ -7,6 +7,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.util.List;
 
@@ -16,33 +17,43 @@ public class ClientController {
     @Autowired
     private ClientService clientService;
 
-
     @GetMapping("/clients")
     public String listClients(Model model) {
         model.addAttribute("clients", clientService.findAll());
-        return "client/index"; // Carga templates/client/index.html
+        return "client/index";
     }
 
     @PostMapping("/clients/save")
-    public String saveClient(@ModelAttribute Client client) {
-        if (client.getId() == null) {
-            clientService.create(client);
-        } else {
-            clientService.update(client.getId(), client);
+    public String saveClient(@ModelAttribute Client client, RedirectAttributes redirectAttributes) {
+        try {
+            if (client.getId() == null) {
+                clientService.create(client);
+                redirectAttributes.addFlashAttribute("success", "Cliente creado exitosamente");
+            } else {
+                clientService.update(client.getId(), client);
+                redirectAttributes.addFlashAttribute("success", "Cliente actualizado exitosamente");
+            }
+        } catch (RuntimeException e) {
+            redirectAttributes.addAttribute("error", e.getMessage());
         }
         return "redirect:/clients";
     }
 
     @PostMapping("/clients/delete/{id}")
-    public String deleteClient(@PathVariable Long id) {
-        clientService.delete(id);
+    public String deleteClient(@PathVariable Long id, RedirectAttributes redirectAttributes) {
+        try {
+            clientService.delete(id);
+            redirectAttributes.addFlashAttribute("success", "Cliente eliminado exitosamente");
+        } catch (RuntimeException e) {
+            redirectAttributes.addAttribute("error", e.getMessage());
+        }
         return "redirect:/clients";
     }
 
 
     /*
-    * Mapeo para las apis
-    */
+     * Mapeo para las apis
+     */
     @GetMapping("/api/clients")
     @ResponseBody
     public List<Client> getAllClients() {
