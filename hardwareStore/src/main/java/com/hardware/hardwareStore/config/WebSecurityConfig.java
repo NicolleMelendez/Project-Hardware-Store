@@ -16,11 +16,11 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 public class WebSecurityConfig implements WebMvcConfigurer {
 
     @Autowired
-    private CustomUserDetailsService userDetailsService; // lo veremos abajo
+    private CustomUserDetailsService userDetailsService;
 
     @Bean
     public PasswordEncoder passwordEncoder() {
-        return new BCryptPasswordEncoder(); // estándar seguro
+        return new BCryptPasswordEncoder();
     }
 
     @Bean
@@ -29,12 +29,13 @@ public class WebSecurityConfig implements WebMvcConfigurer {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(
                                 "/assets/**", "/css/**", "/js/**",
-                                "/login", "/register", "/error").permitAll()
+                                "/login", "/register", "/error",
+                                "/forgot-password", "/reset-password").permitAll()
                         .anyRequest().authenticated()
                 )
                 .formLogin(form -> form
                         .loginPage("/login")
-                        .loginProcessingUrl("/login") // 🔹 Donde se envía el form
+                        .loginProcessingUrl("/login")
                         .defaultSuccessUrl("/", true)
                         .failureUrl("/login?error=true")
                         .permitAll()
@@ -56,6 +57,5 @@ public class WebSecurityConfig implements WebMvcConfigurer {
         registry.addResourceHandler("/static/**")
                 .addResourceLocations("classpath:/static/");
     }
-
-
 }
+
