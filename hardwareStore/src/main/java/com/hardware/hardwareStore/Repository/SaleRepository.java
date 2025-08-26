@@ -36,9 +36,12 @@ public interface SaleRepository extends JpaRepository<Sale, Long> {
     @Query("SELECT s FROM Sale s WHERE LOWER(s.client.name) LIKE LOWER(CONCAT('%', :clientName, '%'))")
     List<Sale> findByClientNameContaining(@Param("clientName") String clientName);
 
-    @Query("SELECT new map(c.name as name, sum(s.total) as total) FROM Sale s JOIN s.client c GROUP BY c.name ORDER BY total DESC")
-    List<java.util.Map<String, Object>> findTop5Customers();
-
     @Query("SELECT new map(e.name as name, sum(s.total) as total) FROM Sale s JOIN s.employee e GROUP BY e.name ORDER BY total DESC")
     List<java.util.Map<String, Object>> findTop5Employees();
+
+    @Query("SELECT COALESCE(SUM(s.total), 0) FROM Sale s WHERE s.status = 'COMPLETADA' AND s.dateSale >= :startDate AND s.dateSale < :endDate")
+    Integer getTotalSalesBetweenDates(@Param("startDate") LocalDate startDate, @Param("endDate") LocalDate endDate);
+
+    @Query("SELECT new map(c.name as name, sum(s.total) as total) FROM Sale s JOIN s.client c GROUP BY c.name ORDER BY total DESC")
+    List<java.util.Map<String, Object>> findTop5Customers();
 }
