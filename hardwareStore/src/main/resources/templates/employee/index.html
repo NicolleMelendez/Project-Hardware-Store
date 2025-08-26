@@ -2,13 +2,17 @@
 <html xmlns:th="http://www.thymeleaf.org">
 <head th:replace="~{fragments/head :: head('Empleados')}">
   <meta charset="UTF-8">
+  <title>Empleados</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" rel="stylesheet">
 </head>
+
 <body class="sb-nav-fixed">
-<!-- Navbar -->
+
 <div th:replace="~{fragments/navbar :: navbar}"></div>
 
 <div id="layoutSidenav">
-  <!-- Sidebar -->
   <div th:replace="~{fragments/sidebar :: sidebar}"></div>
 
   <div id="layoutSidenav_content">
@@ -16,7 +20,6 @@
       <div class="container-fluid px-4">
         <h1 class="mt-4">Gestión de Empleados</h1>
 
-        <!-- Botones superiores -->
         <div class="d-flex justify-content-between align-items-center mb-3">
           <div>
             <button type="button" class="btn btn-primary me-2" data-bs-toggle="modal"
@@ -30,56 +33,35 @@
               <i class="fas fa-file-pdf me-1"></i> Descargar PDF
             </button>
           </div>
-          <div>
-            <label for="entries" class="me-2">Mostrar:</label>
-            <select id="entries" class="form-select d-inline-block w-auto">
-              <option value="10">10</option>
-              <option value="25">25</option>
-              <option value="50">50</option>
-              <option value="-1">Todos</option>
-            </select>
-            <span class="ms-3" id="totalRecords">Total de registros: <span th:text="${employees.size()}"></span></span>
-          </div>
         </div>
 
-        <!-- Modal para formulario -->
         <div class="modal fade" id="employeeModal" tabindex="-1" aria-hidden="true">
           <div class="modal-dialog">
             <div class="modal-content">
               <form id="employeeForm" th:action="@{/employee/save}" method="post">
-                <input type="hidden" name="_csrf" th:value="${_csrf.token}" th:if="${_csrf}"/>
                 <input type="hidden" name="id" id="employeeId">
-
                 <div class="modal-header">
                   <h5 class="modal-title" id="modalTitle">Nuevo Empleado</h5>
                   <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
-                  <!-- Nombre -->
                   <div class="mb-3">
                     <label class="form-label">Nombre</label>
-                    <input type="text" class="form-control" name="name" required
-                           th:value="${employee?.name}">
+                    <input type="text" class="form-control" name="name" required>
                   </div>
-
-                  <!-- Puesto -->
                   <div class="mb-3">
                     <label class="form-label">Puesto</label>
                     <select class="form-control" name="position" required>
-                      <option value="" disabled th:selected="${employee?.position == null}">Seleccione un puesto</option>
-                      <option value="Vendedor" th:selected="${employee?.position} == 'Vendedor'">Vendedor</option>
-                      <option value="Cajero" th:selected="${employee?.position} == 'Cajero'">Cajero</option>
-                      <option value="Administrador" th:selected="${employee?.position} == 'Administrador'">Administrador</option>
-                      <option value="Gerente" th:selected="${employee?.position} == 'Gerente'">Gerente</option>
+                      <option value="" disabled selected>Seleccione un puesto</option>
+                      <option value="Vendedor">Vendedor</option>
+                      <option value="Cajero">Cajero</option>
+                      <option value="Administrador">Administrador</option>
+                      <option value="Gerente">Gerente</option>
                     </select>
                   </div>
-
-                  <!-- Salario -->
                   <div class="mb-3">
                     <label class="form-label">Salario</label>
-                    <input type="number" class="form-control" name="salary" required
-                           min="0" step="1"
-                           th:value="${#numbers.formatInteger(employee?.salary ?: 0, 0, 'POINT')}"
+                    <input type="number" class="form-control" name="salary" required min="0" step="1"
                            oninput="this.value = Math.abs(Math.round(this.value))">
                   </div>
                 </div>
@@ -92,66 +74,83 @@
           </div>
         </div>
 
-        <!-- Tabla de empleados -->
-        <div class="table-responsive">
-          <table class="table table-bordered table-striped table-hover" id="dataTable" width="100%" cellspacing="0">
-            <thead>
-            <tr>
-              <th>ID</th>
-              <th>Nombre</th>
-              <th>Puesto</th>
-              <th>Salario</th>
-              <th>Acciones</th>
-            </tr>
-            </thead>
-            <tbody>
-            <tr th:each="employee : ${employees}">
-              <td th:text="${employee.id}"></td>
-              <td th:text="${employee.name}"></td>
-              <td th:text="${employee.position}"></td>
-              <td th:text="${#numbers.formatInteger(employee.salary, 0, 'POINT')}"></td>
-              <td class="text-center">
-                <!-- Botón de editar -->
-                <button class="btn btn-warning btn-sm me-1"
-                        th:data-id="${employee.id}" onclick="prepareEditEmployee(this)">
-                  <i class="fas fa-edit"></i>
-                </button>
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <div class="d-flex align-items-center">
+            <label for="entries" class="me-2 mb-0">Mostrar:</label>
+            <select id="entries" class="form-select d-inline-block" style="width: 80px;">
+              <option value="10">10</option>
+              <option value="25">25</option>
+              <option value="50">50</option>
+              <option value="-1">Todos</option>
+            </select>
+          </div>
+          <div class="d-flex align-items-center">
+            <label for="search" class="me-2 mb-0">Buscar:</label>
+            <input type="search" id="search" class="form-control d-inline-block w-auto">
+          </div>
+        </div>
 
-                <!-- Formulario de eliminación -->
-                <form th:action="@{'/employee/delete/' + ${employee.id}}" method="post" style="display:inline;">
-                  <input type="hidden" name="_csrf" th:value="${_csrf.token}" th:if="${_csrf}"/>
-                  <button type="button" class="btn btn-danger btn-sm" onclick="confirmDelete(this)">
-                    <i class="fas fa-trash-alt"></i>
+        <div class="card mb-4">
+          <div class="card-body">
+            <table class="table table-bordered table-striped table-hover" id="dataTable" width="100%" cellspacing="0">
+              <thead>
+              <tr>
+                <th>ID</th>
+                <th>Nombre</th>
+                <th>Puesto</th>
+                <th>Salario</th>
+                <th>Acciones</th>
+              </tr>
+              </thead>
+              <tbody>
+              <tr th:each="employee : ${employees}"
+                  th:data-id="${employee.id}"
+                  th:data-name="${employee.name}"
+                  th:data-position="${employee.position}"
+                  th:data-salary="${employee.salary}">
+                <td th:text="${employee.id}"></td>
+                <td th:text="${employee.name}"></td>
+                <td th:text="${employee.position}"></td>
+                <td th:text="${employee.salary}"></td>
+                <td class="text-center">
+                  <button class="btn btn-warning btn-sm me-1"
+                          data-bs-toggle="modal"
+                          data-bs-target="#employeeModal"
+                          onclick="prepareEditEmployee(this)">
+                    <i class="fas fa-edit"></i>
                   </button>
-                </form>
-              </td>
-            </tr>
-            </tbody>
-          </table>
+                  <form th:action="@{/employee/delete/{id}(id=${employee.id})}" method="post" style="display:inline;">
+                    <button type="button" class="btn btn-danger btn-sm"
+                            onclick="confirmDelete(this)">
+                      <i class="fas fa-trash-alt"></i>
+                    </button>
+                  </form>
+                </td>
+              </tr>
+              </tbody>
+            </table>
+          </div>
         </div>
       </div>
     </main>
 
-    <!-- Footer -->
     <footer th:replace="~{fragments/footer :: footer}"></footer>
   </div>
 </div>
 
-<!-- SweetAlert2 -->
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-<!-- Bootstrap JS -->
+<script src="https://code.jquery.com/jquery-3.7.0.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
-<!-- DataTables JS -->
-<script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
-<script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
-
-<!-- Export to Excel and PDF -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
+
 
 <script>
-  // Confirmar eliminación
+  let dataTable;
+
   function confirmDelete(button) {
       Swal.fire({
           title: '¿Estás seguro?',
@@ -169,138 +168,196 @@
       });
   }
 
-  // Preparar formulario para nuevo empleado
-  function prepareNewEmployee() {
-      document.getElementById('modalTitle').textContent = 'Nuevo Empleado';
-      document.getElementById('employeeId').value = '';
-      document.getElementById('employeeForm').reset();
+   function exportToExcel() {
+      try {
+          const today = new Date();
+          const formattedDate = today.toLocaleDateString('es-ES');
+          const title = "Reporte de Empleados";
+          const generated = `Generado el: ${formattedDate}`;
 
-      // Reiniciar el select de puestos
-      const positionSelect = document.querySelector('select[name="position"]');
-      positionSelect.selectedIndex = 0;
+          const headers = ['ID', 'Nombre', 'Puesto', 'Salario'];
+          const dataToExport = dataTable.rows({ search: 'applied' }).data().toArray();
+
+          let reportData = [
+              [title],
+              [generated],
+              [],
+              headers
+          ];
+
+          dataToExport.forEach(row => {
+              reportData.push([row[0], row[1], row[2], row[3]]);
+          });
+
+          const wb = XLSX.utils.book_new();
+          const ws = XLSX.utils.aoa_to_sheet(reportData);
+
+          const merge = { s: { r: 0, c: 0 }, e: { r: 0, c: headers.length - 1 } };
+          if (!ws['!merges']) ws['!merges'] = [];
+          ws['!merges'].push(merge);
+
+          const columnWidths = reportData[3].map((_, colIndex) => {
+              let maxLength = 0;
+              for (let rowIndex = 3; rowIndex < reportData.length; rowIndex++) {
+                  const cellValue = reportData[rowIndex][colIndex];
+                  if (cellValue && cellValue.toString().length > maxLength) {
+                      maxLength = cellValue.toString().length;
+                  }
+              }
+              return { wch: maxLength + 2 };
+          });
+          ws['!cols'] = columnWidths;
+
+          XLSX.utils.book_append_sheet(wb, ws, 'Empleados');
+          const fileDate = `${today.getFullYear()}-${(today.getMonth() + 1).toString().padStart(2, '0')}-${today.getDate().toString().padStart(2, '0')}`;
+          XLSX.writeFile(wb, `Reporte_Empleados_${fileDate}.xlsx`);
+
+      } catch (error) {
+          console.error("Error al exportar a Excel:", error);
+          Swal.fire('Error', 'No se pudo exportar a Excel.', 'error');
+      }
   }
 
-  // Preparar formulario para editar empleado
-  function prepareEditEmployee(button) {
-      const employeeId = button.getAttribute('data-id');
+  function exportToPDF() {
+      fetch('/assets/img/logoo.png')
+          .then(response => response.blob())
+          .then(blob => {
+              const reader = new FileReader();
+              reader.readAsDataURL(blob);
+              reader.onloadend = function() {
+                  const base64data = reader.result;
 
-      fetch(`/api/employees/${employeeId}`)
-          .then(response => {
-              if (!response.ok) {
-                  throw new Error(`Error ${response.status}: ${response.statusText}`);
-              }
-              return response.json();
-          })
-          .then(employee => {
-              document.getElementById('modalTitle').textContent = 'Editar Empleado';
-              document.getElementById('employeeId').value = employee.id;
+                  try {
+                      const { jsPDF } = window.jspdf;
+                      const doc = new jsPDF();
 
-              const form = document.getElementById('employeeForm');
-              form.querySelector('input[name="name"]').value = employee.name || '';
+                      const pageWidth = doc.internal.pageSize.width;
+                      const pageHeight = doc.internal.pageSize.height;
 
-              // Cargar el puesto
-              const positionSelect = form.querySelector('select[name="position"]');
-              positionSelect.value = employee.position || '';
+                      doc.setFillColor('#FFC107');
+                      doc.rect(0, 0, pageWidth, 10, 'F');
 
-              // Cargar el salario redondeado
-              const salary = employee.salary != null ? Math.round(employee.salary) : 0;
-              form.querySelector('input[name="salary"]').value = salary;
+                      const logoSize = 25;
+                      const logoX = 15;
+                      const logoY = 14;
+                      doc.addImage(base64data, 'PNG', logoX, logoY, logoSize, logoSize);
 
-              // Mostrar modal
-              const modal = new bootstrap.Modal(document.getElementById('employeeModal'));
-              modal.show();
+                      doc.setFontSize(22);
+                      doc.setFont('helvetica', 'bold');
+                      doc.setTextColor('#005A9C');
+                      doc.text('Reporte de Empleados', logoX + logoSize + 5, 28);
+
+                      doc.setFontSize(11);
+                      doc.setFont('helvetica', 'normal');
+                      doc.setTextColor(100);
+                      const today = new Date();
+                      const dateStr = `Generado el: ${today.toLocaleDateString('es-ES')}`;
+                      doc.text(dateStr, logoX + logoSize + 5, 35);
+
+                      doc.autoTable({
+                          html: '#dataTable',
+                          startY: 50,
+                          columns: [0, 1, 2, 3],
+                          headStyles: { fillColor: [0, 90, 156], textColor: [255, 255, 255], fontStyle: 'bold', halign: 'center' },
+                          alternateRowStyles: { fillColor: [245, 245, 245] },
+                          styles: { halign: 'center', valign: 'middle', fontSize: 9 },
+                          didParseCell: function (data) {
+                              if (data.column.index === 0 && data.cell.section === 'body') {
+                                  data.cell.styles.fontStyle = 'bold';
+                              }
+                          },
+                          didDrawPage: function (data) {
+                              doc.setFillColor('#FFC107');
+                              doc.rect(0, pageHeight - 5, pageWidth, 5, 'F');
+                              let footerStr = `Página ${doc.internal.getNumberOfPages()}`;
+                              doc.setFontSize(10);
+                              doc.setTextColor(150);
+                              doc.text(footerStr, data.settings.margin.left, pageHeight - 10);
+                          }
+                      });
+
+                      const formattedDate = `${today.getFullYear()}-${(today.getMonth() + 1).toString().padStart(2, '0')}-${today.getDate().toString().padStart(2, '0')}`;
+                      doc.save(`Reporte_Empleados_${formattedDate}.pdf`);
+
+                  } catch (error) {
+                      console.error("Error al exportar a PDF:", error);
+                      Swal.fire('Error', 'No se pudo exportar a PDF.', 'error');
+                  }
+              };
           })
           .catch(error => {
-              console.error('Error al cargar empleado:', error);
-              Swal.fire({
-                  title: 'Error',
-                  text: 'No se pudo cargar el empleado: ' + error.message,
-                  icon: 'error',
-                  confirmButtonText: 'Aceptar'
-              });
+              console.error("Error al cargar el logo para el PDF:", error);
+              Swal.fire('Error', 'No se pudo cargar el logo para generar el PDF.', 'error');
           });
   }
 
-  // Inicializar DataTable
-  $(document).ready(function () {
-      $('#dataTable').DataTable({
+  function prepareNewEmployee() {
+      const form = document.getElementById('employeeForm');
+      form.reset();
+      document.getElementById('modalTitle').textContent = 'Nuevo Empleado';
+      document.getElementById('employeeId').value = '';
+  }
+
+  function prepareEditEmployee(button) {
+      const row = button.closest('tr');
+      const form = document.getElementById('employeeForm');
+
+      document.getElementById('modalTitle').textContent = 'Editar Empleado';
+
+      // Usamos los atributos data-* para obtener los valores originales
+      document.getElementById('employeeId').value = row.getAttribute('data-id');
+      form.querySelector('[name="name"]').value = row.getAttribute('data-name') || '';
+      form.querySelector('[name="position"]').value = row.getAttribute('data-position') || '';
+      form.querySelector('[name="salary"]').value = row.getAttribute('data-salary') || '';
+  }
+
+  $(document).ready(function() {
+      dataTable = $('#dataTable').DataTable({
           language: {
-              url: '//cdn.datatables.net/plug-ins/1.13.6/i18n/es-ES.json'
+              "sProcessing": "Procesando...",
+              "sLengthMenu": "Mostrar _MENU_ entradas",
+              "sZeroRecords": "No se encontraron resultados",
+              "sEmptyTable": "Ningún empleado disponible en esta tabla",
+              "sInfo": "Mostrando _START_ a _END_ de un total de _TOTAL_ entradas",
+              "sInfoEmpty": "Mostrando 0 a 0 de un total de 0 entradas",
+              "sInfoFiltered": "(filtrado de un total de _MAX_ entradas)",
+              "sSearch": "Buscar:",
+              "oPaginate": { "sFirst": "Primero", "sLast": "Último", "sNext": "Siguiente", "sPrevious": "Anterior" }
           },
+          dom: '<"row"<"col-sm-12"t>><"row"<"col-sm-12 col-md-5"i><"col-sm-12 col-md-7"p>>',
+          responsive: true,
           columnDefs: [
               {
-                  targets: 3, // Columna de salario
-                  render: function (data, type, row) {
-                      if (data == null) return '';
-
-                      const salary = parseInt(data); // Convertir a entero
-                      if (isNaN(salary)) return data;
-
-                      return '$' + salary.toLocaleString('es-CO', {
-                          minimumFractionDigits: 0,
-                          maximumFractionDigits: 0
-                      });
+                  // Apuntamos a la cuarta columna (índice 3, el salario)
+                  targets: 3,
+                  render: function(data, type, row) {
+                      if (type === 'display' && data) {
+                          // Formatea como moneda sin decimales
+                          const salary = parseInt(data, 10);
+                          return '$' + salary.toLocaleString('es-CO');
+                      }
+                      return data; // Devuelve el dato original para ordenar, etc.
                   }
+              },
+              {
+                  targets: 4, // Índice de la columna 'Acciones'
+                  searchable: false,
+                  orderable: false
               }
           ]
       });
+
+      // Conectar el input de búsqueda personalizado
+      $('#search').on('keyup', function() {
+          dataTable.search(this.value).draw();
+      });
+
+      // Conectar el selector de número de entradas personalizado
+      $('#entries').on('change', function() {
+          dataTable.page.len(this.value).draw();
+      });
   });
-
-  // Exportar a Excel
-  function exportToExcel() {
-      try {
-          const table = document.getElementById('dataTable');
-          const rows = Array.from(table.querySelectorAll('tbody tr')).map(row => {
-              // Ignorar la última columna ("Acciones")
-              const cells = Array.from(row.children).slice(0, -1);
-              return cells.map(cell => cell.innerText);
-          });
-
-          // Crear encabezados excluyendo la columna "Acciones"
-          const headers = Array.from(table.querySelectorAll('thead th')).slice(0, -1).map(th => th.innerText);
-
-          const worksheet = XLSX.utils.json_to_sheet([headers, ...rows]);
-          const workbook = XLSX.utils.book_new();
-          XLSX.utils.book_append_sheet(workbook, worksheet, 'Empleados');
-          XLSX.writeFile(workbook, 'empleados.xlsx');
-      } catch (error) {
-          console.error("Error al exportar a Excel:", error);
-      }
-  }
-
-  // Exportar a PDF
-  function exportToPDF() {
-      try {
-          const table = document.getElementById('dataTable');
-
-          // Configurar jsPDF-AutoTable para ignorar la columna "Acciones"
-          const columns = Array.from(table.querySelectorAll('thead th')).slice(0, -1).map(th => ({
-              header: th.innerText,
-              dataKey: th.innerText
-          }));
-
-          const rows = Array.from(table.querySelectorAll('tbody tr')).map(row => {
-              const cells = Array.from(row.children).slice(0, -1); // Ignorar la última columna
-              const rowData = {};
-              columns.forEach((col, index) => {
-                  rowData[col.dataKey] = cells[index].innerText;
-              });
-              return rowData;
-          });
-
-          const { jsPDF } = window.jspdf;
-          const doc = new jsPDF();
-
-          doc.autoTable({
-              columns: columns,
-              body: rows
-          });
-
-          doc.save('empleados.pdf');
-      } catch (error) {
-          console.error("Error al exportar a PDF:", error);
-      }
-  }
 </script>
+
 </body>
 </html>
