@@ -1,8 +1,10 @@
 package com.hardware.hardwareStore.model;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 
 @Entity
 @Table(name = "supplier")
+@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 public class Supplier {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
