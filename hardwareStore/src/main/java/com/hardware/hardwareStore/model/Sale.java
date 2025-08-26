@@ -1,10 +1,15 @@
 package com.hardware.hardwareStore.model;
+
 import jakarta.persistence.*;
-import jakarta.validation.constraints.*;
-import org.springframework.format.annotation.DateTimeFormat;
+import lombok.Getter;
+import lombok.Setter;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
-import java.util.Date;
-
+@Getter
+@Setter
 @Entity
 @Table(name = "sale")
 public class Sale {
@@ -12,90 +17,29 @@ public class Sale {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @NotNull(message = "El cliente es requerido")
-    @ManyToOne
+    @Column(name = "invoice_number", unique = true)
+    private String invoiceNumber;
+
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "id_client")
     private Client client;
 
-    @NotNull(message = "El empleado es requerido")
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "id_employee")
     private Employee employee;
 
-    @NotNull(message = "La fecha es requerida")
-    @PastOrPresent(message = "La fecha debe ser hoy o en el pasado")
     @Column(name = "date_sale")
-    @Temporal(TemporalType.DATE)
-    @DateTimeFormat(pattern = "yyyy-MM-dd")
-    private Date dateSale;
+    private LocalDate dateSale;
 
-    @NotNull(message = "El total es requerido")
-    @Min(value = 0, message = "El total debe ser mayor o igual a 0")
     private Integer total;
-
-    @OneToMany(mappedBy = "sale", cascade = CascadeType.ALL, orphanRemoval = true)
-    private java.util.List<SaleDetail> saleDetails;
-
-    @NotBlank(message = "El estado es requerido")
-    @Pattern(regexp = "COMPLETADA|PENDIENTE|CANCELADA",
-            message = "Estado no válido. Debe ser: COMPLETADA, PENDIENTE o CANCELADA")
     private String status;
 
-    public Sale() {}
+    @Column(name = "created_at", updatable = false)
+    private LocalDateTime createdAt;
 
-    public Long getId() {
-        return id;
-    }
+    @Column(name = "update_at")
+    private LocalDateTime updateAt;
 
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public Client getClient() {
-        return client;
-    }
-
-    public void setClient(Client client) {
-        this.client = client;
-    }
-
-    public Employee getEmployee() {
-        return employee;
-    }
-
-    public void setEmployee(Employee employee) {
-        this.employee = employee;
-    }
-
-    public Date getDateSale() {
-        return dateSale;
-    }
-
-    public void setDateSale(Date dateSale) {
-        this.dateSale = dateSale;
-    }
-
-    public Integer getTotal() {
-        return total;
-    }
-
-    public void setTotal(Integer total) {
-        this.total = total;
-    }
-
-    public java.util.List<SaleDetail> getSaleDetails() {
-        return saleDetails;
-    }
-
-    public void setSaleDetails(java.util.List<SaleDetail> saleDetails) {
-        this.saleDetails = saleDetails;
-    }
-
-    public String getStatus() {
-        return status;
-    }
-
-    public void setStatus(String status) {
-        this.status = status;
-    }
+    @OneToMany(mappedBy = "sale", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<SaleDetail> saleDetails = new ArrayList<>();
 }

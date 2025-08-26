@@ -98,8 +98,10 @@ public class IssueController {
         try {
             Issue issue = issueService.getIssueById(id);
             return ResponseEntity.ok(issue);
-        } catch (RuntimeException e) {
-            return ResponseEntity.notFound().build();
+        } catch (Exception e) {
+            System.err.println("Error al obtener salida con ID: " + id);
+            e.printStackTrace(); // Para depurar
+            return ResponseEntity.status(500).body("Error interno del servidor.");
         }
     }
 }
