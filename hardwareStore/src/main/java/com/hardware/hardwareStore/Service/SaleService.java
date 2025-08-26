@@ -6,8 +6,8 @@ import com.hardware.hardwareStore.Repository.SaleRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -28,6 +28,7 @@ public class SaleService {
         return saleRepository.findAllWithDetails();
     }
 
+    @Transactional(readOnly = true)
     public Sale getSaleById(Long id) {
         return saleRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Venta no encontrada con ID: " + id));
@@ -35,73 +36,53 @@ public class SaleService {
 
     @Transactional
     public Sale saveSaleWithDetails(Sale sale, List<Long> productIds, List<Integer> quantities, List<Integer> prices) {
-        // Validar que todos los arrays tengan el mismo tamaño
-        if (productIds.size() != quantities.size() || productIds.size() != prices.size()) {
-            throw new RuntimeException("Los datos de productos no son consistentes");
-        }
-
-        // Establecer fechas
+        // --- 1. Asignar valores por defecto a la Venta ---
+        sale.setDateSale(LocalDate.now());
+        sale.setUpdateAt(LocalDateTime.now());
         if (sale.getCreatedAt() == null) {
             sale.setCreatedAt(LocalDateTime.now());
         }
-        sale.setUpdateAt(LocalDateTime.now());
-
-        // Generar número de factura si no existe
         if (sale.getInvoiceNumber() == null || sale.getInvoiceNumber().isEmpty()) {
             sale.setInvoiceNumber(generateInvoiceNumber());
         }
 
-        // Calcular total basado en los productos
-        int total = 0;
-        List<SaleDetail> details = new ArrayList<>();
+        // --- 2. Procesar y vincular los detalles (USANDO INTEGER) ---
+        sale.getSaleDetails().clear();
+        int total = 0; // El total se declara como int
 
         for (int i = 0; i < productIds.size(); i++) {
-            Long productId = productIds.get(i);
+            Inventory product = inventoryService.findById(productIds.get(i))
+                    .orElseThrow(() -> new RuntimeException("Producto no encontrado"));
+
             Integer quantity = quantities.get(i);
             Integer price = prices.get(i);
 
-            if (productId != null && quantity != null && price != null && quantity > 0 && price > 0) {
-                Inventory product = inventoryService.findById(productId)
-                        .orElseThrow(() -> new RuntimeException("Producto no encontrado con ID: " + productId));
-
-                // Validar stock
-                if (product.getStock() < quantity) {
-                    throw new RuntimeException("Stock insuficiente para: " + product.getName() +
-                            ". Stock disponible: " + product.getStock());
-                }
-
-                // Calcular subtotal
-                int subtotal = quantity * price;
-                total += subtotal;
-
-                // Crear detalle
-                SaleDetail detail = new SaleDetail();
-                detail.setInventory(product);
-                detail.setAmount(quantity);
-                detail.setPriceUnit(price);
-                details.add(detail);
+            if (product.getStock() < quantity) {
+                throw new RuntimeException("Stock insuficiente para: " + product.getName());
             }
+
+            total += quantity * price; // La suma es entre enteros
+
+            SaleDetail detail = new SaleDetail();
+            detail.setInventory(product);
+            detail.setAmount(quantity);
+            detail.setPriceUnit(price); // El precio se asigna como Integer
+            detail.setSale(sale);
+            sale.getSaleDetails().add(detail);
         }
 
-        if (details.isEmpty()) {
+        if (sale.getSaleDetails().isEmpty()) {
             throw new RuntimeException("Debe agregar al menos un producto a la venta");
         }
 
-        // Establecer total y guardar venta
-        sale.setTotal(total);
+        sale.setTotal(total); // El total se asigna como Integer
+
+        // --- 3. Guardar todo en una sola operación ---
         Sale savedSale = saleRepository.save(sale);
 
-        // Guardar detalles y actualizar inventario
-        for (SaleDetail detail : details) {
-            detail.setSale(savedSale);
-            saleDetailRepository.save(detail);
-
-            // Actualizar stock si la venta está COMPLETADA
-            if (sale.getStatus() == SaleStatus.COMPLETADA) {
-                Inventory product = detail.getInventory();
-                product.setStock(product.getStock() - detail.getAmount());
-                inventoryService.save(product);
-            }
+        // 4. Descontar stock si el estado inicial es COMPLETADA
+        if (savedSale.getStatus() == SaleStatus.COMPLETADA) {
+            updateInventoryForSale(savedSale, false);
         }
 
         return savedSale;
@@ -111,19 +92,16 @@ public class SaleService {
     public Sale updateSaleStatus(Long id, SaleStatus newStatus) {
         Sale sale = getSaleById(id);
         SaleStatus oldStatus = sale.getStatus();
+        if (oldStatus == newStatus) return sale;
 
         sale.setStatus(newStatus);
         sale.setUpdateAt(LocalDateTime.now());
 
-        // Lógica de actualización de inventario
         if (oldStatus != SaleStatus.COMPLETADA && newStatus == SaleStatus.COMPLETADA) {
-            // De cualquier estado a COMPLETADA: disminuir stock
             updateInventoryForSale(sale, false);
         } else if (oldStatus == SaleStatus.COMPLETADA && newStatus != SaleStatus.COMPLETADA) {
-            // De COMPLETADA a cualquier otro estado: revertir stock (aumentar)
             updateInventoryForSale(sale, true);
         }
-
         return saleRepository.save(sale);
     }
 
@@ -137,21 +115,18 @@ public class SaleService {
         for (SaleDetail detail : details) {
             Inventory product = detail.getInventory();
             if (revert) {
-                // Revertir: aumentar stock
                 product.setStock(product.getStock() + detail.getAmount());
             } else {
-                // Aplicar: disminuir stock
-                product.setStock(product.getStock() - detail.getAmount());
-
-                // Validar que no haya stock negativo
-                if (product.getStock() < 0) {
+                if (product.getStock() < detail.getAmount()) {
                     throw new RuntimeException("Stock insuficiente para: " + product.getName());
                 }
+                product.setStock(product.getStock() - detail.getAmount());
             }
             inventoryService.save(product);
         }
     }
 
+    @Transactional(readOnly = true)
     public List<SaleDetail> getSaleDetails(Long saleId) {
         return saleDetailRepository.findBySaleId(saleId);
     }
