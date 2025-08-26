@@ -1,5 +1,6 @@
 package com.hardware.hardwareStore.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -12,6 +13,7 @@ import java.util.List;
 @Setter
 @Entity
 @Table(name = "sale")
+@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 public class Sale {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -32,7 +34,9 @@ public class Sale {
     private LocalDate dateSale;
 
     private Integer total;
-    private String status;
+
+    @Enumerated(EnumType.STRING)
+    private SaleStatus status = SaleStatus.PENDIENTE;
 
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;

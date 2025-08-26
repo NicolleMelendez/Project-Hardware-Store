@@ -1,5 +1,6 @@
 package com.hardware.hardwareStore.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -15,6 +16,7 @@ public class SaleDetail {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "id_sale")
+    @JsonIgnore
     private Sale sale;
 
     @ManyToOne(fetch = FetchType.LAZY)
