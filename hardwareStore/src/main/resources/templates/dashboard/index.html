@@ -19,6 +19,37 @@
                     <li class="breadcrumb-item active">Resumen del sistema</li>
                 </ol>
 
+                <!-- Sales Cards -->
+                <div class="row">
+                    <div class="col-xl-4 col-md-6">
+                        <div class="card bg-primary text-white mb-4">
+                            <div class="card-body">Ventas Diarias</div>
+                            <div class="card-footer d-flex align-items-center justify-content-between">
+                                <span class="h4 text-white" th:text="'$' + ${#numbers.formatInteger(dailySales != null ? dailySales : 0, 0, 'POINT')}"></span>
+                                <div class="small text-white"><i class="fas fa-angle-right"></i></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-xl-4 col-md-6">
+                        <div class="card bg-warning text-white mb-4">
+                            <div class="card-body">Ventas Semanales</div>
+                            <div class="card-footer d-flex align-items-center justify-content-between">
+                                <span class="h4 text-white" th:text="'$' + ${#numbers.formatInteger(weeklySales != null ? weeklySales : 0, 0, 'POINT')}"></span>
+                                <div class="small text-white"><i class="fas fa-angle-right"></i></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-xl-4 col-md-6">
+                        <div class="card bg-success text-white mb-4">
+                            <div class="card-body">Ventas Mensuales</div>
+                            <div class="card-footer d-flex align-items-center justify-content-between">
+                                <span class="h4 text-white" th:text="'$' + ${#numbers.formatInteger(monthlySales != null ? monthlySales : 0, 0, 'POINT')}"></span>
+                                <div class="small text-white"><i class="fas fa-angle-right"></i></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
                 <div class="row">
                     <div class="col-xl-4">
                         <div class="card mb-4">
@@ -91,6 +122,32 @@
                                 </table>
                             </div>
                         </div>
+                    </div>
+                </div>
+
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <i class="fas fa-exclamation-triangle me-1"></i>
+                        Productos con Bajo Stock
+                    </div>
+                    <div class="card-body">
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th>Producto</th>
+                                    <th>Stock Actual</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr th:each="product : ${lowStockProducts}">
+                                    <td th:text="${product.name}"></td>
+                                    <td th:text="${product.stock}"></td>
+                                </tr>
+                                <tr th:if="${lowStockProducts == null or #lists.isEmpty(lowStockProducts)}">
+                                    <td colspan="2" class="text-center">No hay productos con bajo stock.</td>
+                                </tr>
+                            </tbody>
+                        </table>
                     </div>
                 </div>
             </div>

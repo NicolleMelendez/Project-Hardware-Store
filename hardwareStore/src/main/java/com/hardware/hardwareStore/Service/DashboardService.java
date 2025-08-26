@@ -4,7 +4,7 @@ import com.hardware.hardwareStore.Repository.InventoryRepository;
 import com.hardware.hardwareStore.Repository.SaleDetailRepository;
 import com.hardware.hardwareStore.Repository.SaleRepository;
 import com.hardware.hardwareStore.model.Inventory;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.time.DayOfWeek;
@@ -14,16 +14,13 @@ import java.util.List;
 import java.util.Map;
 
 @Service
+@AllArgsConstructor
 public class DashboardService {
 
-    @Autowired
-    private SaleDetailRepository saleDetailRepository;
-
-    @Autowired
-    private SaleRepository saleRepository;
-
-    @Autowired
-    private InventoryRepository inventoryRepository;
+    private final SaleDetailRepository saleDetailRepository;
+    private final SaleRepository saleRepository;
+    private final InventoryRepository inventoryRepository;
+    private final InventoryService inventoryService;
 
 
     // --- Reporte de Productos ---
@@ -31,7 +28,9 @@ public class DashboardService {
         return saleDetailRepository.findTop5SoldProducts();
     }
 
-
+    public List<Inventory> getLowStockProducts() {
+        return inventoryService.getLowStockItems();
+    }
 
     // --- Reporte de Clientes y Empleados ---
     public List<Map<String, Object>> getTop5Customers() {
@@ -59,3 +58,4 @@ public class DashboardService {
         LocalDate endOfMonth = startOfMonth.plusMonths(1);
         return saleRepository.getTotalSalesBetweenDates(startOfMonth, endOfMonth);
     }
+}
