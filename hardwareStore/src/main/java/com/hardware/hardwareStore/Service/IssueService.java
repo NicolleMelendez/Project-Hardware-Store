@@ -3,6 +3,7 @@ package com.hardware.hardwareStore.Service;
 import com.hardware.hardwareStore.model.Issue;
 import com.hardware.hardwareStore.model.Inventory;
 import com.hardware.hardwareStore.Repository.IssueRepository;
+import org.hibernate.Hibernate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -30,8 +31,11 @@ public class IssueService {
 
     @Transactional(readOnly = true)
     public Issue getIssueById(Long id) {
-        return issueRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("No se encontró la salida con ID: " + id));
+        Issue issue = issueRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Salida no encontrada con ID: " + id));
+        Hibernate.initialize(issue.getInventory());
+        Hibernate.initialize(issue.getEmployee());
+        return issue;
     }
 
     @Transactional

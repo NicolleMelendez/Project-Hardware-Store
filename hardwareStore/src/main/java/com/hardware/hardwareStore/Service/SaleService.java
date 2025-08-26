@@ -1,74 +1,140 @@
 package com.hardware.hardwareStore.Service;
 
-import com.hardware.hardwareStore.model.Sale;
+import com.hardware.hardwareStore.model.*;
+import com.hardware.hardwareStore.Repository.SaleDetailRepository;
 import com.hardware.hardwareStore.Repository.SaleRepository;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
-@Transactional
 public class SaleService {
+    private final SaleRepository saleRepository;
+    private final SaleDetailRepository saleDetailRepository;
+    private final InventoryService inventoryService;
 
-    @Autowired
-    private SaleRepository saleRepository;
+    public SaleService(SaleRepository saleRepository,
+                       SaleDetailRepository saleDetailRepository,
+                       InventoryService inventoryService) {
+        this.saleRepository = saleRepository;
+        this.saleDetailRepository = saleDetailRepository;
+        this.inventoryService = inventoryService;
+    }
 
-    /**
-     * Devuelve una lista de todas las ventas.
-     * Este es el método que tu controlador está buscando.
-     */
-    @Transactional(readOnly = true)
-    public List<Sale> findAll() {
+    public List<Sale> getAllSales() {
         return saleRepository.findAll();
     }
 
-    /**
-     * Guarda una nueva venta o actualiza una existente.
-     */
-    public Sale save(Sale sale) {
-        if (sale.getId() == null) {
-            // Para una venta nueva, solo asignamos el estado.
-            // El total y los demás datos vienen del formulario.
-            sale.setStatus("PENDIENTE");
-        }
-        validateSale(sale);
-        return saleRepository.save(sale);
-    }
-
-    /**
-     * Actualiza únicamente el estado de una venta existente.
-     */
-    public Sale updateStatus(Long saleId, String status) {
-        if (status == null || status.trim().isEmpty() || !List.of("COMPLETADA", "PENDIENTE", "CANCELADA").contains(status)) {
-            throw new IllegalArgumentException("Estado no válido.");
-        }
-        Sale sale = findById(saleId);
-        sale.setStatus(status);
-        return saleRepository.save(sale);
-    }
-
-    /**
-     * Busca una venta por su ID.
-     */
-    @Transactional(readOnly = true)
-    public Sale findById(Long id) {
+    public Sale getSaleById(Long id) {
         return saleRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("No se encontró la venta con ID: " + id));
+                .orElseThrow(() -> new RuntimeException("Venta no encontrada con ID: " + id));
     }
 
-    /**
-     * Valida los datos principales de una venta.
-     */
-    private void validateSale(Sale sale) {
-        if (sale.getClient() == null || sale.getEmployee() == null || sale.getDateSale() == null) {
-            throw new IllegalArgumentException("Cliente, empleado y fecha son requeridos.");
+    @Transactional
+    public Sale saveSaleWithDetails(Sale sale, List<Long> productIds, List<Integer> quantities, List<Integer> prices) {
+        // Validar que todos los arrays tengan el mismo tamaño
+        if (productIds.size() != quantities.size() || productIds.size() != prices.size()) {
+            throw new RuntimeException("Los datos de productos no son consistentes");
         }
-        if (sale.getTotal() == null || sale.getTotal() < 0) {
-            throw new IllegalArgumentException("El total es requerido y no puede ser negativo.");
+
+        // Establecer fechas
+        if (sale.getCreatedAt() == null) {
+            sale.setCreatedAt(LocalDateTime.now());
+        }
+        sale.setUpdateAt(LocalDateTime.now());
+
+        // Generar número de factura si no existe
+        if (sale.getInvoiceNumber() == null || sale.getInvoiceNumber().isEmpty()) {
+            sale.setInvoiceNumber(generateInvoiceNumber());
+        }
+
+        // Calcular total basado en los productos
+        int total = 0;
+        List<SaleDetail> details = new ArrayList<>();
+
+        for (int i = 0; i < productIds.size(); i++) {
+            Long productId = productIds.get(i);
+            Integer quantity = quantities.get(i);
+            Integer price = prices.get(i);
+
+            if (productId != null && quantity != null && price != null && quantity > 0 && price > 0) {
+                Inventory product = inventoryService.getInventoryById(productId);
+
+                // Validar stock
+                if (product.getStock() < quantity) {
+                    throw new RuntimeException("Stock insuficiente para: " + product.getName() +
+                            ". Stock disponible: " + product.getStock());
+                }
+
+                // Calcular subtotal
+                int subtotal = quantity * price;
+                total += subtotal;
+
+                // Crear detalle
+                SaleDetail detail = new SaleDetail();
+                detail.setInventory(product);
+                detail.setAmount(quantity);
+                detail.setPriceUnit(price);
+                details.add(detail);
+            }
+        }
+
+        if (details.isEmpty()) {
+            throw new RuntimeException("Debe agregar al menos un producto a la venta");
+        }
+
+        // Establecer total y guardar venta
+        sale.setTotal(total);
+        Sale savedSale = saleRepository.save(sale);
+
+        // Guardar detalles y actualizar inventario
+        for (SaleDetail detail : details) {
+            detail.setSale(savedSale);
+            saleDetailRepository.save(detail);
+
+            // Actualizar stock si la venta está COMPLETADA
+            if ("COMPLETADA".equals(savedSale.getStatus())) {
+                Inventory product = detail.getInventory();
+                product.setStock(product.getStock() - detail.getAmount());
+                inventoryService.save(product);
+            }
+        }
+
+        return savedSale;
+    }
+
+    @Transactional
+    public Sale updateSaleStatus(Long id, String status) {
+        Sale sale = getSaleById(id);
+        String oldStatus = sale.getStatus();
+        sale.setStatus(status);
+        sale.setUpdateAt(LocalDateTime.now());
+
+        // Si cambia a COMPLETADA, actualizar inventario
+        if (!"COMPLETADA".equals(oldStatus) && "COMPLETADA".equals(status)) {
+            updateInventoryForSale(sale);
+        }
+
+        return saleRepository.save(sale);
+    }
+
+    private void updateInventoryForSale(Sale sale) {
+        List<SaleDetail> details = saleDetailRepository.findBySaleId(sale.getId());
+        for (SaleDetail detail : details) {
+            Inventory product = detail.getInventory();
+            product.setStock(product.getStock() - detail.getAmount());
+            inventoryService.saveInventory(product);
         }
     }
 
+    public List<SaleDetail> getSaleDetails(Long saleId) {
+        return saleDetailRepository.findBySaleId(saleId);
+    }
 
+    private String generateInvoiceNumber() {
+        return "FACT-" + System.currentTimeMillis();
+    }
 }

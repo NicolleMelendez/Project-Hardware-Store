@@ -11,15 +11,6 @@ import java.util.List;
 
 @Repository
 public interface SaleRepository extends JpaRepository<Sale, Long> {
-
-    List<Sale> findByStatus(String status);
-
-    @Query("SELECT s FROM Sale s WHERE s.client.id = :clientId")
-    List<Sale> findByClientId(@Param("clientId") Long clientId);
-
-    @Query("SELECT s FROM Sale s WHERE s.employee.id = :employeeId")
-    List<Sale> findByEmployeeId(@Param("employeeId") Long employeeId);
-
     List<Sale> findByDateSaleBetween(LocalDate startDate, LocalDate endDate);
 
     List<Sale> findAllByOrderByDateSaleDesc();
