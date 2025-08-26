@@ -309,22 +309,43 @@
 
   function exportToExcel() {
       try {
-          const table = document.getElementById('dataTable');
+          const today = new Date();
+          const formattedDate = today.toLocaleDateString('es-ES');
+          const title = "Reporte de Pedidos";
+          const generated = `Generado el: ${formattedDate}`;
+          const headers = ['ID', 'Cliente', 'Empleado', 'Fecha', 'Total', 'Estado'];
           const dataToExport = dataTable.rows({ search: 'applied' }).data().toArray();
-          const headers = Array.from(table.querySelectorAll('thead th')).slice(0, -1).map(th => th.innerText);
 
-          let content = dataToExport.map(row => {
-              let newRow = {};
-              headers.forEach((header, index) => {
-                  newRow[header] = row[index];
-              });
-              return newRow;
+          let reportData = [
+              [title], [generated], [], headers
+          ];
+          dataToExport.forEach(row => {
+              const newRow = [row[0], row[1], row[2], row[3], row[4], row[5]];
+              reportData.push(newRow);
           });
 
-          const ws = XLSX.utils.json_to_sheet(content);
           const wb = XLSX.utils.book_new();
+          const ws = XLSX.utils.aoa_to_sheet(reportData);
+          const merge = { s: { r: 0, c: 0 }, e: { r: 0, c: headers.length - 1 } };
+          if (!ws['!merges']) ws['!merges'] = [];
+          ws['!merges'].push(merge);
+
+          const columnWidths = reportData[3].map((_, colIndex) => {
+              let maxLength = 0;
+              for (let rowIndex = 3; rowIndex < reportData.length; rowIndex++) {
+                  const cellValue = reportData[rowIndex][colIndex];
+                  if (cellValue && cellValue.toString().length > maxLength) {
+                      maxLength = cellValue.toString().length;
+                  }
+              }
+              return { wch: maxLength + 2 };
+          });
+          ws['!cols'] = columnWidths;
+
           XLSX.utils.book_append_sheet(wb, ws, 'Pedidos');
-          XLSX.writeFile(wb, 'pedidos.xlsx');
+          const fileDate = `${today.getFullYear()}-${(today.getMonth() + 1).toString().padStart(2, '0')}-${today.getDate().toString().padStart(2, '0')}`;
+          XLSX.writeFile(wb, `Reporte_Pedidos_${fileDate}.xlsx`);
+
       } catch (error) {
           console.error("Error al exportar a Excel:", error);
           Swal.fire('Error', 'No se pudo exportar a Excel.', 'error');
@@ -332,19 +353,75 @@
   }
 
   function exportToPDF() {
-      try {
-          const { jsPDF } = window.jspdf;
-          const doc = new jsPDF();
-          doc.autoTable({
-              html: '#dataTable',
-              columns: [0, 1, 2, 3, 4, 5] // Ignora la columna de acciones
+      fetch('/assets/img/logoo.png')
+          .then(response => response.blob())
+          .then(blob => {
+              const reader = new FileReader();
+              reader.readAsDataURL(blob);
+              reader.onloadend = function() {
+                  const base64data = reader.result;
+                  try {
+                      const { jsPDF } = window.jspdf;
+                      const doc = new jsPDF();
+                      const pageWidth = doc.internal.pageSize.width;
+                      const pageHeight = doc.internal.pageSize.height;
+
+                      doc.setFillColor('#FFC107');
+                      doc.rect(0, 0, pageWidth, 10, 'F');
+                      const logoSize = 25;
+                      const logoX = 15;
+                      const logoY = 14;
+                      doc.addImage(base64data, 'PNG', logoX, logoY, logoSize, logoSize);
+
+                      doc.setFontSize(22);
+                      doc.setFont('helvetica', 'bold');
+                      doc.setTextColor('#005A9C');
+                      doc.text('Reporte de Pedidos', logoX + logoSize + 5, 28);
+
+                      doc.setFontSize(11);
+                      doc.setFont('helvetica', 'normal');
+                      doc.setTextColor(100);
+                      const today = new Date();
+                      const dateStr = `Generado el: ${today.toLocaleDateString('es-ES')}`;
+                      doc.text(dateStr, logoX + logoSize + 5, 35);
+
+                      doc.autoTable({
+                          html: '#dataTable',
+                          startY: 50,
+                          columns: [0, 1, 2, 3, 4, 5],
+                          headStyles: { fillColor: [0, 90, 156], textColor: [255, 255, 255], fontStyle: 'bold', halign: 'center' },
+                          alternateRowStyles: { fillColor: [245, 245, 245] },
+                          styles: { halign: 'center', valign: 'middle', fontSize: 9 },
+                          didParseCell: function (data) {
+                              if (data.column.index === 0 && data.cell.section === 'body') {
+                                  data.cell.styles.fontStyle = 'bold';
+                              }
+                          },
+                          didDrawPage: function (data) {
+                              doc.setFillColor('#FFC107');
+                              doc.rect(0, pageHeight - 5, pageWidth, 5, 'F');
+                              let footerStr = `Página ${doc.internal.getNumberOfPages()}`;
+                              doc.setFontSize(10);
+                              doc.setTextColor(150);
+                              doc.text(footerStr, data.settings.margin.left, pageHeight - 10);
+                          }
+                      });
+
+                      const formattedDate = `${today.getFullYear()}-${(today.getMonth() + 1).toString().padStart(2, '0')}-${today.getDate().toString().padStart(2, '0')}`;
+                      doc.save(`Reporte_Pedidos_${formattedDate}.pdf`);
+
+                  } catch (error) {
+                      console.error("Error al exportar a PDF:", error);
+                      Swal.fire('Error', 'No se pudo exportar a PDF.', 'error');
+                  }
+              };
+          })
+          .catch(error => {
+              console.error("Error al cargar el logo para el PDF:", error);
+              Swal.fire('Error', 'No se pudo cargar el logo para generar el PDF.', 'error');
           });
-          doc.save('pedidos.pdf');
-      } catch(error) {
-          console.error("Error al exportar a PDF:", error);
-          Swal.fire('Error', 'No se pudo exportar a PDF.', 'error');
-      }
   }
+
 
   function checkFlashMessages() {
       // Thymeleaf inyectará el valor real aquí
