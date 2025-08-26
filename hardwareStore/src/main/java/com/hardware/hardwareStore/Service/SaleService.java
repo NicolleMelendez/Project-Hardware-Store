@@ -135,15 +135,7 @@ public class SaleService {
         List<SaleDetail> details = saleDetailRepository.findBySaleId(sale.getId());
         for (SaleDetail detail : details) {
             Inventory product = detail.getInventory();
-            int quantity = detail.getAmount();
-            if (increase) {
-                product.setStock(product.getStock() + quantity);
-            } else {
-                if (product.getStock() < quantity) {
-                    throw new RuntimeException("Stock insuficiente para el producto: " + product.getName());
-                }
-                product.setStock(product.getStock() - quantity);
-            }
+            product.setStock(product.getStock() - detail.getAmount());
             inventoryService.save(product);
         }
     }
