@@ -1,10 +1,15 @@
 package com.hardware.hardwareStore.Controller;
 
+import com.hardware.hardwareStore.Service.DashboardService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 
 public class DashboardController {
 
+
+    @Autowired
+    private DashboardService dashboardService;
 
     @GetMapping
     public String dashboardPage(Model model) {

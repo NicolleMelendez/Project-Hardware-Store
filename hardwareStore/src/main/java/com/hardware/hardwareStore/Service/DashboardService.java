@@ -42,5 +42,24 @@ public class DashboardService {
     public List<Map<String, Object>> getTop5Employees() {
         return saleRepository.findTop5Employees();
     }
+
+    // --- Reportes de Ventas ---
+    public Integer getDailySalesTotal() {
+        LocalDate today = LocalDate.now();
+        return saleRepository.getTotalSalesBetweenDates(today, today.plusDays(1));
+    }
+
+    public Integer getWeeklySalesTotal() {
+        LocalDate startOfWeek = LocalDate.now().with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY));
+        LocalDate endOfWeek = startOfWeek.plusWeeks(1);
+        return saleRepository.getTotalSalesBetweenDates(startOfWeek, endOfWeek);
+    }
+
+    public Integer getMonthlySalesTotal() {
+        LocalDate startOfMonth = LocalDate.now().withDayOfMonth(1);
+        LocalDate endOfMonth = startOfMonth.plusMonths(1);
+        return saleRepository.getTotalSalesBetweenDates(startOfMonth, endOfMonth);
+    }
+}
 }
 
