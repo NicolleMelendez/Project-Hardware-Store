@@ -1,7 +1,5 @@
 package com.hardware.hardwareStore.model;
 
-
-
 public enum SaleStatus {
     PENDIENTE("Pendiente"),
     COMPLETADA("Completada"),

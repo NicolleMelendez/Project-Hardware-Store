@@ -32,7 +32,9 @@ public class Sale {
     private LocalDate dateSale;
 
     private Integer total;
-    private String status;
+
+    @Enumerated(EnumType.STRING)
+    private SaleStatus status = SaleStatus.PENDIENTE;
 
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;

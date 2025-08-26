@@ -25,7 +25,7 @@ public class SaleService {
     }
 
     public List<Sale> getAllSales() {
-        return saleRepository.findAll();
+        return saleRepository.findAllWithDetails();
     }
 
     public Sale getSaleById(Long id) {
@@ -97,7 +97,7 @@ public class SaleService {
             saleDetailRepository.save(detail);
 
             // Actualizar stock si la venta está COMPLETADA
-            if ("COMPLETADA".equals(savedSale.getStatus())) {
+            if (sale.getStatus() == SaleStatus.COMPLETADA) {
                 Inventory product = detail.getInventory();
                 product.setStock(product.getStock() - detail.getAmount());
                 inventoryService.save(product);
@@ -108,19 +108,20 @@ public class SaleService {
     }
 
     @Transactional
-    public Sale updateSaleStatus(Long id, String newStatus) {
+    public Sale updateSaleStatus(Long id, SaleStatus newStatus) {
         Sale sale = getSaleById(id);
-        String oldStatus = sale.getStatus();
+        SaleStatus oldStatus = sale.getStatus();
+
         sale.setStatus(newStatus);
         sale.setUpdateAt(LocalDateTime.now());
 
-        // De PENDIENTE a COMPLETADA -> Disminuir stock
-        if (!"COMPLETADA".equals(oldStatus) && "COMPLETADA".equals(newStatus)) {
-            updateInventoryForSale(sale, false); // false para disminuir
-        }
-        // De COMPLETADA a CANCELADA -> Revertir stock (aumentar)
-        else if ("COMPLETADA".equals(oldStatus) && "CANCELADA".equals(newStatus)) {
-            updateInventoryForSale(sale, true); // true para aumentar/revertir
+        // Lógica de actualización de inventario
+        if (oldStatus != SaleStatus.COMPLETADA && newStatus == SaleStatus.COMPLETADA) {
+            // De cualquier estado a COMPLETADA: disminuir stock
+            updateInventoryForSale(sale, false);
+        } else if (oldStatus == SaleStatus.COMPLETADA && newStatus != SaleStatus.COMPLETADA) {
+            // De COMPLETADA a cualquier otro estado: revertir stock (aumentar)
+            updateInventoryForSale(sale, true);
         }
 
         return saleRepository.save(sale);
@@ -128,14 +129,25 @@ public class SaleService {
 
     @Transactional
     public Sale cancelSale(Long id) {
-        return updateSaleStatus(id, "CANCELADA");
+        return updateSaleStatus(id, SaleStatus.CANCELADA);
     }
 
-    private void updateInventoryForSale(Sale sale, boolean increase) {
+    private void updateInventoryForSale(Sale sale, boolean revert) {
         List<SaleDetail> details = saleDetailRepository.findBySaleId(sale.getId());
         for (SaleDetail detail : details) {
             Inventory product = detail.getInventory();
-            product.setStock(product.getStock() - detail.getAmount());
+            if (revert) {
+                // Revertir: aumentar stock
+                product.setStock(product.getStock() + detail.getAmount());
+            } else {
+                // Aplicar: disminuir stock
+                product.setStock(product.getStock() - detail.getAmount());
+
+                // Validar que no haya stock negativo
+                if (product.getStock() < 0) {
+                    throw new RuntimeException("Stock insuficiente para: " + product.getName());
+                }
+            }
             inventoryService.save(product);
         }
     }

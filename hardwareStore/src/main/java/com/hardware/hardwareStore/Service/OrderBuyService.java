@@ -19,6 +19,7 @@ public class OrderBuyService {
     private final OrderDetailRepository orderDetailRepository;
     private final InventoryService inventoryService;
 
+    // ... (los otros métodos como getAllOrders, getOrderById, etc., quedan igual) ...
     @Transactional(readOnly = true)
     public List<OrderBuy> getAllOrders() {
         return orderBuyRepository.findAll();
@@ -44,6 +45,11 @@ public class OrderBuyService {
             throw new IllegalArgumentException("Los datos de los productos no son consistentes.");
         }
 
+        // Primero guardamos la orden para que obtenga un ID
+        // Esto es importante para establecer la relación bidireccional
+        orderBuy.setOrderDetails(new ArrayList<>()); // Inicializa la lista vacía por ahora
+        OrderBuy savedOrder = orderBuyRepository.save(orderBuy);
+
         int total = 0;
         List<OrderDetail> details = new ArrayList<>();
         for (int i = 0; i < productIds.size(); i++) {
@@ -55,30 +61,34 @@ public class OrderBuyService {
 
             Inventory product = inventoryService.findById(productId)
                     .orElseThrow(() -> new RuntimeException("Producto no encontrado con ID: " + productId));
-            OrderDetailId detailId = new OrderDetailId(orderBuy.getId(), product.getId());
 
+            // --- SECCIÓN CORREGIDA ---
+            // 1. Crea una nueva instancia de OrderDetail
             OrderDetail detail = new OrderDetail();
-            detail.setId(detailId);
-            detail.setOrderBuy(orderBuy);
+
+            // 2. Establece las relaciones y los datos
+            detail.setOrderBuy(savedOrder); // Asigna la orden ya guardada
             detail.setInventory(product);
             detail.setAmount(quantity);
             detail.setPriceUnit(price);
+
+            // 3. Agrega el detalle a la lista
             details.add(detail);
         }
 
-        orderBuy.setTotal(total);
-        orderBuy.setOrderDetails(details);
-
-        OrderBuy savedOrder = orderBuyRepository.save(orderBuy);
+        savedOrder.setTotal(total);
+        savedOrder.setOrderDetails(details);
 
         // Si el estado es "COMPLETADA", se actualiza el stock.
         if ("COMPLETADA".equals(savedOrder.getStatus())) {
             updateInventoryForOrder(savedOrder, true);
         }
 
+        // No es necesario volver a guardar, la transacción se encargará al finalizar.
         return savedOrder;
     }
 
+    // ... (el resto de tus métodos: updateStatus, cancelOrder, updateInventoryForOrder) ...
     @Transactional
     public OrderBuy updateStatus(Long id, String newStatus) {
         OrderBuy order = getOrderById(id);

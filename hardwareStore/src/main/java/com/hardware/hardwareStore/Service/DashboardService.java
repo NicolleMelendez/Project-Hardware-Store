@@ -32,14 +32,14 @@ public class DashboardService {
         return inventoryService.getLowStockItems();
     }
 
-    // --- Reporte de Clientes y Empleados ---
-    public List<Map<String, Object>> getTop5Customers() {
-        return saleRepository.findTop5Customers();
-    }
-
-    public List<Map<String, Object>> getTop5Employees() {
-        return saleRepository.findTop5Employees();
-    }
+//    // --- Reporte de Clientes y Empleados ---
+//    public List<Map<String, Object>> getTop5Customers() {
+//        return saleRepository.findTop5Customers();
+//    }
+//
+//    public List<Map<String, Object>> getTop5Employees() {
+//        return saleRepository.findTop5Employees();
+//    }
 
     // --- Reportes de Ventas ---
     public Integer getDailySalesTotal() {

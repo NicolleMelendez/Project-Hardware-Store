@@ -12,7 +12,7 @@ import java.util.Arrays;
 import java.util.List;
 
 @Controller
-@RequestMapping("/sale")
+@RequestMapping("/sales")
 @AllArgsConstructor
 public class SaleController {
     private final SaleService saleService;
@@ -53,20 +53,20 @@ public class SaleController {
         } catch (Exception e) {
             redirectAttributes.addFlashAttribute("error", "Error al guardar la venta: " + e.getMessage());
         }
-        return "redirect:/sale";
+        return "redirect:/sales";
     }
 
     @PostMapping("/update-status")
     public String updateSaleStatus(@RequestParam Long id,
-                                   @RequestParam String status,
+                                   @RequestParam SaleStatus status,
                                    RedirectAttributes redirectAttributes) {
         try {
             Sale updatedSale = saleService.updateSaleStatus(id, status);
-            redirectAttributes.addFlashAttribute("success", "Estado actualizado a: " + updatedSale.getStatus());
+            redirectAttributes.addFlashAttribute("success", "Estado actualizado a: " + updatedSale.getStatus().getDisplayName());
         } catch (Exception e) {
             redirectAttributes.addFlashAttribute("error", "Error al actualizar estado: " + e.getMessage());
         }
-        return "redirect:/sale";
+        return "redirect:/sales";
     }
 
     @PostMapping("/cancel/{id}")
@@ -77,7 +77,7 @@ public class SaleController {
         } catch (Exception e) {
             redirectAttributes.addFlashAttribute("error", "Error al cancelar la venta: " + e.getMessage());
         }
-        return "redirect:/sale";
+        return "redirect:/sales";
     }
 
     @GetMapping("/api/{id}")
@@ -93,7 +93,7 @@ public class SaleController {
     }
 
     @ModelAttribute("statusOptions")
-    public List<String> getStatusOptions() {
-        return Arrays.asList("PENDIENTE", "COMPLETADA", "CANCELADA");
+    public List<SaleStatus> getStatusOptions() {
+        return Arrays.asList(SaleStatus.PENDIENTE, SaleStatus.COMPLETADA, SaleStatus.CANCELADA);
     }
 }

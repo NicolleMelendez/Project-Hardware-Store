@@ -19,7 +19,7 @@ public class EmailService {
         try {
             MimeMessage mimeMessage = mailSender.createMimeMessage();
 
-            // ✅ CAMBIO 1: Habilitamos el modo "multipart" para poder adjuntar imágenes.
+
             MimeMessageHelper helper = new MimeMessageHelper(mimeMessage, true, "UTF-8");
 
             helper.setTo(toEmail);

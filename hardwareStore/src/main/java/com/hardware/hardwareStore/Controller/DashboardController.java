@@ -16,7 +16,7 @@ public class DashboardController {
 
     @GetMapping
     public String dashboardPage(Model model) {
-        // --- Añadimos todos los datos para los reportes al modelo ---
+
 
         // Ventas
         model.addAttribute("dailySales", dashboardService.getDailySalesTotal());
@@ -28,8 +28,8 @@ public class DashboardController {
         model.addAttribute("lowStockProducts", dashboardService.getLowStockProducts());
 
         // Personas
-        model.addAttribute("topCustomers", dashboardService.getTop5Customers());
-        model.addAttribute("topEmployees", dashboardService.getTop5Employees());
+//        model.addAttribute("topCustomers", dashboardService.getTop5Customers());
+//        model.addAttribute("topEmployees", dashboardService.getTop5Employees());
 
         return "dashboard/index";
     }

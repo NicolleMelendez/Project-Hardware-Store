@@ -11,18 +11,19 @@ import lombok.Setter;
 @Table(name = "order_detail")
 public class OrderDetail {
 
-    @EmbeddedId
-    private OrderDetailId id;
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
 
-    @ManyToOne
-    @MapsId("orderBuy")
-    @JoinColumn(name = "id_order_buy")
+    @ManyToOne(fetch = FetchType.LAZY) // fetch = LAZY es una buena práctica
+    // @MapsId("orderBuy") // <-- SE ELIMINA ESTA LÍNEA
+    @JoinColumn(name = "id_order_buy", nullable = false) // 'nullable = false' asegura integridad
     @JsonBackReference
     private OrderBuy orderBuy;
 
-    @ManyToOne
-    @MapsId("inventory")
-    @JoinColumn(name = "id_inventory")
+    @ManyToOne(fetch = FetchType.LAZY)
+    // @MapsId("inventory") // <-- SE ELIMINA ESTA LÍNEA
+    @JoinColumn(name = "id_inventory", nullable = false)
     private Inventory inventory;
 
     private Integer amount;
