@@ -25,7 +25,7 @@ public class SaleService {
     }
 
     public List<Sale> getAllSales() {
-        return saleRepository.findAll();
+        return saleRepository.findAllWithDetails();
     }
 
     public Sale getSaleById(Long id) {
@@ -61,7 +61,8 @@ public class SaleService {
             Integer price = prices.get(i);
 
             if (productId != null && quantity != null && price != null && quantity > 0 && price > 0) {
-                Inventory product = inventoryService.getInventoryById(productId);
+                Inventory product = inventoryService.findById(productId)
+                        .orElseThrow(() -> new RuntimeException("Producto no encontrado con ID: " + productId));
 
                 // Validar stock
                 if (product.getStock() < quantity) {
@@ -96,7 +97,7 @@ public class SaleService {
             saleDetailRepository.save(detail);
 
             // Actualizar stock si la venta está COMPLETADA
-            if ("COMPLETADA".equals(savedSale.getStatus())) {
+            if (sale.getStatus() == SaleStatus.COMPLETADA) {
                 Inventory product = detail.getInventory();
                 product.setStock(product.getStock() - detail.getAmount());
                 inventoryService.save(product);
@@ -107,26 +108,47 @@ public class SaleService {
     }
 
     @Transactional
-    public Sale updateSaleStatus(Long id, String status) {
+    public Sale updateSaleStatus(Long id, SaleStatus newStatus) {
         Sale sale = getSaleById(id);
-        String oldStatus = sale.getStatus();
-        sale.setStatus(status);
+        SaleStatus oldStatus = sale.getStatus();
+
+        sale.setStatus(newStatus);
         sale.setUpdateAt(LocalDateTime.now());
 
-        // Si cambia a COMPLETADA, actualizar inventario
-        if (!"COMPLETADA".equals(oldStatus) && "COMPLETADA".equals(status)) {
-            updateInventoryForSale(sale);
+        // Lógica de actualización de inventario
+        if (oldStatus != SaleStatus.COMPLETADA && newStatus == SaleStatus.COMPLETADA) {
+            // De cualquier estado a COMPLETADA: disminuir stock
+            updateInventoryForSale(sale, false);
+        } else if (oldStatus == SaleStatus.COMPLETADA && newStatus != SaleStatus.COMPLETADA) {
+            // De COMPLETADA a cualquier otro estado: revertir stock (aumentar)
+            updateInventoryForSale(sale, true);
         }
 
         return saleRepository.save(sale);
     }
 
-    private void updateInventoryForSale(Sale sale) {
+    @Transactional
+    public Sale cancelSale(Long id) {
+        return updateSaleStatus(id, SaleStatus.CANCELADA);
+    }
+
+    private void updateInventoryForSale(Sale sale, boolean revert) {
         List<SaleDetail> details = saleDetailRepository.findBySaleId(sale.getId());
         for (SaleDetail detail : details) {
             Inventory product = detail.getInventory();
-            product.setStock(product.getStock() - detail.getAmount());
-            inventoryService.saveInventory(product);
+            if (revert) {
+                // Revertir: aumentar stock
+                product.setStock(product.getStock() + detail.getAmount());
+            } else {
+                // Aplicar: disminuir stock
+                product.setStock(product.getStock() - detail.getAmount());
+
+                // Validar que no haya stock negativo
+                if (product.getStock() < 0) {
+                    throw new RuntimeException("Stock insuficiente para: " + product.getName());
+                }
+            }
+            inventoryService.save(product);
         }
     }
 
