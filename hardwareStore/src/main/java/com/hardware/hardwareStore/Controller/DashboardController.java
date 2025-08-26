@@ -14,7 +14,6 @@ public class DashboardController {
     @GetMapping
     public String dashboardPage(Model model) {
         // --- Añadimos todos los datos para los reportes al modelo ---
-
         // Ventas
         model.addAttribute("dailySales", dashboardService.getDailySalesTotal());
         model.addAttribute("weeklySales", dashboardService.getWeeklySalesTotal());

@@ -35,4 +35,6 @@ public interface SaleRepository extends JpaRepository<Sale, Long> {
 
     @Query("SELECT new map(c.name as name, sum(s.total) as total) FROM Sale s JOIN s.client c GROUP BY c.name ORDER BY total DESC")
     List<java.util.Map<String, Object>> findTop5Customers();
+
+    
 }
