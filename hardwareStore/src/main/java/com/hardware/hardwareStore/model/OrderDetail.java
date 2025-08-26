@@ -1,8 +1,13 @@
 package com.hardware.hardwareStore.model;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.Setter;
 
 @Entity
+@Getter
+@Setter
 @Table(name = "order_detail")
 public class OrderDetail {
 
@@ -12,6 +17,7 @@ public class OrderDetail {
     @ManyToOne
     @MapsId("orderBuy")
     @JoinColumn(name = "id_order_buy")
+    @JsonBackReference
     private OrderBuy orderBuy;
 
     @ManyToOne
@@ -23,16 +29,4 @@ public class OrderDetail {
 
     @Column(name = "price_unit")
     private Integer priceUnit;
-
-    // Getters y Setters
-    public OrderDetailId getId() { return id; }
-    public void setId(OrderDetailId id) { this.id = id; }
-    public OrderBuy getOrderBuy() { return orderBuy; }
-    public void setOrderBuy(OrderBuy orderBuy) { this.orderBuy = orderBuy; }
-    public Inventory getInventory() { return inventory; }
-    public void setInventory(Inventory inventory) { this.inventory = inventory; }
-    public Integer getAmount() { return amount; }
-    public void setAmount(Integer amount) { this.amount = amount; }
-    public Integer getPriceUnit() { return priceUnit; }
-    public void setPriceUnit(Integer priceUnit) { this.priceUnit = priceUnit; }
 }

@@ -1,15 +1,18 @@
 package com.hardware.hardwareStore.Controller;
 
 import com.hardware.hardwareStore.Service.DashboardService;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.AllArgsConstructor;
+import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
 
+@Controller
+@RequestMapping("/dashboard")
+@AllArgsConstructor
 public class DashboardController {
 
-
-    @Autowired
-    private DashboardService dashboardService;
+    private final DashboardService dashboardService;
 
     @GetMapping
     public String dashboardPage(Model model) {

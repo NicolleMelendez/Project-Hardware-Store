@@ -2,6 +2,7 @@ package com.hardware.hardwareStore.Controller;
 
 import com.hardware.hardwareStore.model.*;
 import com.hardware.hardwareStore.Service.*;
+import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -11,22 +12,13 @@ import java.util.Arrays;
 import java.util.List;
 
 @Controller
-@RequestMapping("/sales")
+@RequestMapping("/sale")
+@AllArgsConstructor
 public class SaleController {
     private final SaleService saleService;
     private final ClientService clientService;
     private final EmployeeService employeeService;
     private final InventoryService inventoryService;
-
-    public SaleController(SaleService saleService,
-                          ClientService clientService,
-                          EmployeeService employeeService,
-                          InventoryService inventoryService) {
-        this.saleService = saleService;
-        this.clientService = clientService;
-        this.employeeService = employeeService;
-        this.inventoryService = inventoryService;
-    }
 
     @GetMapping
     public String listSales(Model model) {
@@ -40,7 +32,7 @@ public class SaleController {
             model.addAttribute("clients", clients);
             model.addAttribute("employees", employees);
             model.addAttribute("allInventory", allInventory);
-            model.addAttribute("sale", new Sale()); // Para el formulario
+            model.addAttribute("sale", new Sale());
 
             return "sale/index";
         } catch (Exception e) {
@@ -49,7 +41,7 @@ public class SaleController {
         }
     }
 
-    @PostMapping("/save")
+    @PostMapping
     public String saveSale(@ModelAttribute Sale sale,
                            @RequestParam("productIds") List<Long> productIds,
                            @RequestParam("quantities") List<Integer> quantities,
@@ -61,10 +53,10 @@ public class SaleController {
         } catch (Exception e) {
             redirectAttributes.addFlashAttribute("error", "Error al guardar la venta: " + e.getMessage());
         }
-        return "redirect:/sales";
+        return "redirect:/sale";
     }
 
-    @PostMapping("/update/status")
+    @PostMapping("/update-status")
     public String updateSaleStatus(@RequestParam Long id,
                                    @RequestParam String status,
                                    RedirectAttributes redirectAttributes) {
@@ -74,7 +66,18 @@ public class SaleController {
         } catch (Exception e) {
             redirectAttributes.addFlashAttribute("error", "Error al actualizar estado: " + e.getMessage());
         }
-        return "redirect:/sales";
+        return "redirect:/sale";
+    }
+
+    @PostMapping("/cancel/{id}")
+    public String cancelSale(@PathVariable Long id, RedirectAttributes redirectAttributes) {
+        try {
+            saleService.cancelSale(id);
+            redirectAttributes.addFlashAttribute("success", "Venta cancelada exitosamente.");
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("error", "Error al cancelar la venta: " + e.getMessage());
+        }
+        return "redirect:/sale";
     }
 
     @GetMapping("/api/{id}")

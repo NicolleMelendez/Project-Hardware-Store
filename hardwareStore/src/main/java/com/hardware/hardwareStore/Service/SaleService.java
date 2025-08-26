@@ -61,7 +61,8 @@ public class SaleService {
             Integer price = prices.get(i);
 
             if (productId != null && quantity != null && price != null && quantity > 0 && price > 0) {
-                Inventory product = inventoryService.getInventoryById(productId);
+                Inventory product = inventoryService.findById(productId)
+                        .orElseThrow(() -> new RuntimeException("Producto no encontrado con ID: " + productId));
 
                 // Validar stock
                 if (product.getStock() < quantity) {
@@ -107,26 +108,43 @@ public class SaleService {
     }
 
     @Transactional
-    public Sale updateSaleStatus(Long id, String status) {
+    public Sale updateSaleStatus(Long id, String newStatus) {
         Sale sale = getSaleById(id);
         String oldStatus = sale.getStatus();
-        sale.setStatus(status);
+        sale.setStatus(newStatus);
         sale.setUpdateAt(LocalDateTime.now());
 
-        // Si cambia a COMPLETADA, actualizar inventario
-        if (!"COMPLETADA".equals(oldStatus) && "COMPLETADA".equals(status)) {
-            updateInventoryForSale(sale);
+        // De PENDIENTE a COMPLETADA -> Disminuir stock
+        if (!"COMPLETADA".equals(oldStatus) && "COMPLETADA".equals(newStatus)) {
+            updateInventoryForSale(sale, false); // false para disminuir
+        }
+        // De COMPLETADA a CANCELADA -> Revertir stock (aumentar)
+        else if ("COMPLETADA".equals(oldStatus) && "CANCELADA".equals(newStatus)) {
+            updateInventoryForSale(sale, true); // true para aumentar/revertir
         }
 
         return saleRepository.save(sale);
     }
 
-    private void updateInventoryForSale(Sale sale) {
+    @Transactional
+    public Sale cancelSale(Long id) {
+        return updateSaleStatus(id, "CANCELADA");
+    }
+
+    private void updateInventoryForSale(Sale sale, boolean increase) {
         List<SaleDetail> details = saleDetailRepository.findBySaleId(sale.getId());
         for (SaleDetail detail : details) {
             Inventory product = detail.getInventory();
-            product.setStock(product.getStock() - detail.getAmount());
-            inventoryService.saveInventory(product);
+            int quantity = detail.getAmount();
+            if (increase) {
+                product.setStock(product.getStock() + quantity);
+            } else {
+                if (product.getStock() < quantity) {
+                    throw new RuntimeException("Stock insuficiente para el producto: " + product.getName());
+                }
+                product.setStock(product.getStock() - quantity);
+            }
+            inventoryService.save(product);
         }
     }
 

@@ -16,4 +16,7 @@ public interface SaleDetailRepository extends JpaRepository<SaleDetail, Long>{
 
     @Query("SELECT sd FROM SaleDetail sd WHERE sd.sale.id = :saleId")
     List<SaleDetail> findDetailsBySaleId(@Param("saleId") Long saleId);
+
+    @Query("SELECT new map(p.name as name, SUM(sd.amount) as quantity) FROM SaleDetail sd JOIN sd.inventory p GROUP BY p.name ORDER BY SUM(sd.amount) DESC LIMIT 5")
+    List<Map<String, Object>> findTop5SoldProducts();
 }
