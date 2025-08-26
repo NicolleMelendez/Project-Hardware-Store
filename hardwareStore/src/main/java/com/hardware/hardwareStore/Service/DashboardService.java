@@ -25,14 +25,13 @@ public class DashboardService {
     @Autowired
     private InventoryRepository inventoryRepository;
 
+
     // --- Reporte de Productos ---
     public List<Map<String, Object>> getTop5SoldProducts() {
         return saleDetailRepository.findTop5SoldProducts();
     }
 
-    public List<Inventory> getLowStockProducts() {
-        return inventoryRepository.findLowStockProducts();
-    }
+
 
     // --- Reporte de Clientes y Empleados ---
     public List<Map<String, Object>> getTop5Customers() {
@@ -60,4 +59,3 @@ public class DashboardService {
         LocalDate endOfMonth = startOfMonth.plusMonths(1);
         return saleRepository.getTotalSalesBetweenDates(startOfMonth, endOfMonth);
     }
-}

@@ -6,6 +6,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import java.util.List;
 
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 import java.util.List;
 import java.util.Map;
@@ -13,6 +14,6 @@ import java.util.Map;
 public interface SaleDetailRepository extends JpaRepository<SaleDetail, Long>{
     List<SaleDetail> findBySaleId(Long saleId);
 
-    @Query("SELECT new map(i.name as name, sum(sd.amount) as quantity) FROM SaleDetail sd JOIN sd.inventory i GROUP BY i.name ORDER BY quantity DESC")
-    List<Map<String, Object>> findTop5SoldProducts();
+    @Query("SELECT sd FROM SaleDetail sd WHERE sd.sale.id = :saleId")
+    List<SaleDetail> findDetailsBySaleId(@Param("saleId") Long saleId);
 }
