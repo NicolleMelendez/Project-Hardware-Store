@@ -1,9 +1,10 @@
 package com.hardware.hardwareStore.Service;
 
-import com.hardware.hardwareStore.Repository.InventoryRepository;
 import com.hardware.hardwareStore.Repository.SaleDetailRepository;
 import com.hardware.hardwareStore.Repository.SaleRepository;
 import com.hardware.hardwareStore.model.Inventory;
+import com.hardware.hardwareStore.model.SaleStatus;
+import org.springframework.data.domain.PageRequest;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -19,43 +20,35 @@ public class DashboardService {
 
     private final SaleDetailRepository saleDetailRepository;
     private final SaleRepository saleRepository;
-    private final InventoryRepository inventoryRepository;
     private final InventoryService inventoryService;
 
-
-    // --- Reporte de Productos ---
+    // AÑADE estos métodos si no los tienes:
     public List<Map<String, Object>> getTop5SoldProducts() {
-        return saleDetailRepository.findTop5SoldProducts();
+        return saleDetailRepository.findTopSoldProducts(PageRequest.of(0, 5));
     }
 
     public List<Inventory> getLowStockProducts() {
         return inventoryService.getLowStockItems();
     }
 
-//    // --- Reporte de Clientes y Empleados ---
-//    public List<Map<String, Object>> getTop5Customers() {
-//        return saleRepository.findTop5Customers();
-//    }
-//
-//    public List<Map<String, Object>> getTop5Employees() {
-//        return saleRepository.findTop5Employees();
-//    }
+    public List<Map<String, Object>> getTop5Customers() {
+        return saleRepository.findTopCustomers(SaleStatus.COMPLETADA, PageRequest.of(0, 5));
+    }
 
-    // --- Reportes de Ventas ---
     public Integer getDailySalesTotal() {
         LocalDate today = LocalDate.now();
-        return saleRepository.getTotalSalesBetweenDates(today, today.plusDays(1));
+        return saleRepository.getTotalSalesBetweenDates(SaleStatus.COMPLETADA, today, today.plusDays(1));
     }
 
     public Integer getWeeklySalesTotal() {
         LocalDate startOfWeek = LocalDate.now().with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY));
         LocalDate endOfWeek = startOfWeek.plusWeeks(1);
-        return saleRepository.getTotalSalesBetweenDates(startOfWeek, endOfWeek);
+        return saleRepository.getTotalSalesBetweenDates(SaleStatus.COMPLETADA, startOfWeek, endOfWeek);
     }
 
     public Integer getMonthlySalesTotal() {
         LocalDate startOfMonth = LocalDate.now().withDayOfMonth(1);
         LocalDate endOfMonth = startOfMonth.plusMonths(1);
-        return saleRepository.getTotalSalesBetweenDates(startOfMonth, endOfMonth);
+        return saleRepository.getTotalSalesBetweenDates(SaleStatus.COMPLETADA, startOfMonth, endOfMonth);
     }
 }
