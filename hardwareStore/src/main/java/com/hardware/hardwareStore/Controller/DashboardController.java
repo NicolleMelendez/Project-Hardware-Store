@@ -8,7 +8,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 @Controller
-@RequestMapping("/dashboard")
+@RequestMapping("/")
 @AllArgsConstructor
 public class DashboardController {
 
@@ -28,6 +28,7 @@ public class DashboardController {
             model.addAttribute("topProducts", dashboardService.getTop5SoldProducts());
             model.addAttribute("lowStockProducts", dashboardService.getLowStockProducts());
             model.addAttribute("topCustomers", dashboardService.getTop5Customers());
+            model.addAttribute("monthlySalesData", dashboardService.getMonthlySalesData());
 
         } catch (Exception e) {
             e.printStackTrace();
