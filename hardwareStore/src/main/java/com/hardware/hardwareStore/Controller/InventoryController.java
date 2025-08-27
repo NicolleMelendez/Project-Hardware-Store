@@ -1,7 +1,6 @@
 package com.hardware.hardwareStore.Controller;
 
 import com.hardware.hardwareStore.model.Inventory;
-import com.hardware.hardwareStore.model.Supplier;
 import com.hardware.hardwareStore.Service.InventoryService;
 import com.hardware.hardwareStore.Service.SupplierService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,7 +14,6 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import java.util.List;
 
 @Controller
-@RequestMapping("/inventory")
 public class InventoryController {
 
     @Autowired
@@ -24,7 +22,7 @@ public class InventoryController {
     @Autowired
     private SupplierService supplierService;
 
-    @GetMapping
+    @GetMapping("/inventory")
     public String listInventory(Model model) {
         model.addAttribute("inventoryList", inventoryService.findAll());
         model.addAttribute("inventory", new Inventory());
@@ -32,47 +30,43 @@ public class InventoryController {
         return "inventory/index";
     }
 
-    @PostMapping("/save")
+    @PostMapping("/inventory/save")
     public String saveInventory(@ModelAttribute("inventory") Inventory inventory, RedirectAttributes redirectAttributes) {
         inventoryService.save(inventory);
         redirectAttributes.addFlashAttribute("success", "Producto guardado correctamente.");
         return "redirect:/inventory";
     }
 
-    @PostMapping("/delete/{id}")
+    @PostMapping("/inventory/delete/{id}")
     public String deleteInventory(@PathVariable Long id, RedirectAttributes redirectAttributes) {
         inventoryService.deleteById(id);
         redirectAttributes.addFlashAttribute("success", "Producto eliminado correctamente.");
         return "redirect:/inventory";
     }
 
-    // ----------------------------------------------------------------
-    // Endpoints para API REST (JSON)
-    // ----------------------------------------------------------------
 
-    @GetMapping("/api/inventory")
+    @GetMapping("/api/inventories")
     @ResponseBody
     public List<Inventory> getAllInventoryApi() {
         return inventoryService.findAll();
     }
 
-    @GetMapping("/api/inventory/{id}")
+    @GetMapping("/api/inventories/{id}")
     @ResponseBody
     public ResponseEntity<Inventory> getInventoryByIdApi(@PathVariable Long id) {
-        // Usamos una expresión lambda para evitar ambigüedades
         return inventoryService.findById(id)
-                .map(inventory -> ResponseEntity.ok(inventory))
+                .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
 
-    @PostMapping("/api/inventory")
+    @PostMapping("/api/inventories")
     @ResponseBody
     public ResponseEntity<Inventory> createInventoryApi(@RequestBody Inventory inventory) {
-        Inventory newInventory = inventoryService.save(inventory);
-        return new ResponseEntity<>(newInventory, HttpStatus.CREATED);
+        Inventory savedInventory = inventoryService.save(inventory);
+        return new ResponseEntity<>(savedInventory, HttpStatus.CREATED);
     }
 
-    @PutMapping("/api/inventory/{id}")
+    @PutMapping("/api/inventories/{id}")
     @ResponseBody
     public ResponseEntity<Inventory> updateInventoryApi(@PathVariable Long id, @RequestBody Inventory inventoryDetails) {
         return inventoryService.findById(id)
@@ -91,7 +85,7 @@ public class InventoryController {
                 .orElse(ResponseEntity.notFound().build());
     }
 
-    @DeleteMapping("/api/inventory/{id}")
+    @DeleteMapping("/api/inventories/{id}")
     @ResponseBody
     public ResponseEntity<Void> deleteInventoryApi(@PathVariable Long id) {
         if (!inventoryService.findById(id).isPresent()) {

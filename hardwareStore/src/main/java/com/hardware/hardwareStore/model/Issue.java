@@ -34,8 +34,6 @@ public class Issue {
     @Column(length = 500)
     private String observation;
 
-    // --- Getters y Setters Manuales ---
-
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
 

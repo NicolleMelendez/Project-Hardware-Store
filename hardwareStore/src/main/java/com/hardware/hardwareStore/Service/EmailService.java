@@ -36,7 +36,6 @@ public class EmailService {
                     + "          "
                     + "          <tr>"
                     + "            <td align='center' style='padding: 40px 0 30px 0;'>"
-                    // ✅ CAMBIO 2: Añadimos la etiqueta <img> para mostrar el logo.
                     + "              <img src='cid:logo' alt='Logo ForgeMax' style='display: block; width: 80px; height: 80px; border-radius: 50%; border: 3px solid #005A9C;'/>"
                     + "              <h1 style='color: #005A9C; margin: 20px 0 0 0; font-size: 24px;'>Solicitud de Cambio de Contraseña</h1>"
                     + "            </td>"
@@ -76,8 +75,6 @@ public class EmailService {
 
             helper.setText(htmlContent, true);
 
-            // ✅ CAMBIO 3: Adjuntamos el logo como un recurso "inline".
-            // Le damos un identificador "logo" que coincide con el "cid:logo" del HTML.
             ClassPathResource logoResource = new ClassPathResource("static/assets/img/logoo.png");
             helper.addInline("logo", logoResource);
 

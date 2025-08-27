@@ -1,7 +1,6 @@
 package com.hardware.hardwareStore.Service;
 
 import com.hardware.hardwareStore.model.Issue;
-import com.hardware.hardwareStore.model.Inventory;
 import com.hardware.hardwareStore.Repository.IssueRepository;
 import org.hibernate.Hibernate;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -10,7 +9,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Date;
 import java.util.List;
-import java.util.Optional;
+import java.util.Objects;
 
 @Service
 public class IssueService {
@@ -33,6 +32,7 @@ public class IssueService {
     public Issue getIssueById(Long id) {
         Issue issue = issueRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Salida no encontrada con ID: " + id));
+        // Inicializa las relaciones para evitar errores de carga perezosa (Lazy Loading)
         Hibernate.initialize(issue.getInventory());
         Hibernate.initialize(issue.getEmployee());
         return issue;
@@ -40,14 +40,13 @@ public class IssueService {
 
     @Transactional
     public Issue createIssue(Issue issue) {
-        validateRelations(issue); // Valida que el empleado y el inventario existan
+        validateRelations(issue);
 
-        // Asigna la fecha actual si no viene una
         if (issue.getDateIssue() == null) {
             issue.setDateIssue(new Date());
         }
 
-        // Descuenta el stock
+        // Descuenta el stock del producto
         inventoryService.updateStock(issue.getInventory().getId(), -issue.getAmount());
 
         return issueRepository.save(issue);
@@ -58,11 +57,23 @@ public class IssueService {
         Issue existingIssue = getIssueById(id);
         validateRelations(issueDetails);
 
-        // Lógica de actualización de stock sencilla
-        int amountDifference = issueDetails.getAmount() - existingIssue.getAmount();
-        inventoryService.updateStock(existingIssue.getInventory().getId(), -amountDifference);
+        Long oldInventoryId = existingIssue.getInventory().getId();
+        Long newInventoryId = issueDetails.getInventory().getId();
+        int oldAmount = existingIssue.getAmount();
+        int newAmount = issueDetails.getAmount();
 
-        // Actualiza los campos
+        // Si el producto es el mismo, ajusta la diferencia de stock
+        if (Objects.equals(oldInventoryId, newInventoryId)) {
+            int amountDifference = newAmount - oldAmount;
+            inventoryService.updateStock(oldInventoryId, -amountDifference);
+        } else {
+            // Si el producto cambió, revierte el stock del producto antiguo
+            inventoryService.updateStock(oldInventoryId, oldAmount);
+            // y descuenta el stock del nuevo producto
+            inventoryService.updateStock(newInventoryId, -newAmount);
+        }
+
+        // Actualiza los campos de la salida
         existingIssue.setInventory(issueDetails.getInventory());
         existingIssue.setAmount(issueDetails.getAmount());
         existingIssue.setReason(issueDetails.getReason());
@@ -76,12 +87,11 @@ public class IssueService {
     @Transactional
     public void deleteIssue(Long id) {
         Issue issue = getIssueById(id);
-        // Restaura el stock al eliminar la salida
+        // Al eliminar, restaura el stock del producto
         inventoryService.updateStock(issue.getInventory().getId(), issue.getAmount());
         issueRepository.delete(issue);
     }
 
-    // Método privado para validar que las relaciones existan
     private void validateRelations(Issue issue) {
         if (issue.getInventory() == null || issue.getInventory().getId() == null) {
             throw new IllegalArgumentException("El producto es requerido.");
@@ -90,11 +100,9 @@ public class IssueService {
             throw new IllegalArgumentException("El empleado es requerido.");
         }
 
-        // Verifica que el producto exista en la BD
+        // Verifica que el producto y el empleado realmente existan en la BD
         inventoryService.findById(issue.getInventory().getId())
                 .orElseThrow(() -> new RuntimeException("El producto seleccionado no existe."));
-
-        // Verifica que el empleado exista en la BD
         employeeService.getEmployeeById(issue.getEmployee().getId())
                 .orElseThrow(() -> new RuntimeException("El empleado seleccionado no existe."));
     }
