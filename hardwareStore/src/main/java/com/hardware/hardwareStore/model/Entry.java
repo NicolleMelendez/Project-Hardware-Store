@@ -3,6 +3,7 @@ package com.hardware.hardwareStore.model;
 import jakarta.persistence.*;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
+import org.springframework.format.annotation.DateTimeFormat; // Asegúrate de importar esta clase
 
 import java.time.LocalDateTime;
 import java.util.Date;
@@ -15,11 +16,11 @@ public class Entry {
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "id_inventory", nullable = false) // Cambiado a id_inventory
+    @JoinColumn(name = "id_inventory", nullable = false)
     private Inventory inventory;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "id_supplier", nullable = false) // Cambiado a id_supplier
+    @JoinColumn(name = "id_supplier", nullable = false)
     private Supplier supplier;
 
     @Column(nullable = false)
@@ -29,11 +30,12 @@ public class Entry {
     private Integer priceBuy;
 
     @Column(name = "date_entry", nullable = false)
-    @Temporal(TemporalType.TIMESTAMP) // O puedes usar LocalDateTime
-    private Date dateEntry = new Date();
+    @Temporal(TemporalType.DATE)
+    @DateTimeFormat(pattern = "yyyy-MM-dd") // <-- AÑADE ESTA LÍNEA
+    private Date dateEntry;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "id_employee", nullable = false) // Cambiado a id_employee
+    @JoinColumn(name = "id_employee", nullable = false)
     private Employee employee;
 
     @CreationTimestamp
@@ -41,19 +43,8 @@ public class Entry {
     private LocalDateTime createdAt;
 
     @UpdateTimestamp
-    @Column(name = "update_at")
+    @Column(name = "updated_at")
     private LocalDateTime updatedAt;
-
-    public Entry() {}
-
-    public Entry(Inventory inventory, Supplier supplier, Integer amount,
-                 Integer priceBuy, Employee employee) {
-        this.inventory = inventory;
-        this.supplier = supplier;
-        this.amount = amount;
-        this.priceBuy = priceBuy;
-        this.employee = employee;
-    }
 
     // Getters and setters
     public Long getId() {
