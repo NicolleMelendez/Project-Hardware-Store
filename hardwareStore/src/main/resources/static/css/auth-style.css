@@ -3,10 +3,10 @@
 
 /* --- Variables de Color de Ferretería --- */
 :root {
-    --color-primary: #005A9C; /* Azul oscuro, corporativo y fiable */
-    --color-accent: #FFC107;  /* Amarillo vibrante, como herramientas o señales */
-    --color-background: #EAECEE; /* Gris claro, como concreto o metal */
-    --color-text: #343A40;     /* Gris oscuro para texto legible */
+    --color-primary: #005A9C;
+    --color-accent: #FFC107;
+    --color-background: #EAECEE;
+    --color-text: #343A40;
     --color-light-gray: #F8F9FA;
 }
 

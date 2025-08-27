@@ -34,7 +34,6 @@ public class EmployeeController {
         } catch (Exception e) {
             model.addAttribute("error", e.getMessage());
             model.addAttribute("employees", employeeService.getAllEmployees());
-            // ✅ CORRECCIÓN: Mantener datos del formulario para edición
             if (employee.getId() != null) {
                 model.addAttribute("employee", employee);
             }

@@ -52,22 +52,16 @@ public class AuthController {
     @PostMapping("/forgot-password")
     public String forgotPasswordAction(@RequestParam String email, RedirectAttributes redirectAttributes) {
         try {
-            // ✅ PASO 1: Verificamos si ya hay un token activo para este correo.
             if (authService.tokenExistsForEmail(email)) {
-
-                // ✅ PASO 2: Si existe, mostramos un mensaje amigable y redirigimos.
-                // No se crea un nuevo token ni se envía un nuevo correo.
                 redirectAttributes.addFlashAttribute("error", "Ya tienes una solicitud de restablecimiento activa. Por favor, revisa tu bandeja de entrada.");
                 return "redirect:/forgot-password";
             }
 
-            // ✅ PASO 3: Si no existe un token, procedemos a crearlo y enviarlo.
             authService.createPasswordResetToken(email);
             redirectAttributes.addFlashAttribute("msg", "Se ha enviado un enlace de restablecimiento a tu correo. ¡Revisa tu bandeja de entrada!");
             return "redirect:/login";
 
         } catch (RuntimeException e) {
-            // Este catch ahora solo se activará si el email no está registrado.
             redirectAttributes.addFlashAttribute("error", "El correo electrónico proporcionado no se encuentra registrado.");
             return "redirect:/forgot-password";
         }
@@ -76,7 +70,6 @@ public class AuthController {
     @GetMapping("/reset-password")
     public String resetPasswordPage(@RequestParam String token, Model model) {
         try {
-            // Validamos el token. Si es inválido, el método lanzará una excepción.
             authService.validatePasswordResetToken(token);
             model.addAttribute("token", token);
             return "auth/reset-password";
@@ -93,7 +86,6 @@ public class AuthController {
                                       RedirectAttributes redirectAttributes) {
         if (!password.equals(confirmPassword)) {
             redirectAttributes.addFlashAttribute("error", "Las contraseñas no coinciden.");
-            // Adjuntamos el token como parámetro para que la URL se mantenga correcta
             redirectAttributes.addAttribute("token", token);
             return "redirect:/reset-password";
         }
@@ -103,7 +95,6 @@ public class AuthController {
             return "redirect:/login";
         } catch (RuntimeException e) {
             redirectAttributes.addFlashAttribute("error", e.getMessage());
-            // Adjuntamos el token para volver a la página de reseteo si hay error
             redirectAttributes.addAttribute("token", token);
             return "redirect:/reset-password";
         }

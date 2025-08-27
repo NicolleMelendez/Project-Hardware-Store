@@ -12,14 +12,7 @@
       <div class="container-fluid px-4">
         <h1 class="mt-4">Gestión de Salidas de Inventario</h1>
 
-        <div th:if="${success}" class="alert alert-success alert-dismissible fade show" role="alert">
-          <span th:text="${success}"></span>
-          <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-        </div>
-        <div th:if="${error}" class="alert alert-danger alert-dismissible fade show" role="alert">
-          <span th:text="${error}"></span>
-          <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-        </div>
+        <div id="flash-messages" th:data-success="${success}" th:data-error="${error}" style="display: none;"></div>
 
         <div class="d-flex justify-content-between align-items-center mb-3">
           <div>
@@ -174,10 +167,11 @@
   function prepareNewIssue() {
       const form = document.getElementById('issueForm');
       form.reset();
-      form.action = /*[[@{/issue/save}]]*/ '/issue/save';
+      form.action = '/issue/save';
       document.getElementById('modalTitle').textContent = 'Nueva Salida';
       document.getElementById('issueId').value = '';
 
+      // Formatear fecha y hora actual para el input datetime-local
       const now = new Date();
       now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
       document.getElementById('issueDate').value = now.toISOString().slice(0, 16);
@@ -185,18 +179,16 @@
       issueModal.show();
   }
 
-  function prepareEditIssue(issueId) {
-      fetch(`/issue/api/` + issueId)
+ function prepareEditIssue(issueId) {
+      fetch(`/api/issues/` + issueId)
           .then(response => {
-              if (!response.ok) {
-                  throw new Error('Error al cargar los datos de la salida');
-              }
+              if (!response.ok) throw new Error('Error al cargar los datos');
               return response.json();
           })
           .then(issue => {
               const form = document.getElementById('issueForm');
               form.reset();
-              form.action = /*[[@{/issue/update}]]*/ '/issue/update';
+              form.action = '/issue/save';
 
               document.getElementById('modalTitle').textContent = 'Editar Salida #' + issue.id;
               document.getElementById('issueId').value = issue.id;
@@ -215,14 +207,14 @@
               issueModal.show();
           })
           .catch(err => {
-              Swal.fire('Error', 'No se pudo cargar los datos: ' + err.message, 'error');
+              Swal.fire('Error', 'No se pudo cargar los datos de la salida.', 'error');
           });
   }
 
   function confirmDelete(button) {
       Swal.fire({
           title: '¿Estás seguro?',
-          text: "No podrás revertir esta acción.",
+          text: "Esta acción no se puede revertir.",
           icon: 'warning',
           showCancelButton: true,
           confirmButtonColor: '#d33',
@@ -237,8 +229,9 @@
   }
 
   function checkFlashMessages() {
-      const successMessage = /*[[${success}]]*/ null;
-      const errorMessage = /*[[${error}]]*/ null;
+      const flashContainer = document.getElementById('flash-messages');
+      const successMessage = flashContainer.getAttribute('data-success');
+      const errorMessage = flashContainer.getAttribute('data-error');
 
       if (successMessage) {
           Swal.fire({ icon: 'success', title: 'Éxito', text: successMessage, timer: 2000, showConfirmButton: false });
@@ -248,140 +241,129 @@
       }
   }
 
-   function exportToExcel() {
-      try {
-          const today = new Date();
-          const formattedDate = today.toLocaleDateString('es-ES');
-          const title = "Reporte de Salidas de Inventario";
-          const generated = `Generado el: ${formattedDate}`;
-          const headers = ['ID', 'Producto', 'Cantidad', 'Razón', 'Fecha Salida', 'Empleado', 'Observación'];
-          const dataToExport = dataTable.rows({ search: 'applied' }).data().toArray();
+  function exportToExcel() {
+        try {
+            const today = new Date();
+            const formattedDate = today.toLocaleDateString('es-ES');
+            const title = "Reporte de Salidas de Inventario";
+            const generated = `Generado el: ${formattedDate}`;
+            // Cabeceras correctas para la tabla de Salidas
+            const headers = ['ID', 'Producto', 'Cantidad', 'Razón', 'Fecha Salida', 'Empleado', 'Observación'];
+            const dataToExport = dataTable.rows({ search: 'applied' }).data().toArray();
 
-          let reportData = [
-              [title], [generated], [], headers
-          ];
-          dataToExport.forEach(row => {
-              reportData.push([row[0], row[1], row[2], row[3], row[4], row[5], row[6]]);
-          });
-        
-          const table = document.getElementById('dataTable');
-          const headers = Array.from(table.querySelectorAll('thead th')).slice(0, -1).map(th => th.innerText);
-          const dataToExport = dataTable.rows({ search: 'applied' }).data().toArray();
-          let content = dataToExport.map(row => {
-              let newRow = {};
-              headers.forEach((header, index) => {
-                  newRow[header] = String(row[index]).replace(/<.*?>/g, '');
-              });
-              return newRow;
-          });
-          const ws = XLSX.utils.json_to_sheet(content);
-          const wb = XLSX.utils.book_new();
-          const ws = XLSX.utils.aoa_to_sheet(reportData);
-          const merge = { s: { r: 0, c: 0 }, e: { r: 0, c: headers.length - 1 } };
-          if (!ws['!merges']) ws['!merges'] = [];
-          ws['!merges'].push(merge);
+            let reportData = [
+                [title], [generated], [], headers
+            ];
 
-          const columnWidths = reportData[3].map((_, colIndex) => {
-              let maxLength = 0;
-              for (let rowIndex = 3; rowIndex < reportData.length; rowIndex++) {
-                  const cellValue = reportData[rowIndex][colIndex];
-                  if (cellValue && cellValue.toString().length > maxLength) {
-                      maxLength = cellValue.toString().length;
-                  }
-              }
-              return { wch: maxLength + 2 };
-          });
-          ws['!cols'] = columnWidths;
+            // Mapeo correcto de las columnas
+            dataToExport.forEach(row => {
+                reportData.push([row[0], row[1], row[2], row[3], row[4], row[5], row[6]]);
+            });
 
-          XLSX.utils.book_append_sheet(wb, ws, 'Salidas');
-          const fileDate = `${today.getFullYear()}-${(today.getMonth() + 1).toString().padStart(2, '0')}-${today.getDate().toString().padStart(2, '0')}`;
-          XLSX.writeFile(wb, `Reporte_Salidas_${fileDate}.xlsx`);
+            const wb = XLSX.utils.book_new();
+            const ws = XLSX.utils.aoa_to_sheet(reportData);
+            const merge = { s: { r: 0, c: 0 }, e: { r: 0, c: headers.length - 1 } };
+            if (!ws['!merges']) ws['!merges'] = [];
+            ws['!merges'].push(merge);
 
-      } catch (error) {
-          Swal.fire('Error', 'No se pudo exportar a Excel.', 'error');
-      }
-  }
+            const columnWidths = reportData[3].map((_, colIndex) => {
+                let maxLength = 0;
+                for (let rowIndex = 3; rowIndex < reportData.length; rowIndex++) {
+                    const cellValue = reportData[rowIndex][colIndex];
+                    if (cellValue && cellValue.toString().length > maxLength) {
+                        maxLength = cellValue.toString().length;
+                    }
+                }
+                return { wch: maxLength + 2 };
+            });
+            ws['!cols'] = columnWidths;
 
-  function exportToPDF() {
-      fetch('/assets/img/logoo.png')
-          .then(response => response.blob())
-          .then(blob => {
-              const reader = new FileReader();
-              reader.readAsDataURL(blob);
-              reader.onloadend = function() {
-                  const base64data = reader.result;
-                  try {
-                      const { jsPDF } = window.jspdf;
-                      const doc = new jsPDF();
-                      const pageWidth = doc.internal.pageSize.width;
-                      const pageHeight = doc.internal.pageSize.height;
+            XLSX.utils.book_append_sheet(wb, ws, 'Salidas');
+            const fileDate = `${today.getFullYear()}-${(today.getMonth() + 1).toString().padStart(2, '0')}-${today.getDate().toString().padStart(2, '0')}`;
+            XLSX.writeFile(wb, `Reporte_Salidas_${fileDate}.xlsx`);
 
-                      doc.setFillColor('#FFC107');
-                      doc.rect(0, 0, pageWidth, 10, 'F');
-                      const logoSize = 25;
-                      const logoX = 15;
-                      const logoY = 14;
-                      doc.addImage(base64data, 'PNG', logoX, logoY, logoSize, logoSize);
+        } catch (error) {
+            console.error("Error al exportar a Excel:", error);
+            Swal.fire('Error', 'No se pudo exportar a Excel.', 'error');
+        }
+    }
 
-                      doc.setFontSize(22);
-                      doc.setFont('helvetica', 'bold');
-                      doc.setTextColor('#005A9C');
-                      doc.text('Reporte de Salidas', logoX + logoSize + 5, 28);
+    function exportToPDF() {
+        fetch('/assets/img/logoo.png') // Asegúrate que esta ruta al logo es correcta
+            .then(response => response.blob())
+            .then(blob => {
+                const reader = new FileReader();
+                reader.readAsDataURL(blob);
+                reader.onloadend = function() {
+                    const base64data = reader.result;
+                    try {
+                        const { jsPDF } = window.jspdf;
+                        const doc = new jsPDF();
+                        const pageWidth = doc.internal.pageSize.width;
+                        const pageHeight = doc.internal.pageSize.height;
 
-                      doc.setFontSize(11);
-                      doc.setFont('helvetica', 'normal');
-                      doc.setTextColor(100);
-                      const today = new Date();
-                      const dateStr = `Generado el: ${today.toLocaleDateString('es-ES')}`;
-                      doc.text(dateStr, logoX + logoSize + 5, 35);
+                        // Encabezado con barra de color
+                        doc.setFillColor('#FFC107'); // Color acento
+                        doc.rect(0, 0, pageWidth, 10, 'F');
 
-                      doc.autoTable({
-                          html: '#dataTable',
-                          startY: 50,
-                          columns: [0, 1, 2, 3, 4, 5, 6],
-                          headStyles: { fillColor: [0, 90, 156], textColor: [255, 255, 255], fontStyle: 'bold', halign: 'center' },
-                          alternateRowStyles: { fillColor: [245, 245, 245] },
-                          styles: { halign: 'center', valign: 'middle', fontSize: 9 },
-                          didParseCell: function (data) {
-                              if (data.column.index === 0 && data.cell.section === 'body') {
-                                  data.cell.styles.fontStyle = 'bold';
-                              }
-                          },
-                          didDrawPage: function (data) {
-                              doc.setFillColor('#FFC107');
-                              doc.rect(0, pageHeight - 5, pageWidth, 5, 'F');
-                              let footerStr = `Página ${doc.internal.getNumberOfPages()}`;
-                              doc.setFontSize(10);
-                              doc.setTextColor(150);
-                              doc.text(footerStr, data.settings.margin.left, pageHeight - 10);
-                          }
-                      });
+                        // Logo y Título
+                        const logoSize = 25;
+                        const logoX = 15;
+                        const logoY = 14;
+                        doc.addImage(base64data, 'PNG', logoX, logoY, logoSize, logoSize);
 
-                      const formattedDate = `${today.getFullYear()}-${(today.getMonth() + 1).toString().padStart(2, '0')}-${today.getDate().toString().padStart(2, '0')}`;
-                      doc.save(`Reporte_Salidas_${formattedDate}.pdf`);
+                        doc.setFontSize(22);
+                        doc.setFont('helvetica', 'bold');
+                        doc.setTextColor('#005A9C'); // Color primario
+                        doc.text('Reporte de Salidas', logoX + logoSize + 5, 28);
 
-                  } catch (error) {
-                      console.error("Error al exportar a PDF:", error);
-                      Swal.fire('Error', 'No se pudo exportar a PDF.', 'error');
-                  }
-              };
-          })
-          .catch(error => {
-              console.error("Error al cargar el logo para el PDF:", error);
-              Swal.fire('Error', 'No se pudo cargar el logo para generar el PDF.', 'error');
-          });
-      try {
-          const { jsPDF } = window.jspdf;
-          const doc = new jsPDF();
-          doc.autoTable({
-              html: '#dataTable',
-              columns: [0, 1, 2, 3, 4, 5, 6] // Ignora la última columna (Acciones)
-          });
-          doc.save('salidas.pdf');
-      } catch(error) {
-          Swal.fire('Error', 'No se pudo exportar a PDF.', 'error');
-      }
-  }
+                        doc.setFontSize(11);
+                        doc.setFont('helvetica', 'normal');
+                        doc.setTextColor(100);
+                        const today = new Date();
+                        const dateStr = `Generado el: ${today.toLocaleDateString('es-ES')}`;
+                        doc.text(dateStr, logoX + logoSize + 5, 35);
+
+                        // Tabla
+                        doc.autoTable({
+                            html: '#dataTable',
+                            startY: 50,
+                            // Columnas a incluir (0 a 6, excluyendo 'Acciones')
+                            columns: [0, 1, 2, 3, 4, 5, 6],
+                            headStyles: { fillColor: [0, 90, 156], textColor: [255, 255, 255], fontStyle: 'bold', halign: 'center' },
+                            alternateRowStyles: { fillColor: [245, 245, 245] },
+                            styles: { halign: 'center', valign: 'middle', fontSize: 9 },
+                            didParseCell: function (data) {
+                                if (data.column.index === 0 && data.cell.section === 'body') {
+                                    data.cell.styles.fontStyle = 'bold';
+                                }
+                            },
+                            // Pie de página
+                            didDrawPage: function (data) {
+                                doc.setFillColor('#FFC107');
+                                doc.rect(0, pageHeight - 5, pageWidth, 5, 'F');
+                                let footerStr = `Página ${doc.internal.getNumberOfPages()}`;
+                                doc.setFontSize(10);
+                                doc.setTextColor(150);
+                                doc.text(footerStr, data.settings.margin.left, pageHeight - 10);
+                            }
+                        });
+
+                        const formattedDate = `${today.getFullYear()}-${(today.getMonth() + 1).toString().padStart(2, '0')}-${today.getDate().toString().padStart(2, '0')}`;
+                        doc.save(`Reporte_Salidas_${formattedDate}.pdf`);
+
+                    } catch (error) {
+                        console.error("Error al exportar a PDF:", error);
+                        Swal.fire('Error', 'No se pudo exportar a PDF.', 'error');
+                    }
+                };
+            })
+            .catch(error => {
+                console.error("Error al cargar el logo para el PDF:", error);
+                Swal.fire('Error', 'No se pudo cargar el logo para generar el PDF.', 'error');
+            });
+    }
+
 
   $(document).ready(function() {
       dataTable = $('#dataTable').DataTable({
@@ -397,14 +379,8 @@
           columnDefs: [{ targets: 7, orderable: false, searchable: false }]
       });
 
-      $('#search').on('keyup', function() {
-          dataTable.search(this.value).draw();
-      });
-
-      $('#entries').on('change', function() {
-          dataTable.page.len(this.value).draw();
-      });
-
+      $('#search').on('keyup', function() { dataTable.search(this.value).draw(); });
+      $('#entries').on('change', function() { dataTable.page.len(this.value).draw(); });
       checkFlashMessages();
   });
 </script>

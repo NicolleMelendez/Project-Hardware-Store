@@ -7,6 +7,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.util.List;
 
@@ -16,59 +17,56 @@ public class SupplierController {
     @Autowired
     private SupplierService supplierService;
 
+
     @GetMapping("/supplier")
     public String listSuppliers(Model model) {
         model.addAttribute("suppliers", supplierService.findAll());
-        return "supplier/index"; // Carga templates/supplier/index.html
+        // ↓↓↓ ESTA LÍNEA FALTABA Y CAUSABA EL ERROR ↓↓↓
+        model.addAttribute("supplier", new Supplier());
+        return "supplier/index";
     }
 
     @PostMapping("/supplier/save")
-    public String saveSupplier(@ModelAttribute Supplier supplier) {
-        if (supplier.getId() == null) {
-            supplierService.createSupplier(supplier);
-        } else {
-            supplierService.updateSupplier(supplier.getId(), supplier);
+    public String saveSupplier(@ModelAttribute Supplier supplier, RedirectAttributes redirectAttributes) {
+        try {
+            if (supplier.getId() == null) {
+                supplierService.createSupplier(supplier);
+                redirectAttributes.addFlashAttribute("success", "Proveedor creado exitosamente.");
+            } else {
+                supplierService.updateSupplier(supplier.getId(), supplier);
+                redirectAttributes.addFlashAttribute("success", "Proveedor actualizado exitosamente.");
+            }
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("error", "Error al guardar el proveedor: " + e.getMessage());
         }
         return "redirect:/supplier";
     }
 
     @PostMapping("/supplier/delete/{id}")
-    public String deleteSupplier(@PathVariable Long id) {
-        supplierService.deleteSupplier(id);
+    public String deleteSupplier(@PathVariable Long id, RedirectAttributes redirectAttributes) {
+        try {
+            supplierService.deleteSupplier(id);
+            redirectAttributes.addFlashAttribute("success", "Proveedor eliminado exitosamente.");
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("error", "Error al eliminar el proveedor.");
+        }
         return "redirect:/supplier";
     }
 
-    /*
-     * Mapeo para las apis
-     */
     @GetMapping("/api/suppliers")
     @ResponseBody
-    public List<Supplier> getAllSuppliers() {
+    public List<Supplier> getAllSuppliersApi() {
         return supplierService.findAll();
     }
 
     @GetMapping("/api/suppliers/{id}")
     @ResponseBody
-    public ResponseEntity<Supplier> getSupplierById(@PathVariable Long id) {
-        return ResponseEntity.ok(supplierService.findById(id));
-    }
-
-    @PostMapping("/api/suppliers")
-    @ResponseBody
-    public ResponseEntity<Supplier> createSupplier(@RequestBody Supplier supplier) {
-        return ResponseEntity.ok(supplierService.createSupplier(supplier));
-    }
-
-    @PutMapping("/api/suppliers/{id}")
-    @ResponseBody
-    public ResponseEntity<Supplier> updateSupplier(@PathVariable Long id, @RequestBody Supplier supplier) {
-        return ResponseEntity.ok(supplierService.updateSupplier(id, supplier));
-    }
-
-    @DeleteMapping("/api/suppliers/{id}")
-    @ResponseBody
-    public ResponseEntity<Void> deleteSupplierApi(@PathVariable Long id) {
-        supplierService.deleteSupplier(id);
-        return ResponseEntity.noContent().build();
+    public ResponseEntity<Supplier> getSupplierByIdApi(@PathVariable Long id) {
+        Supplier supplier = supplierService.findById(id);
+        if (supplier != null) {
+            return ResponseEntity.ok(supplier);
+        } else {
+            return ResponseEntity.notFound().build();
+        }
     }
 }

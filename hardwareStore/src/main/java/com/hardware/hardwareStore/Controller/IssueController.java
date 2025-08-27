@@ -5,40 +5,25 @@ import com.hardware.hardwareStore.Service.InventoryService;
 import com.hardware.hardwareStore.Service.IssueService;
 import com.hardware.hardwareStore.model.Issue;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.propertyeditors.CustomDateEditor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.WebDataBinder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
-import java.text.SimpleDateFormat;
-import java.util.Date;
 import java.util.List;
 
-@Controller
-@RequestMapping("/issue")
+@Controller // No se usa @RequestMapping a nivel de clase
 public class IssueController {
 
     @Autowired
     private IssueService issueService;
-
     @Autowired
     private InventoryService inventoryService;
-
     @Autowired
     private EmployeeService employeeService;
 
-    // Formateador de fechas para el binding
-    @InitBinder
-    public void initBinder(WebDataBinder binder) {
-        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
-        dateFormat.setLenient(false);
-        binder.registerCustomEditor(Date.class, new CustomDateEditor(dateFormat, true));
-    }
-
-    @GetMapping
+    @GetMapping("/issue") // Ruta completa para la vista
     public String issuePage(Model model) {
         model.addAttribute("issues", issueService.getAllIssues());
         model.addAttribute("inventories", inventoryService.findAll());
@@ -47,33 +32,23 @@ public class IssueController {
         return "issue/index";
     }
 
-    @PostMapping("/save")
+    @PostMapping("/issue/save") // Ruta completa
     public String saveIssue(@ModelAttribute Issue issue, RedirectAttributes redirectAttributes) {
         try {
-            // Si la fecha es null, establecer fecha actual
-            if (issue.getDateIssue() == null) {
-                issue.setDateIssue(new Date());
+            if (issue.getId() == null) {
+                issueService.createIssue(issue);
+                redirectAttributes.addFlashAttribute("success", "Salida creada exitosamente.");
+            } else {
+                issueService.updateIssue(issue.getId(), issue);
+                redirectAttributes.addFlashAttribute("success", "Salida actualizada exitosamente.");
             }
-            issueService.createIssue(issue);
-            redirectAttributes.addFlashAttribute("success", "Salida creada exitosamente.");
         } catch (Exception e) {
             redirectAttributes.addFlashAttribute("error", "Error: " + e.getMessage());
         }
         return "redirect:/issue";
     }
 
-    @PostMapping("/update")
-    public String updateIssue(@ModelAttribute Issue issue, RedirectAttributes redirectAttributes) {
-        try {
-            issueService.updateIssue(issue.getId(), issue);
-            redirectAttributes.addFlashAttribute("success", "Salida actualizada exitosamente.");
-        } catch (Exception e) {
-            redirectAttributes.addFlashAttribute("error", "Error al actualizar: " + e.getMessage());
-        }
-        return "redirect:/issue";
-    }
-
-    @PostMapping("/delete/{id}")
+    @PostMapping("/issue/delete/{id}") // Ruta completa
     public String deleteIssue(@PathVariable Long id, RedirectAttributes redirectAttributes) {
         try {
             issueService.deleteIssue(id);
@@ -84,24 +59,20 @@ public class IssueController {
         return "redirect:/issue";
     }
 
-    // ========== API REST ==========
-
-    @GetMapping("/api/issue")
+    @GetMapping("/api/issues")
     @ResponseBody
-    public ResponseEntity<List<Issue>> getAllIssuesApi() {
-        return ResponseEntity.ok(issueService.getAllIssues());
+    public List<Issue> getAllIssuesApi() {
+        return issueService.getAllIssues();
     }
 
-    @GetMapping("/api/{id}")
+    @GetMapping("/api/issues/{id}") // URL para obtener uno por ID
     @ResponseBody
-    public ResponseEntity<?> getIssueByIdApi(@PathVariable Long id) {
+    public ResponseEntity<Issue> getIssueByIdApi(@PathVariable Long id) {
         try {
             Issue issue = issueService.getIssueById(id);
             return ResponseEntity.ok(issue);
         } catch (Exception e) {
-            System.err.println("Error al obtener salida con ID: " + id);
-            e.printStackTrace(); // Para depurar
-            return ResponseEntity.status(500).body("Error interno del servidor.");
+            return ResponseEntity.notFound().build();
         }
     }
 }
