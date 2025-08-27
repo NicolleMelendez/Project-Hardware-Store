@@ -1,345 +1,478 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
 <head th:replace="~{fragments/head :: head('Pedidos')}">
-  <meta charset="UTF-8">
+    <meta charset="UTF-8">
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css">
 </head>
+
 <body class="sb-nav-fixed">
-<!-- Navbar -->
 <div th:replace="~{fragments/navbar :: navbar}"></div>
 
 <div id="layoutSidenav">
-  <!-- Sidebar -->
-  <div th:replace="~{fragments/sidebar :: sidebar}"></div>
+    <div th:replace="~{fragments/sidebar :: sidebar}"></div>
 
-  <div id="layoutSidenav_content">
-    <main>
-      <div class="container-fluid px-4">
-        <h1 class="mt-4">Gestión de Pedidos</h1>
+    <div id="layoutSidenav_content">
+        <main>
+            <div class="container-fluid px-4">
+                <h1 class="mt-4">Gestión de Pedidos</h1>
 
-        <!-- Botones de acción -->
-        <div class="d-flex justify-content-between align-items-center mb-3">
-          <div>
-            <button type="button" class="btn btn-primary me-2" data-bs-toggle="modal"
-                    data-bs-target="#orderModal" onclick="prepareNewOrder()">
-              <i class="fas fa-plus me-1"></i> Nuevo Pedido
-            </button>
-            <button type="button" class="btn btn-success me-2" onclick="exportToExcel()">
-              <i class="fas fa-file-excel me-1"></i> Descargar Excel
-            </button>
-            <button type="button" class="btn btn-danger" onclick="exportToPDF()">
-              <i class="fas fa-file-pdf me-1"></i> Descargar PDF
-            </button>
-          </div>
-        </div>
-
-<!-- New/Edit Order Modal -->
-<div class="modal fade" id="orderModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-lg">
-        <div class="modal-content">
-            <form id="orderForm" th:action="@{/order-buy}" method="post">
-                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
-                <div class="modal-header">
-                    <h5 class="modal-title" id="modalTitle">Nuevo Pedido</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <div>
+                        <button type="button" class="btn btn-primary me-2" data-bs-toggle="modal"
+                                data-bs-target="#orderModal" onclick="prepareNewOrder()">
+                            <i class="fas fa-plus me-1"></i> Nuevo Pedido
+                        </button>
+                        <button type="button" class="btn btn-success me-2" onclick="exportToExcel()">
+                            <i class="fas fa-file-excel me-1"></i> Descargar Excel
+                        </button>
+                        <button type="button" class="btn btn-danger" onclick="exportToPDF()">
+                            <i class="fas fa-file-pdf me-1"></i> Descargar PDF
+                        </button>
+                    </div>
+                    <div class="input-group w-50">
+                        <input type="text" id="search" class="form-control" placeholder="Buscar...">
+                        <button class="btn btn-outline-secondary" type="button"><i class="fas fa-search"></i></button>
+                    </div>
                 </div>
+
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <i class="fas fa-table me-1"></i>
+                        Lista de Pedidos
+                    </div>
+                    <div class="card-body">
+                        <table id="dataTable" class="table table-striped table-bordered" style="width:100%">
+                            <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Cliente</th>
+                                <th>Empleado</th>
+                                <th>Fecha</th>
+                                <th>Total</th>
+                                <th>Estado</th>
+                                <th>Acciones</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <tr th:each="order : ${orders}">
+                                <td th:text="${order.id}"></td>
+                                <td th:text="${order.client != null ? order.client.name : 'N/A'}"></td>
+                                <td th:text="${order.employee != null ? order.employee.name : 'N/A'}"></td>
+                                <td th:text="${order.dateOrder != null ? #temporals.format(order.dateOrder, 'dd-MM-yyyy') : 'N/A'}"></td>
+                                <td th:text="${order.total != null ? '$' + #numbers.formatInteger(order.total, 0, 'POINT') : '$0'}"></td>
+                                <td>
+                   <span th:text="${order.status}"
+                         th:classappend="${order.status == 'COMPLETADA' ? 'badge bg-success' : (order.status == 'PENDIENTE' ? 'badge bg-warning' : 'badge bg-danger')}"></span>
+                                </td>
+                                <td>
+                                    <button class="btn btn-info btn-sm" title="Ver Detalles" th:attr="onclick=|viewOrder(${order.id})|"><i class="fas fa-eye"></i></button>
+                                    <button class="btn btn-success btn-sm" title="Completar" th:if="${order.status == 'PENDIENTE'}" th:attr="onclick=|completeOrder(${order.id})|"><i class="fas fa-check"></i></button>
+                                    <button class="btn btn-danger btn-sm" title="Cancelar" th:if="${order.status != 'CANCELADO'}" th:attr="onclick=|cancelOrder(${order.id})|"><i class="fas fa-times"></i></button>
+                                </td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </main>
+        <footer th:replace="~{fragments/footer :: footer}"></footer>
+    </div>
+</div>
+
+<div class="modal fade" id="orderModal" tabindex="-1" aria-labelledby="orderModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="orderModalLabel">Nuevo Pedido</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="orderForm" th:action="@{/order-buy}" method="post">
                 <div class="modal-body">
                     <div class="row">
-                        <div class="col-md-6 mb-3"><label class="form-label">Cliente</label><select name="client.id" class="form-select" required><option th:each="c : ${clients}" th:value="${c.id}" th:text="${c.firstName} + ' ' + ${c.lastName}"></option></select></div>
-                        <div class="col-md-6 mb-3"><label class="form-label">Empleado</label><select name="employee.id" class="form-select" required><option th:each="e : ${employees}" th:value="${e.id}" th:text="${e.firstName} + ' ' + ${e.lastName}"></option></select></div>
-                    </div>
-                    <div class="row">
-                        <div class="col-md-6 mb-3"><label class="form-label">Fecha</label><input type="date" class="form-control" name="dateOrder" id="dateOrderInput" required></div>
-                        <div class="col-md-6 mb-3"><label class="form-label">Estado</label><select name="status" class="form-select" required><option th:each="st : ${T(com.hardware.hardwareStore.model.SaleStatus).values()}" th:value="${st}" th:text="${st.displayName}"></option></select></div>
+                        <div class="col-md-4 mb-3">
+                            <label for="client" class="form-label">Cliente</label>
+                            <select id="client" name="client.id" class="form-select" required>
+                                <option th:each="c : ${clients}" th:value="${c.id}" th:text="${c.name}"></option>
+                            </select>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label for="employee" class="form-label">Empleado</label>
+                            <select id="employee" name="employee.id" class="form-select" required>
+                                <option th:each="e : ${employees}" th:value="${e.id}" th:text="${e.name}"></option>
+                            </select>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label for="dateOrder" class="form-label">Fecha del Pedido</label>
+                            <input type="date" id="dateOrder" name="dateOrder" class="form-control" required>
+                        </div>
                     </div>
                     <hr>
-                    <h5>Productos</h5>
-                    <div id="product-details-container"></div>
-                    <button type="button" class="btn btn-success btn-sm mt-2" onclick="addProductRow()"><i class="fas fa-plus"></i> Agregar Producto</button>
-                    <hr>
-                    <div class="text-end"><h4>Total: <span id="total-display">$0</span></h4></div>
+                    <div class="row align-items-end mb-3">
+                        <div class="col-md-5">
+                            <label for="productSelect" class="form-label">Producto</label>
+                            <select id="productSelect" class="form-select">
+                                <option value="">Seleccione un producto</option>
+                                <option th:each="p : ${allInventory}" th:value="${p.id}" th:text="${p.name}" th:attr="data-price=${p.price}"></option>
+                            </select>
+                        </div>
+                        <div class="col-md-2">
+                            <label for="quantity" class="form-label">Cantidad</label>
+                            <input type="number" id="quantity" class="form-control" value="1" min="1">
+                        </div>
+                        <div class="col-md-3">
+                            <label for="price" class="form-label">Precio Compra</label>
+                            <input type="number" id="price" class="form-control" value="0" min="0">
+                        </div>
+                        <div class="col-md-2">
+                            <button type="button" class="btn btn-primary w-100" onclick="addProduct()">Agregar</button>
+                        </div>
+                    </div>
+                    <table class="table table-hover">
+                        <thead>
+                        <tr>
+                            <th>Producto</th>
+                            <th>Cantidad</th>
+                            <th>Precio Unit.</th>
+                            <th>Subtotal</th>
+                            <th>Acción</th>
+                        </tr>
+                        </thead>
+                        <tbody id="orderDetailsTable">
+                        </tbody>
+                    </table>
+                    <h4 class="text-end">Total: <span id="totalAmount">$0</span></h4>
                 </div>
                 <div class="modal-footer">
-                    <button type="submit" class="btn btn-primary">Guardar Pedido</button>
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                    <button type="submit" class="btn btn-primary">Guardar Pedido</button>
                 </div>
             </form>
         </div>
     </div>
 </div>
 
-        <!-- Modal para editar estado -->
-        <div class="modal fade" id="editStatusModal" tabindex="-1" aria-hidden="true">
-          <div class="modal-dialog">
-            <div class="modal-content">
-              <form id="editStatusForm" method="post" th:action="@{/orderbuy/update/status}">
-                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
-                <input type="hidden" name="id" id="editOrderId">
-
-                <div class="modal-header">
-                  <h5 class="modal-title">Editar Estado de Pedido</h5>
-                  <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                  <div class="mb-3">
-                    <label class="form-label">Estado</label>
-                    <select class="form-select" name="status" id="editOrderStatus" required>
-                      <option value="PENDIENTE">PENDIENTE</option>
-                      <option value="PROCESADO">PROCESADO</option>
-                      <option value="ENVIADO">ENVIADO</option>
-                      <option value="ENTREGADO">ENTREGADO</option>
-                      <option value="CANCELADO">CANCELADO</option>
-                    </select>
-                  </div>
-                </div>
-                <div class="modal-footer">
-                  <button type="submit" class="btn btn-primary">Actualizar Estado</button>
-                  <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                </div>
-              </form>
-            </div>
-          </div>
-        </div>
-
-        <!-- Modal para ver detalles -->
-        <div class="modal fade" id="viewOrderModal" tabindex="-1" aria-hidden="true">
-          <div class="modal-dialog modal-lg">
-            <div class="modal-content">
-              <div class="modal-header">
-                <h5 class="modal-title">Detalles de Pedido</h5>
+<div class="modal fade" id="viewOrderModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Detalles del Pedido #<span id="viewOrderId"></span></h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-              </div>
-              <div class="modal-body">
-                <!-- Los detalles se cargarán dinámicamente -->
-              </div>
-              <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
-              </div>
             </div>
-          </div>
+            <div class="modal-body">
+                <p><strong>Cliente:</strong> <span id="viewClientName"></span></p>
+                <p><strong>Empleado:</strong> <span id="viewEmployeeName"></span></p>
+                <p><strong>Fecha:</strong> <span id="viewDateOrder"></span></p>
+                <table class="table">
+                    <thead>
+                    <tr>
+                        <th>Producto</th>
+                        <th>Cantidad</th>
+                        <th>Precio Unit.</th>
+                        <th>Subtotal</th>
+                    </tr>
+                    </thead>
+                    <tbody id="viewOrderDetailsTable">
+                    </tbody>
+                </table>
+                <h4 class="text-end">Total: <span id="viewTotalAmount"></span></h4>
+            </div>
         </div>
-
-        <div class="d-flex justify-content-between align-items-center mb-3">
-          <div class="d-flex align-items-center">
-            <label for="entries" class="me-2 mb-0">Mostrar:</label>
-            <select id="entries" class="form-select d-inline-block" style="width: 80px;">
-              <option value="10">10</option>
-              <option value="25">25</option>
-              <option value="50">50</option>
-              <option value="-1">Todos</option>
-            </select>
-          </div>
-          <div class="d-flex align-items-center">
-            <label for="search" class="me-2 mb-0">Buscar:</label>
-            <input type="search" id="search" class="form-control d-inline-block w-auto" placeholder="Buscar...">
-          </div>
-        </div>
-
-        <!-- Tarjeta con la Tabla -->
-        <div class="card mb-4">
-          <div class="card-body">
-            <table class="table table-bordered table-striped table-hover" id="dataTable" width="100%">
-              <thead>
-              <tr>
-                <th>ID</th>
-                <th>Cliente</th>
-                <th>Empleado</th>
-                <th>Fecha</th>
-                <th>Total</th>
-                <th>Estado</th>
-                <th>Acciones</th>
-              </tr>
-              </thead>
-              <tbody>
-              <tr th:each="order : ${orders}">
-                                <td th:text="${order.id}"></td>
-                                <td th:text="${order.client?.firstName} + ' ' + ${order.client?.lastName}"></td>
-                                <td th:text="${order.employee?.firstName} + ' ' + ${order.employee?.lastName}"></td>
-                                <td th:text="${#temporals.format(order.dateOrder, 'dd/MM/yyyy')}"></td>
-                                <td th:text="'$' + ${#numbers.formatInteger(order.total, 0, 'POINT')}"></td>
-                                <td>
-                                    <span th:classappend="${order.status == 'COMPLETADA' ? 'bg-success' : order.status == 'PENDIENTE' ? 'bg-warning text-dark' : 'bg-danger'}"
-                                          class="badge" th:text="${order.status}"></span>
-                                </td>
-                                <td class="text-center">
-                                    <button class="btn btn-info btn-sm" th:onclick="'viewOrderDetails(' + ${order.id} + ')'" title="Ver Detalles"><i class="fas fa-eye"></i></button>
-                                    <button class="btn btn-warning btn-sm" th:onclick="'prepareEditStatus(' + ${order.id} + ')'" title="Editar Estado"><i class="fas fa-edit"></i></button>
-                                    <button sec:authorize="hasRole('ADMIN')" class="btn btn-danger btn-sm" th:onclick="'prepareCancelOrder(' + ${order.id} + ')'" title="Cancelar Pedido"><i class="fas fa-times-circle"></i></button>
-                                </td>
-                            </tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
-      </div>
-    </main>
-
-    <!-- Footer -->
-    <footer th:replace="~{fragments/footer :: footer}"></footer>
-  </div>
+    </div>
 </div>
 
-<!-- Cancel Order Form -->
-<form id="cancelOrderForm" method="post" class="d-none">
-    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
-</form>
-
-<script th:inline="javascript">
-    const allInventory = /*[[${allInventory}]]*/ [];
-</script>
 
 <script src="https://code.jquery.com/jquery-3.7.0.js"></script>
+
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
+
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
 <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
 <script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
+
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
 
+<script th:src="@{/js/scripts.js}"></script>
+
 <script th:inline="javascript">
     let dataTable;
-    const orderModal = new bootstrap.Modal(document.getElementById('orderModal'));
-    const editStatusModal = new bootstrap.Modal(document.getElementById('editStatusModal'));
-    const viewOrderModal = new bootstrap.Modal(document.getElementById('viewOrderModal'));
 
-    function prepareNewOrder() {
-        document.getElementById('orderForm').reset();
-        document.getElementById('orderForm').setAttribute('action', '/order-buy');
-        document.getElementById('modalTitle').textContent = 'Nuevo Pedido';
-        document.getElementById('product-details-container').innerHTML = '';
-        addProductRow();
-        updateTotal();
-        const today = new Date().toISOString().split('T')[0];
-        document.getElementById('dateOrderInput').value = today;
-        orderModal.show();
-    }
+    function addProduct() {
+        const productSelect = document.getElementById('productSelect');
+        const selectedOption = productSelect.options[productSelect.selectedIndex];
+        if (!selectedOption.value) return;
 
-    function addProductRow() {
-        const container = document.getElementById('product-details-container');
-        const row = document.createElement('div');
-        row.className = 'row align-items-center product-row mb-2';
-        let options = allInventory.map(p => `<option value="${p.id}" data-price="${p.price}">${p.name} (Stock: ${p.stock})</option>`).join('');
+        const productId = selectedOption.value;
+        const productName = selectedOption.text;
+        const quantity = document.getElementById('quantity').value;
+        const price = document.getElementById('price').value;
 
-        row.innerHTML = `
-            <div class="col-md-5"><select class="form-select product-select" name="productIds">${options}</select></div>
-            <div class="col-md-2"><input type="number" name="quantities" class="form-control quantity-input" value="1" min="1"></div>
-            <div class="col-md-3"><input type="number" name="prices" class="form-control price-input" placeholder="Precio"></div>
-            <div class="col-md-2"><button type="button" class="btn btn-danger btn-sm" onclick="removeProductRow(this)"><i class="fas fa-trash"></i></button></div>
+        if (parseInt(quantity) <= 0 || parseInt(price) <= 0) {
+            Swal.fire('Error', 'La cantidad y el precio deben ser mayores a cero.', 'error');
+            return;
+        }
+        const subtotal = quantity * price;
+
+        const newRow = `
+            <tr data-product-id="${productId}">
+                <td>${productName}<input type="hidden" name="productIds" value="${productId}"></td>
+                <td>${quantity}<input type="hidden" name="quantities" value="${quantity}"></td>
+                <td>$${parseInt(price).toLocaleString()}<input type="hidden" name="prices" value="${price}"></td>
+                <td>$${subtotal.toLocaleString()}</td>
+                <td><button type="button" class="btn btn-danger btn-sm" onclick="removeProduct(this)">Eliminar</button></td>
+            </tr>
         `;
-        container.appendChild(row);
-        attachRowListeners(row);
-        updatePriceFromSelection(row.querySelector('.product-select'));
-    }
-
-    function attachRowListeners(row) {
-        row.querySelector('.product-select').addEventListener('change', (e) => updatePriceFromSelection(e.target));
-        row.querySelector('.quantity-input').addEventListener('input', updateTotal);
-        row.querySelector('.price-input').addEventListener('input', updateTotal);
-    }
-
-    function updatePriceFromSelection(selectElement) {
-        const selectedOption = selectElement.options[selectElement.selectedIndex];
-        const price = selectedOption.getAttribute('data-price');
-        const priceInput = selectElement.closest('.product-row').querySelector('.price-input');
-        priceInput.value = price;
+        document.getElementById('orderDetailsTable').insertAdjacentHTML('beforeend', newRow);
         updateTotal();
     }
 
-    function removeProductRow(button) {
-        button.closest('.product-row').remove();
+    function removeProduct(button) {
+        button.closest('tr').remove();
         updateTotal();
     }
 
     function updateTotal() {
         let total = 0;
-        document.querySelectorAll('.product-row').forEach(row => {
-            const quantity = parseInt(row.querySelector('.quantity-input').value) || 0;
-            const price = parseFloat(row.querySelector('.price-input').value) || 0;
+        document.querySelectorAll('#orderDetailsTable tr').forEach(row => {
+            const quantity = row.querySelector('input[name="quantities"]').value;
+            const price = row.querySelector('input[name="prices"]').value;
             total += quantity * price;
         });
-        document.getElementById('total-display').textContent = '$' + total.toLocaleString();
+        document.getElementById('totalAmount').textContent = '$' + total.toLocaleString();
     }
 
-    function prepareEditStatus(orderId) {
-        fetch(`/order-buy/api/${orderId}`).then(res => res.json()).then(order => {
-            document.getElementById('editOrderId').value = order.id;
-            document.getElementById('editOrderStatus').value = order.status;
-            editStatusModal.show();
-        }).catch(err => Swal.fire('Error', 'No se pudieron cargar los datos del pedido.', 'error'));
+    function prepareNewOrder() {
+        document.getElementById('orderForm').reset();
+        document.getElementById('orderDetailsTable').innerHTML = '';
+        const today = new Date().toISOString().split('T')[0];
+        document.getElementById('dateOrder').value = today;
+        updateTotal();
     }
 
-    function prepareCancelOrder(orderId) {
+    async function viewOrder(orderId) {
+        try {
+            const response = await fetch(`/order-buy/api/${orderId}/details`);
+            if (!response.ok) throw new Error('Error al cargar detalles');
+            const details = await response.json();
+
+            const orderResponse = await fetch(`/order-buy/api/${orderId}`);
+            if (!orderResponse.ok) throw new Error('Error al cargar la orden');
+            const orderData = await orderResponse.json();
+
+            document.getElementById('viewOrderId').textContent = orderData.id;
+            document.getElementById('viewClientName').textContent = orderData.client.name;
+            document.getElementById('viewEmployeeName').textContent = orderData.employee.name;
+            document.getElementById('viewDateOrder').textContent = new Date(orderData.dateOrder + 'T00:00:00').toLocaleDateString('es-CO');
+
+            const tableBody = document.getElementById('viewOrderDetailsTable');
+            tableBody.innerHTML = '';
+            let total = 0;
+            details.forEach(detail => {
+                const subtotal = detail.amount * detail.priceUnit;
+                total += subtotal;
+                const row = `<tr>
+                    <td>${detail.inventory.name}</td>
+                    <td>${detail.amount}</td>
+                    <td>$${detail.priceUnit.toLocaleString()}</td>
+                    <td>$${subtotal.toLocaleString()}</td>
+                </tr>`;
+                tableBody.innerHTML += row;
+            });
+            document.getElementById('viewTotalAmount').textContent = '$' + total.toLocaleString();
+
+            const modal = new bootstrap.Modal(document.getElementById('viewOrderModal'));
+            modal.show();
+        } catch (error) {
+            Swal.fire('Error', error.message, 'error');
+        }
+    }
+
+
+    function completeOrder(id) {
         Swal.fire({
-            title: '¿Está seguro?',
-            text: "Esta acción no se puede revertir. El pedido será marcado como CANCELADO.",
+            title: '¿Completar Pedido?',
+            text: "Esta acción cambiará el estado a 'Completada' y aumentará el stock. ¿Continuar?",
             icon: 'warning',
             showCancelButton: true,
-            confirmButtonColor: '#d33',
-            cancelButtonColor: '#3085d6',
-            confirmButtonText: 'Sí, cancelar',
+            confirmButtonColor: '#28a745',
+            cancelButtonColor: '#6c757d',
+            confirmButtonText: 'Sí, completar',
             cancelButtonText: 'No'
         }).then((result) => {
             if (result.isConfirmed) {
-                const form = document.getElementById('cancelOrderForm');
-                form.action = `/order-buy/cancel/${orderId}`;
+                const form = document.createElement('form');
+                form.method = 'post';
+                form.action = `/order-buy/update-status/${id}`;
+                const statusInput = document.createElement('input');
+                statusInput.type = 'hidden';
+                statusInput.name = 'status';
+                statusInput.value = 'COMPLETADA';
+                form.appendChild(statusInput);
+                document.body.appendChild(form);
                 form.submit();
             }
         });
     }
 
-    async function viewOrderDetails(orderId) {
-        try {
-            const [orderRes, detailsRes] = await Promise.all([
-                fetch(`/order-buy/api/${orderId}`),
-                fetch(`/order-buy/api/${orderId}/details`)
-            ]);
-            if (!orderRes.ok || !detailsRes.ok) throw new Error('No se pudieron cargar los datos.');
-
-            const order = await orderRes.json();
-            const details = await detailsRes.json();
-
-            let masterHtml = `
-                <p><strong>Cliente:</strong> ${order.client.firstName} ${order.client.lastName}</p>
-                <p><strong>Empleado:</strong> ${order.employee.firstName} ${order.employee.lastName}</p>
-                <p><strong>Fecha:</strong> ${new Date(order.dateOrder).toLocaleDateString()}</p>
-                <p><strong>Total:</strong> $${order.total.toLocaleString()}</p>
-            `;
-            let detailHtml = '<h5>Productos:</h5><ul class="list-group">';
-            details.forEach(d => {
-                detailHtml += `<li class="list-group-item d-flex justify-content-between align-items-center">
-                    ${d.inventory.name} <span>(Cant: ${d.amount}, P.U: $${d.priceUnit.toLocaleString()})</span></li>`;
-            });
-            detailHtml += '</ul>';
-
-            document.getElementById('viewOrderTitle').innerText = 'Detalles de Pedido #' + order.id;
-            document.getElementById('viewOrderBody').innerHTML = masterHtml + detailHtml;
-            viewOrderModal.show();
-        } catch (err) {
-            Swal.fire('Error', err.message, 'error');
-        }
+    function cancelOrder(id) {
+        Swal.fire({
+            title: '¿Estás seguro de cancelar?',
+            text: "Esta acción cambiará el estado a 'Cancelado'.",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#d33',
+            cancelButtonColor: '#6c757d',
+            confirmButtonText: 'Sí, cancelar',
+            cancelButtonText: 'No'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                const form = document.createElement('form');
+                form.method = 'post';
+                form.action = `/order-buy/cancel/${id}`;
+                document.body.appendChild(form);
+                form.submit();
+            }
+        });
     }
 
-    function exportToExcel() { /* ... (código sin cambios) ... */ }
-    function exportToPDF() { /* ... (código sin cambios) ... */ }
+  function exportToExcel() {
+      try {
+          const today = new Date();
+          const formattedDate = today.toLocaleDateString('es-ES');
+          const title = "Reporte de Pedidos";
+          const generated = `Generado el: ${formattedDate}`;
+          const headers = ['ID', 'Cliente', 'Empleado', 'Fecha', 'Total', 'Estado'];
+          const dataToExport = dataTable.rows({ search: 'applied' }).data().toArray();
+
+          let reportData = [
+              [title], [generated], [], headers
+          ];
+          dataToExport.forEach(row => {
+              // Limpia el HTML de la celda de estado para obtener solo el texto
+              const statusText = $('<div>').html(row[5]).text().trim();
+              const newRow = [row[0], row[1], row[2], row[3], row[4], statusText];
+              reportData.push(newRow);
+          });
+
+          const wb = XLSX.utils.book_new();
+          const ws = XLSX.utils.aoa_to_sheet(reportData);
+          const merge = { s: { r: 0, c: 0 }, e: { r: 0, c: headers.length - 1 } };
+          if (!ws['!merges']) ws['!merges'] = [];
+          ws['!merges'].push(merge);
+
+          const columnWidths = reportData[3].map((_, colIndex) => {
+              let maxLength = 0;
+              for (let rowIndex = 3; rowIndex < reportData.length; rowIndex++) {
+                  const cellValue = reportData[rowIndex][colIndex];
+                  if (cellValue && cellValue.toString().length > maxLength) {
+                      maxLength = cellValue.toString().length;
+                  }
+              }
+              return { wch: maxLength + 2 };
+          });
+          ws['!cols'] = columnWidths;
+
+          XLSX.utils.book_append_sheet(wb, ws, 'Pedidos');
+          const fileDate = `${today.getFullYear()}-${(today.getMonth() + 1).toString().padStart(2, '0')}-${today.getDate().toString().padStart(2, '0')}`;
+          XLSX.writeFile(wb, `Reporte_Pedidos_${fileDate}.xlsx`);
+
+      } catch (error) {
+          console.error("Error al exportar a Excel:", error);
+          Swal.fire('Error', 'No se pudo exportar a Excel.', 'error');
+      }
+  }
+
+  function exportToPDF() {
+      fetch('/assets/img/logoo.png')
+          .then(response => response.blob())
+          .then(blob => {
+              const reader = new FileReader();
+              reader.readAsDataURL(blob);
+              reader.onloadend = function() {
+                  const base64data = reader.result;
+                  try {
+                      const { jsPDF } = window.jspdf;
+                      const doc = new jsPDF();
+                      const pageWidth = doc.internal.pageSize.width;
+                      const pageHeight = doc.internal.pageSize.height;
+
+                      doc.setFillColor('#FFC107');
+                      doc.rect(0, 0, pageWidth, 10, 'F');
+                      const logoSize = 25;
+                      const logoX = 15;
+                      const logoY = 14;
+                      doc.addImage(base64data, 'PNG', logoX, logoY, logoSize, logoSize);
+
+                      doc.setFontSize(22);
+                      doc.setFont('helvetica', 'bold');
+                      doc.setTextColor('#005A9C');
+                      doc.text('Reporte de Pedidos', logoX + logoSize + 5, 28);
+
+                      doc.setFontSize(11);
+                      doc.setFont('helvetica', 'normal');
+                      doc.setTextColor(100);
+                      const today = new Date();
+                      const dateStr = `Generado el: ${today.toLocaleDateString('es-ES')}`;
+                      doc.text(dateStr, logoX + logoSize + 5, 35);
+
+                      doc.autoTable({
+                          html: '#dataTable',
+                          startY: 50,
+                          columns: [0, 1, 2, 3, 4, 5],
+                          headStyles: { fillColor: [0, 90, 156], textColor: [255, 255, 255], fontStyle: 'bold', halign: 'center' },
+                          alternateRowStyles: { fillColor: [245, 245, 245] },
+                          styles: { halign: 'center', valign: 'middle', fontSize: 9 },
+                          didParseCell: function (data) {
+                              if (data.column.index === 0 && data.cell.section === 'body') {
+                                  data.cell.styles.fontStyle = 'bold';
+                              }
+                          },
+                          didDrawPage: function (data) {
+                              doc.setFillColor('#FFC107');
+                              doc.rect(0, pageHeight - 5, pageWidth, 5, 'F');
+                              let footerStr = `Página ${doc.internal.getNumberOfPages()}`;
+                              doc.setFontSize(10);
+                              doc.setTextColor(150);
+                              doc.text(footerStr, data.settings.margin.left, pageHeight - 10);
+                          }
+                      });
+
+                      const formattedDate = `${today.getFullYear()}-${(today.getMonth() + 1).toString().padStart(2, '0')}-${today.getDate().toString().padStart(2, '0')}`;
+                      doc.save(`Reporte_Pedidos_${formattedDate}.pdf`);
+
+                  } catch (error) {
+                      console.error("Error al exportar a PDF:", error);
+                      Swal.fire('Error', 'No se pudo exportar a PDF.', 'error');
+                  }
+              };
+          })
+          .catch(error => {
+              console.error("Error al cargar el logo para el PDF:", error);
+              Swal.fire('Error', 'No se pudo cargar el logo para generar el PDF.', 'error');
+          });
+  }
+
+
     function checkFlashMessages() {
-      const successMessage = /*[[${success}]]*/ null;
-      if (successMessage) { Swal.fire({ icon: 'success', title: 'Éxito', text: successMessage, timer: 2000, showConfirmButton: false }); }
-      const errorMessage = /*[[${error}]]*/ null;
-      if (errorMessage) { Swal.fire({ icon: 'error', title: 'Error', text: errorMessage }); }
+        const successMessage = /*[[${success}]]*/ null;
+        if (successMessage) { Swal.fire({ icon: 'success', title: 'Éxito', text: successMessage, timer: 2000, showConfirmButton: false }); }
+        const errorMessage = /*[[${error}]]*/ null;
+        if (errorMessage) { Swal.fire({ icon: 'error', title: 'Error', text: errorMessage }); }
     }
 
     $(document).ready(function() {
         dataTable = $('#dataTable').DataTable({
-            language: { "sProcessing": "Procesando...", "sLengthMenu": "Mostrar _MENU_ registros", "sZeroRecords": "No se encontraron resultados", "sEmptyTable": "Ningún pedido disponible", "sInfo": "Mostrando _START_ a _END_ de _TOTAL_ pedidos", "sInfoEmpty": "Mostrando 0 a 0 de 0 pedidos", "sInfoFiltered": "(filtrado de _MAX_ pedidos totales)", "sSearch": "Buscar:", "oPaginate": {"sFirst": "Primero","sLast": "Último","sNext": "Siguiente","sPrevious": "Anterior"} },
+            language: { "url": "//cdn.datatables.net/plug-ins/1.13.6/i18n/es-ES.json" },
             dom: '<"row"<"col-sm-12"t>><"row"<"col-sm-12 col-md-5"i><"col-sm-12 col-md-7"p>>',
             responsive: true,
-            columnDefs: [{ targets: 6, orderable: false, searchable: false }]
         });
         $('#search').on('keyup', function() { dataTable.search(this.value).draw(); });
-        $('#entries').on('change', function() { dataTable.page.len(this.value).draw(); });
         checkFlashMessages();
-        document.querySelectorAll('#product-details-container').forEach(attachRowListeners);
     });
 </script>
+
 </body>
 </html>

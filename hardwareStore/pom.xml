@@ -9,10 +9,10 @@
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
 	<groupId>com.hardware</groupId>
-	<artifactId>hardwareStore</artifactId>
+	<artifactId>ForgeMax</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
-	<name>hardwareStore</name>
-	<description>HardwareStore project for Spring Boot</description>
+	<name>ForgeMax</name>
+	<description>ForgeMax project for Spring Boot</description>
 	<url/>
 	<licenses>
 		<license/>
@@ -116,8 +116,13 @@
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-mail</artifactId>
 		</dependency>
-	</dependencies>
 
+		<dependency>
+			<groupId>org.projectlombok</groupId>
+			<artifactId>lombok</artifactId>
+			<optional>true</optional>
+		</dependency>
+	</dependencies>
 	<build>
 		<plugins>
 			<plugin>
@@ -126,5 +131,4 @@
 			</plugin>
 		</plugins>
 	</build>
-
 </project>
