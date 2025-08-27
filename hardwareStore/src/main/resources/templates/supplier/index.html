@@ -188,13 +188,53 @@
         });
   }
 
-  function exportToExcel() {
-     Swal.fire('Función no implementada', 'La exportación a Excel se añadirá pronto.', 'info');
-  }
+     function exportToExcel() {
+          try {
+              const today = new Date();
+              const title = "Reporte de Proveedores";
+              const headers = ['ID', 'Nombre', 'Teléfono', 'Producto Suministrado'];
+              const dataToExport = dataTable.rows({ search: 'applied' }).data().toArray();
+              let reportData = [ [title], [`Generado el: ${today.toLocaleDateString('es-ES')}`], [], headers ];
+              dataToExport.forEach(row => { reportData.push([row[0], row[1], row[2], row[3]]); });
+              const wb = XLSX.utils.book_new();
+              const ws = XLSX.utils.aoa_to_sheet(reportData);
+              ws['!merges'] = [{ s: { r: 0, c: 0 }, e: { r: 0, c: headers.length - 1 } }];
+              ws['!cols'] = headers.map(h => ({ wch: 20 })); // Ancho de columna
+              XLSX.utils.book_append_sheet(wb, ws, 'Proveedores');
+              XLSX.writeFile(wb, `Reporte_Proveedores_${today.toISOString().split('T')[0]}.xlsx`);
+          } catch (error) { Swal.fire('Error', 'No se pudo exportar a Excel.', 'error'); }
+      }
 
-  function exportToPDF() {
-    Swal.fire('Función no implementada', 'La exportación a PDF se añadirá pronto.', 'info');
-  }
+      function exportToPDF() {
+          fetch('/assets/img/logoo.png').then(res => res.blob()).then(blob => {
+              const reader = new FileReader();
+              reader.readAsDataURL(blob);
+              reader.onloadend = function() {
+                  const base64data = reader.result;
+                  try {
+                      const { jsPDF } = window.jspdf;
+                      const doc = new jsPDF();
+                      const today = new Date();
+                      doc.setFillColor('#FFC107');
+                      doc.rect(0, 0, doc.internal.pageSize.width, 10, 'F');
+                      doc.addImage(base64data, 'PNG', 15, 14, 25, 25);
+                      doc.setFontSize(22); doc.setFont('helvetica', 'bold'); doc.setTextColor('#005A9C');
+                      doc.text('Reporte de Proveedores', 45, 28);
+                      doc.setFontSize(11); doc.setFont('helvetica', 'normal'); doc.setTextColor(100);
+                      doc.text(`Generado el: ${today.toLocaleDateString('es-ES')}`, 45, 35);
+                      doc.autoTable({
+                          html: '#dataTable', startY: 50, columns: [0, 1, 2, 3],
+                          headStyles: { fillColor: [0, 90, 156] },
+                          didDrawPage: data => {
+                              doc.setFillColor('#FFC107');
+                              doc.rect(0, doc.internal.pageSize.height - 5, doc.internal.pageSize.width, 5, 'F');
+                          }
+                      });
+                      doc.save(`Reporte_Proveedores_${today.toISOString().split('T')[0]}.pdf`);
+                  } catch (error) { Swal.fire('Error', 'No se pudo exportar a PDF.', 'error'); }
+              };
+          });
+      }
 
   $(document).ready(function() {
     dataTable = $('#dataTable').DataTable({
