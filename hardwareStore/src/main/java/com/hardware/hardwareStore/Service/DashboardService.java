@@ -51,4 +51,9 @@ public class DashboardService {
         LocalDate endOfMonth = startOfMonth.plusMonths(1);
         return saleRepository.getTotalSalesBetweenDates(SaleStatus.COMPLETADA, startOfMonth, endOfMonth);
     }
+
+    public List<Map<String, Object>> getMonthlySalesData() {
+        LocalDate startDate = LocalDate.now().minusDays(30);
+        return saleRepository.findDailySalesSince(SaleStatus.COMPLETADA, startDate);
+    }
 }

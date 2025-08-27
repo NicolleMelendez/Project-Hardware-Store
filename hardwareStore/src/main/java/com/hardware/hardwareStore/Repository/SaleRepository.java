@@ -45,4 +45,6 @@ public interface SaleRepository extends JpaRepository<Sale, Long> {
     @Query("SELECT new map(c.name as clientName, SUM(s.total) as total) FROM Sale s JOIN s.client c WHERE s.status = :status AND s.dateSale >= :startDate AND s.dateSale < :endDate GROUP BY c.name ORDER BY total DESC")
     List<Map<String, Object>> findTopCustomersByDateRange(@Param("status") SaleStatus status, @Param("startDate") LocalDate startDate, @Param("endDate") LocalDate endDate, Pageable pageable);
 
+    @Query("SELECT new map(FUNCTION('DATE', s.dateSale) as saleDate, SUM(s.total) as total) FROM Sale s WHERE s.status = :status AND s.dateSale >= :startDate GROUP BY FUNCTION('DATE', s.dateSale) ORDER BY saleDate ASC")
+    List<Map<String, Object>> findDailySalesSince(@Param("status") SaleStatus status, @Param("startDate") LocalDate startDate);
 }
