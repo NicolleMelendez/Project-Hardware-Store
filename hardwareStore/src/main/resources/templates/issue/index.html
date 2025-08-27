@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.w3.org/1999/xhtml">
 <head th:replace="~{fragments/head :: head('Salidas de Inventario')}"></head>
 
 <body class="sb-nav-fixed">
@@ -10,7 +10,7 @@
   <div id="layoutSidenav_content">
     <main>
       <div class="container-fluid px-4">
-        <h1 class="mt-4">Gestión de Salidas de Inventario</h1>
+        <h1 class="mt-4">Gestión de Salidas</h1>
 
         <div id="flash-messages" th:data-success="${success}" th:data-error="${error}" style="display: none;"></div>
 
@@ -130,12 +130,12 @@
                 <td th:text="${issue.employee?.name}"></td>
                 <td th:text="${issue.observation} ?: '-'"></td>
                 <td class="text-center">
-                  <button class="btn btn-warning btn-sm me-1" th:onclick="'prepareEditIssue(' + ${issue.id} + ')'">
+                  <button sec:authorize="hasRole('ADMIN')" class="btn btn-warning btn-sm me-1" th:onclick="'prepareEditIssue(' + ${issue.id} + ')'">
                     <i class="fas fa-edit"></i>
                   </button>
                   <form th:action="@{/issue/delete/{id}(id=${issue.id})}" method="post" style="display:inline;">
                     <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
-                    <button type="button" class="btn btn-danger btn-sm" onclick="confirmDelete(this)">
+                    <button sec:authorize="hasRole('ADMIN')" type="button" class="btn btn-danger btn-sm" onclick="confirmDelete(this)">
                       <i class="fas fa-trash-alt"></i>
                     </button>
                   </form>

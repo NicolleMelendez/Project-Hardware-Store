@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.w3.org/1999/xhtml">
 <head th:replace="~{fragments/head :: head('Proveedores')}">
 </head>
 
@@ -16,7 +16,7 @@
 
         <div class="d-flex justify-content-between align-items-center mb-3">
           <div>
-            <button type="button" class="btn btn-primary me-2" data-bs-toggle="modal"
+            <button sec:authorize="hasRole('ADMIN')" type="button" class="btn btn-primary me-2" data-bs-toggle="modal"
                     data-bs-target="#supplierModal" onclick="prepareNewSupplier()">
               <i class="fas fa-plus me-1"></i> Nuevo Proveedor
             </button>
@@ -96,13 +96,13 @@
                 <td th:text="${sup.phone}"></td>
                 <td th:text="${sup.suppliedProduct}"></td>
                 <td class="text-center">
-                  <button class="btn btn-warning btn-sm me-1"
+                  <button sec:authorize="hasRole('ADMIN')" class="btn btn-warning btn-sm me-1"
                           data-bs-toggle="modal" data-bs-target="#supplierModal"
                           onclick="prepareEditSupplier(this)">
                     <i class="fas fa-edit"></i>
                   </button>
                   <form th:action="@{/supplier/delete/{id}(id=${sup.id})}" method="post" style="display:inline;">
-                    <button type="button" class="btn btn-danger btn-sm" onclick="confirmDelete(this)">
+                    <button sec:authorize="hasRole('ADMIN')" type="button" class="btn btn-danger btn-sm" onclick="confirmDelete(this)">
                       <i class="fas fa-trash-alt"></i>
                     </button>
                   </form>

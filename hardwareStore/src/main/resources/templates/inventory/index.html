@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.w3.org/1999/xhtml">
 <head th:replace="~{fragments/head :: head('Inventario')}"></head>
 
 <body class="sb-nav-fixed">
@@ -15,7 +15,7 @@
 
         <div class="d-flex justify-content-between align-items-center mb-3">
           <div>
-            <button type="button" class="btn btn-primary me-2" data-bs-toggle="modal"
+            <button sec:authorize="hasRole('ADMIN')" type="button" class="btn btn-primary me-2" data-bs-toggle="modal"
                     data-bs-target="#inventoryModal" onclick="prepareNewItem()">
               <i class="fas fa-plus me-1"></i> Nuevo Producto
             </button>
@@ -74,7 +74,8 @@
                   </div>
                   <div class="mb-3">
                     <label class="form-label">Precio</label>
-                    <input type="number" step="0.01" class="form-control" th:field="*{price}" required>
+                    <input type="number" step="1" class="form-control" th:field="*{price}" required
+                           oninput="this.value = Math.abs(Math.round(this.value))">
                   </div>
                   <div class="mb-3">
                     <label class="form-label">Stock</label>
@@ -159,7 +160,7 @@
                     <i class="fas fa-edit"></i>
                   </button>
                   <form th:action="@{/inventory/delete/{id}(id=${item.id})}" method="post" style="display:inline;">
-                    <button type="button" class="btn btn-danger btn-sm" onclick="confirmDelete(this)">
+                    <button sec:authorize="hasRole('ADMIN')" type="button" class="btn btn-danger btn-sm" onclick="confirmDelete(this)">
                       <i class="fas fa-trash-alt"></i>
                     </button>
                   </form>

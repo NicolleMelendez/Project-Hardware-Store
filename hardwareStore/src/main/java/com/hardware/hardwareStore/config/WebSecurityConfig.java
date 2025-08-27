@@ -31,7 +31,7 @@ public class WebSecurityConfig implements WebMvcConfigurer {
                                 "/assets/**", "/css/**", "/js/**",
                                 "/login", "/register", "/error",
                                 "/forgot-password", "/reset-password").permitAll()
-                        .requestMatchers("/employee/**", "/api/employees/**").hasAuthority("ADMIN")
+                        .requestMatchers("/employee/**", "/api/employees/**").hasRole("ADMIN")
                         .anyRequest().authenticated()
                 )
                 .formLogin(form -> form
