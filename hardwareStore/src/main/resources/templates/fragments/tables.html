@@ -1,0 +1,22 @@
+<div th:fragment="table" xmlns:th="http://www.w3.org/1999/xhtml">
+    <div class="card mb-4">
+        <div class="card-header">
+            <i class="fas fa-table me-1"></i>
+            <span th:text="${tableTitle}">Título de la tabla</span>
+        </div>
+        <div class="card-body">
+            <table class="table table-dark table-striped">
+                <thead>
+                <tr>
+                    <th th:each="header : ${headers}" th:text="${header}">Header</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="item : ${items}">
+                    <td th:each="field : ${item}" th:text="${field}">Dato</td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

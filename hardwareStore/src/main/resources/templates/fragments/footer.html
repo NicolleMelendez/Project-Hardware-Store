@@ -1,0 +1,12 @@
+<footer th:fragment="footer" class="py-4 bg-light mt-auto" xmlns:th="http://www.w3.org/1999/xhtml">
+    <div class="container-fluid px-4">
+        <div class="d-flex align-items-center justify-content-between small">
+            <div class="text-muted">Copyright &copy; ForgeMax <span th:text="${#dates.year(#dates.createNow())}">2023</span></div>
+            <div>
+                <a href="#">Política de privacidad</a>
+                &middot;
+                <a href="#">Términos</a>
+            </div>
+        </div>
+    </div>
+</footer>

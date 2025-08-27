@@ -1,0 +1,8 @@
+package com.hardware.hardwareStore.Exception;
+
+public class SaleNotFoundException extends RuntimeException {
+
+    public SaleNotFoundException(String message) {
+        super(message);
+    }
+}

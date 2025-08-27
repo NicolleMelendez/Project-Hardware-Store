@@ -1,0 +1,429 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.w3.org/1999/xhtml">
+<head th:replace="~{fragments/head :: head('Inventario')}"></head>
+
+<body class="sb-nav-fixed">
+
+<div th:replace="~{fragments/navbar :: navbar}"></div>
+
+<div id="layoutSidenav">
+  <div th:replace="~{fragments/sidebar :: sidebar}"></div>
+  <div id="layoutSidenav_content">
+    <main>
+      <div class="container-fluid px-4">
+        <h1 class="mt-4">Gestión de Inventario</h1>
+
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <div>
+            <button sec:authorize="hasRole('ADMIN')" type="button" class="btn btn-primary me-2" data-bs-toggle="modal"
+                    data-bs-target="#inventoryModal" onclick="prepareNewItem()">
+              <i class="fas fa-plus me-1"></i> Nuevo Producto
+            </button>
+            <button type="button" class="btn btn-success me-2" onclick="exportToExcel()">
+              <i class="fas fa-file-excel me-1"></i> Descargar Excel
+            </button>
+            <button type="button" class="btn btn-danger" onclick="exportToPDF()">
+              <i class="fas fa-file-pdf me-1"></i> Descargar PDF
+            </button>
+          </div>
+        </div>
+
+        <div class="modal fade" id="inventoryModal" tabindex="-1" aria-hidden="true">
+          <div class="modal-dialog">
+            <div class="modal-content">
+              <form id="inventoryForm" th:action="@{/inventory/save}" th:object="${inventory}" method="post">
+                <input type="hidden" th:field="*{id}" id="inventoryId">
+                <div class="modal-header">
+                  <h5 class="modal-title" id="modalTitle">Nuevo Producto</h5>
+                  <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                  <div class="mb-3">
+                    <label class="form-label">Nombre</label>
+                    <input type="text" class="form-control" th:field="*{name}" required>
+                  </div>
+                  <div class="mb-3">
+                    <label class="form-label">Categoría</label>
+                    <select class="form-select" th:field="*{category}" required>
+                      <option value="">-- Seleccione una categoría --</option>
+                      <option value="Ferretería">Ferretería</option>
+                      <option value="Electricidad">Electricidad</option>
+                      <option value="Fontanería">Fontanería</option>
+                      <option value="Construcción">Construcción</option>
+                      <option value="Herramientas">Herramientas</option>
+                      <option value="Pintura">Pintura</option>
+                      <option value="Jardinería">Jardinería</option>
+                    </select>
+                  </div>
+                  <div class="mb-3">
+                    <label class="form-label">Unidad de Medida</label>
+                    <select class="form-select" th:field="*{unit_measure}" required>
+                      <option value="">-- Seleccione unidad --</option>
+                      <option value="Unidad">Unidad</option>
+                      <option value="Metro">Metro</option>
+                      <option value="Kilogramo">Kilogramo</option>
+                      <option value="Litro">Litro</option>
+                      <option value="Caja">Caja</option>
+                      <option value="Paquete">Paquete</option>
+                      <option value="Rollo">Rollo</option>
+                    </select>
+                  </div>
+                  <div class="mb-3">
+                    <label class="form-label">Peso Unitario</label>
+                    <input type="number" step="0.01" class="form-control" th:field="*{unit_weight}" required>
+                  </div>
+                  <div class="mb-3">
+                    <label class="form-label">Precio</label>
+                    <input type="number" step="1" class="form-control" th:field="*{price}" required
+                           oninput="this.value = Math.abs(Math.round(this.value))">
+                  </div>
+                  <div class="mb-3">
+                    <label class="form-label">Stock</label>
+                    <input type="number" class="form-control" th:field="*{stock}" required>
+                  </div>
+                  <div class="mb-3" id="minStockGroup">
+                    <label class="form-label">Stock Mínimo</label>
+                    <input type="number" class="form-control" th:field="*{minStock}" required>
+                  </div>
+                  <div class="mb-3">
+                    <label class="form-label">Proveedor</label>
+                    <select class="form-select" th:field="*{supplier}">
+                      <option value="">-- Seleccione un proveedor --</option>
+                      <option th:each="sup : ${suppliers}" th:value="${sup.id}" th:text="${sup.name}"></option>
+                    </select>
+                  </div>
+                </div>
+                <div class="modal-footer">
+                  <button type="submit" class="btn btn-primary">Guardar</button>
+                  <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <div class="d-flex align-items-center">
+            <label for="entries" class="me-2 mb-0">Mostrar:</label>
+            <select id="entries" class="form-select d-inline-block" style="width: 80px;">
+              <option value="10">10</option>
+              <option value="25">25</option>
+              <option value="50">50</option>
+              <option value="-1">Todos</option>
+            </select>
+          </div>
+          <div class="d-flex align-items-center">
+            <label for="search" class="me-2 mb-0">Buscar:</label>
+            <input type="search" id="search" class="form-control d-inline-block w-auto">
+          </div>
+        </div>
+
+        <div class="card mb-4">
+          <div class="card-body">
+            <table class="table table-bordered table-striped table-hover" id="dataTable" width="100%">
+              <thead>
+              <tr>
+                <th>ID</th>
+                <th>Nombre</th>
+                <th>Categoría</th>
+                <th>Peso Unitario</th>
+                <th>Unidad</th>
+                <th>Precio</th>
+                <th>Stock</th>
+                <th>Proveedor</th>
+                <th>Acciones</th>
+              </tr>
+              </thead>
+              <tbody>
+              <tr th:each="item : ${inventoryList}"
+                  th:data-id="${item.id}"
+                  th:data-name="${item.name}"
+                  th:data-category="${item.category}"
+                  th:data-unit_weight="${item.unit_weight}"
+                  th:data-unit_measure="${item.unit_measure}"
+                  th:data-price="${item.price}"
+                  th:data-stock="${item.stock}"
+                  th:data-minstock="${item.minStock}"
+                  th:data-supplier-id="${item.supplier?.id}">
+                <td th:text="${item.id}"></td>
+                <td th:text="${item.name}"></td>
+                <td th:text="${item.category}"></td>
+                <td th:text="${item.unit_weight}"></td>
+                <td th:text="${item.unit_measure}"></td>
+                <td th:text="'$' + ${#numbers.formatDecimal(item.price, 0, 'POINT', 2, 'COMMA')}"></td>
+                <td th:text="${item.stock}"></td>
+                <td th:text="${item.supplier?.name}"></td>
+                <td class="text-center">
+                  <button class="btn btn-warning btn-sm me-1"
+                          data-bs-toggle="modal" data-bs-target="#inventoryModal"
+                          onclick="prepareEditItem(this)">
+                    <i class="fas fa-edit"></i>
+                  </button>
+                  <form th:action="@{/inventory/delete/{id}(id=${item.id})}" method="post" style="display:inline;">
+                    <button sec:authorize="hasRole('ADMIN')" type="button" class="btn btn-danger btn-sm" onclick="confirmDelete(this)">
+                      <i class="fas fa-trash-alt"></i>
+                    </button>
+                  </form>
+                </td>
+              </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </main>
+    <footer th:replace="~{fragments/footer :: footer}"></footer>
+  </div>
+</div>
+
+<script src="https://code.jquery.com/jquery-3.7.0.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
+
+<script>
+  let dataTable;
+
+  function confirmDelete(button) {
+    Swal.fire({
+      title: '¿Estás seguro?',
+      text: "No podrás revertir esta acción.",
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#d33',
+      cancelButtonColor: '#3085d6',
+      confirmButtonText: 'Sí, eliminar',
+      cancelButtonText: 'Cancelar'
+    }).then((result) => {
+      if (result.isConfirmed) {
+        button.closest('form').submit();
+      }
+    });
+  }
+
+  function checkFlashMessages() {
+    const successMessage = "[[${success}]]";
+    const errorMessage = "[[${error}]]";
+    if (successMessage && successMessage !== 'null') {
+      Swal.fire({
+        icon: 'success',
+        title: 'Éxito',
+        text: successMessage,
+        timer: 2000,
+        showConfirmButton: false
+      });
+    }
+    if (errorMessage && errorMessage !== 'null') {
+      Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: errorMessage
+      });
+    }
+  }
+
+  function prepareNewItem() {
+    document.getElementById('inventoryForm').reset();
+    document.getElementById('modalTitle').textContent = 'Nuevo Producto';
+    document.getElementById('inventoryId').value = '';
+    // Mostrar el campo minStock en "Nuevo"
+    document.getElementById('minStockGroup').style.display = 'block';
+  }
+
+  function prepareEditItem(button) {
+    document.getElementById('modalTitle').textContent = 'Editar Producto';
+    const itemId = button.closest('tr').getAttribute('data-id');
+    const form = document.getElementById('inventoryForm');
+
+    // Llamada a la API para obtener los datos más recientes del producto
+    fetch(`/api/inventories/${itemId}`)
+        .then(response => {
+          if (!response.ok) {
+            throw new Error('Error al cargar los datos del producto.');
+          }
+          return response.json();
+        })
+        .then(item => {
+          // Llenar el formulario con los datos recibidos de la API
+          form.querySelector('[name="id"]').value = item.id;
+          form.querySelector('[name="name"]').value = item.name;
+          form.querySelector('[name="category"]').value = item.category;
+          form.querySelector('[name="unit_weight"]').value = item.unit_weight;
+          form.querySelector('[name="unit_measure"]').value = item.unit_measure;
+          form.querySelector('[name="price"]').value = item.price;
+          form.querySelector('[name="stock"]').value = item.stock;
+          form.querySelector('[name="minStock"]').value = item.minStock;
+          form.querySelector('[name="supplier"]').value = item.supplier?.id || ''; // Maneja el caso de proveedor nulo
+
+          // Ocultar el campo minStock al editar
+          document.getElementById('minStockGroup').style.display = 'none';
+        })
+        .catch(error => {
+          console.error('Error en fetch:', error);
+          Swal.fire('Error', 'No se pudieron cargar los datos para editar.', 'error');
+        });
+  }
+
+  function exportToExcel() {
+      try {
+          const today = new Date();
+          const formattedDate = today.toLocaleDateString('es-ES');
+          const title = "Reporte de Inventario";
+          const generated = `Generado el: ${formattedDate}`;
+
+          const headers = ['ID', 'Nombre', 'Categoría', 'Peso Unitario', 'Unidad', 'Precio', 'Stock', 'Proveedor'];
+          const dataToExport = dataTable.rows({ search: 'applied' }).data().toArray();
+
+          let reportData = [
+              [title],
+              [generated],
+              [],
+              headers
+          ];
+
+          dataToExport.forEach(row => {
+              reportData.push([row[0], row[1], row[2], row[3], row[4], row[5], row[6], row[7]]);
+          });
+
+          const wb = XLSX.utils.book_new();
+          const ws = XLSX.utils.aoa_to_sheet(reportData);
+
+          const merge = { s: { r: 0, c: 0 }, e: { r: 0, c: headers.length - 1 } };
+          if (!ws['!merges']) ws['!merges'] = [];
+          ws['!merges'].push(merge);
+
+          const columnWidths = reportData[3].map((_, colIndex) => {
+              let maxLength = 0;
+              for (let rowIndex = 3; rowIndex < reportData.length; rowIndex++) {
+                  const cellValue = reportData[rowIndex][colIndex];
+                  if (cellValue && cellValue.toString().length > maxLength) {
+                      maxLength = cellValue.toString().length;
+                  }
+              }
+              return { wch: maxLength + 2 };
+          });
+          ws['!cols'] = columnWidths;
+
+          XLSX.utils.book_append_sheet(wb, ws, 'Inventario');
+          const fileDate = `${today.getFullYear()}-${(today.getMonth() + 1).toString().padStart(2, '0')}-${today.getDate().toString().padStart(2, '0')}`;
+          XLSX.writeFile(wb, `Reporte_Inventario_${fileDate}.xlsx`);
+
+      } catch (error) {
+          console.error("Error al exportar a Excel:", error);
+          Swal.fire('Error', 'No se pudo exportar a Excel.', 'error');
+      }
+  }
+
+  function exportToPDF() {
+      fetch('/assets/img/logoo.png')
+          .then(response => response.blob())
+          .then(blob => {
+              const reader = new FileReader();
+              reader.readAsDataURL(blob);
+              reader.onloadend = function() {
+                  const base64data = reader.result;
+
+                  try {
+                      const { jsPDF } = window.jspdf;
+                      const doc = new jsPDF();
+
+                      const pageWidth = doc.internal.pageSize.width;
+                      const pageHeight = doc.internal.pageSize.height;
+
+                      doc.setFillColor('#FFC107');
+                      doc.rect(0, 0, pageWidth, 10, 'F');
+
+                      const logoSize = 25;
+                      const logoX = 15;
+                      const logoY = 14;
+                      doc.addImage(base64data, 'PNG', logoX, logoY, logoSize, logoSize);
+
+                      doc.setFontSize(22);
+                      doc.setFont('helvetica', 'bold');
+                      doc.setTextColor('#005A9C');
+                      doc.text('Reporte de Inventario', logoX + logoSize + 5, 28);
+
+                      doc.setFontSize(11);
+                      doc.setFont('helvetica', 'normal');
+                      doc.setTextColor(100);
+                      const today = new Date();
+                      const dateStr = `Generado el: ${today.toLocaleDateString('es-ES')}`;
+                      doc.text(dateStr, logoX + logoSize + 5, 35);
+
+                      doc.autoTable({
+                          html: '#dataTable',
+                          startY: 50,
+                          columns: [0, 1, 2, 3, 4, 5, 6, 7],
+                          headStyles: { fillColor: [0, 90, 156], textColor: [255, 255, 255], fontStyle: 'bold', halign: 'center' },
+                          alternateRowStyles: { fillColor: [245, 245, 245] },
+                          styles: { halign: 'center', valign: 'middle', fontSize: 9 },
+                          didParseCell: function (data) {
+                              if (data.column.index === 0 && data.cell.section === 'body') {
+                                  data.cell.styles.fontStyle = 'bold';
+                              }
+                          },
+                          didDrawPage: function (data) {
+                              doc.setFillColor('#FFC107');
+                              doc.rect(0, pageHeight - 5, pageWidth, 5, 'F');
+                              let footerStr = `Página ${doc.internal.getNumberOfPages()}`;
+                              doc.setFontSize(10);
+                              doc.setTextColor(150);
+                              doc.text(footerStr, data.settings.margin.left, pageHeight - 10);
+                          }
+                      });
+
+                      const formattedDate = `${today.getFullYear()}-${(today.getMonth() + 1).toString().padStart(2, '0')}-${today.getDate().toString().padStart(2, '0')}`;
+                      doc.save(`Reporte_Inventario_${formattedDate}.pdf`);
+
+                  } catch (error) {
+                      console.error("Error al exportar a PDF:", error);
+                      Swal.fire('Error', 'No se pudo exportar a PDF.', 'error');
+                  }
+              };
+          })
+          .catch(error => {
+              console.error("Error al cargar el logo para el PDF:", error);
+              Swal.fire('Error', 'No se pudo cargar el logo para generar el PDF.', 'error');
+          });
+  }
+
+  $(document).ready(function() {
+    dataTable = $('#dataTable').DataTable({
+      language: {
+        "sProcessing": "Procesando...",
+        "sLengthMenu": "Mostrar _MENU_ entradas",
+        "sZeroRecords": "No se encontraron resultados",
+        "sEmptyTable": "Ningún producto disponible",
+        "sInfo": "Mostrando _START_ a _END_ de _TOTAL_ entradas",
+        "sInfoEmpty": "Mostrando 0 a 0 de 0 entradas",
+        "sInfoFiltered": "(filtrado de un total de _MAX_ entradas)",
+        "sSearch": "Buscar:",
+        "oPaginate": {
+          "sFirst": "Primero",
+          "sLast": "Último",
+          "sNext": "Siguiente",
+          "sPrevious": "Anterior"
+        }
+      },
+      dom: '<"row"<"col-sm-12"t>><"row"<"col-sm-12 col-md-5"i><"col-sm-12 col-md-7"p>>',
+      responsive: true,
+      columnDefs: [{ targets: 8, orderable: false, searchable: false }]
+    });
+
+    $('#search').on('keyup', function() {
+      dataTable.search(this.value).draw();
+    });
+    $('#entries').on('change', function() {
+      dataTable.page.len(this.value).draw();
+    });
+
+    checkFlashMessages();
+  });
+</script>
+
+</body>
+</html>
