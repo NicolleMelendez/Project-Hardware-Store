@@ -70,15 +70,7 @@
                   </div>
                   <div class="mb-3">
                     <label class="form-label">Razón</label>
-                    <select class="form-select" name="reason" id="issueReason" required>
-                      <option value="">Seleccione razón</option>
-                      <option value="VENTA">VENTA</option>
-                      <option value="DAÑADO">DAÑADO</option>
-                      <option value="PERDIDO">PERDIDO</option>
-                      <option value="DEVOLUCION">DEVOLUCIÓN</option>
-                      <option value="USO_INTERNO">USO INTERNO</option>
-                      <option value="OTRO">OTRO</option>
-                    </select>
+                    <input type="text" class="form-control" name="reason" id="issueReason" required min="1">
                   </div>
                   <div class="mb-3">
                     <label class="form-label">Fecha de Salida</label>
