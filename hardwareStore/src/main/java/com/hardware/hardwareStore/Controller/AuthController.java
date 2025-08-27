@@ -33,7 +33,7 @@ public class AuthController {
                                  @RequestParam String password,
                                  Model model) {
         try {
-            authService.registerUser(name, email, password, "EMPLOYEE"); // rol por defecto
+            authService.registerUser(name, email, password, "EMPLEADO"); // rol por defecto
             return "redirect:/login?registered";
         } catch (Exception e) {
             model.addAttribute("error", e.getMessage());
