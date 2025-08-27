@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.w3.org/1999/xhtml">
 <head th:replace="~{fragments/head :: head('Clientes')}">
     <meta charset="UTF-8">
     <title>Clientes</title>
@@ -126,7 +126,7 @@
                                         <i class="fas fa-edit"></i>
                                     </button>
                                     <form th:action="@{/clients/delete/{id}(id=${client.id})}" method="post" style="display:inline;">
-                                        <button type="button" class="btn btn-danger btn-sm"
+                                        <button sec:authorize="hasRole('ADMIN')" type="button" class="btn btn-danger btn-sm"
                                                 onclick="confirmDelete(this)">
                                             <i class="fas fa-trash-alt"></i>
                                         </button>
