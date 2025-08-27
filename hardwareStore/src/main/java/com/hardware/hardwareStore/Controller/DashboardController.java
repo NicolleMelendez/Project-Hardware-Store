@@ -17,7 +17,7 @@ public class DashboardController {
     @GetMapping
     public String dashboardPage(Model model) {
         try {
-            // Agrega logs para debug
+
             System.out.println("Daily sales: " + dashboardService.getDailySalesTotal());
             System.out.println("Top products: " + dashboardService.getTop5SoldProducts().size());
             System.out.println("Top customers: " + dashboardService.getTop5Customers().size());
@@ -32,7 +32,7 @@ public class DashboardController {
 
         } catch (Exception e) {
             e.printStackTrace();
-            // Maneja el error apropiadamente
+
         }
         return "index";
     }

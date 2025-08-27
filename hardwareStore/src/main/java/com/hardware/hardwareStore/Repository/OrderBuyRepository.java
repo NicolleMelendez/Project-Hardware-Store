@@ -3,19 +3,16 @@ package com.hardware.hardwareStore.Repository;
 import com.hardware.hardwareStore.model.OrderBuy;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.repository.query.Param;
-
+import org.springframework.stereotype.Repository;
 import java.util.List;
 import java.util.Optional;
 
+@Repository
+public interface OrderBuyRepository extends JpaRepository<OrderBuy, Long> {
 
-public interface OrderBuyRepository extends JpaRepository<OrderBuy, Long>{
-
-    // Consulta para traer los detalles de la orden
-    @Query("SELECT o FROM OrderBuy o JOIN FETCH o.client JOIN FETCH o.employee")
+    @Query("SELECT o FROM OrderBuy o LEFT JOIN FETCH o.supplier LEFT JOIN FETCH o.employee ORDER BY o.id DESC")
     List<OrderBuy> findAllWithDetails();
 
-    @Query("SELECT o FROM OrderBuy o JOIN FETCH o.client JOIN FETCH o.employee WHERE o.id = :id")
-    Optional<OrderBuy> findByIdWithDetails(@Param("id") Long id);
-
+    @Query("SELECT o FROM OrderBuy o LEFT JOIN FETCH o.supplier LEFT JOIN FETCH o.employee WHERE o.id = :id")
+    Optional<OrderBuy> findByIdWithDetails(Long id);
 }
