@@ -1,8 +1,6 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
 <head th:replace="~{fragments/head :: head('Proveedores')}">
-  <meta charset="UTF-8">
-  <link rel="stylesheet" th:href="@{/css/custom-styles.css}">
 </head>
 
 <body class="sb-nav-fixed">
@@ -31,29 +29,27 @@
           </div>
         </div>
 
-        <div class="modal fade" id="supplierModal" tabindex="-1" aria-hidden="true">
+        <div class="modal fade" id="supplierModal" tabindex="-1" aria-labelledby="modalTitle" aria-hidden="true">
           <div class="modal-dialog">
             <div class="modal-content">
-              <form id="supplierForm" th:action="@{/supplier/save}" method="post">
-                <input type="hidden" name="id" id="supplierId">
+              <form id="supplierForm" th:action="@{/supplier/save}" th:object="${supplier}" method="post">
+                <input type="hidden" th:field="*{id}">
                 <div class="modal-header">
                   <h5 class="modal-title" id="modalTitle">Nuevo Proveedor</h5>
                   <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
                   <div class="mb-3">
-                    <label class="form-label">Nombre</label>
-                    <input type="text" class="form-control" name="name" required>
+                    <label for="name" class="form-label">Nombre</label>
+                    <input type="text" class="form-control" id="name" th:field="*{name}" required>
                   </div>
                   <div class="mb-3">
-                    <label class="form-label">Teléfono</label>
-                    <input type="tel" class="form-control" name="phone" required
-                           oninput="this.value = this.value.replace(/[^0-9]/g, '')"
-                           maxlength="10" placeholder="Ej: 3202222222">
+                    <label for="phone" class="form-label">Teléfono</label>
+                    <input type="tel" class="form-control" id="phone" th:field="*{phone}" required>
                   </div>
                   <div class="mb-3">
-                    <label class="form-label">Producto Suministrado</label>
-                    <input type="text" class="form-control" name="suppliedProduct" required>
+                    <label for="suppliedProduct" class="form-label">Producto Suministrado</label>
+                    <input type="text" class="form-control" id="suppliedProduct" th:field="*{suppliedProduct}" required>
                   </div>
                 </div>
                 <div class="modal-footer">
@@ -83,34 +79,30 @@
 
         <div class="card mb-4">
           <div class="card-body">
-            <table class="table table-bordered table-striped table-hover" id="dataTable" width="100%" cellspacing="0">
+            <table class="table table-bordered table-striped table-hover" id="dataTable" width="100%">
               <thead>
               <tr>
                 <th>ID</th>
                 <th>Nombre</th>
                 <th>Teléfono</th>
-                <th>Producto</th>
+                <th>Producto Suministrado</th>
                 <th>Acciones</th>
               </tr>
               </thead>
               <tbody>
-              <tr th:each="supplier : ${suppliers}"
-                  th:data-id="${supplier.id}"
-                  th:data-name="${supplier.name}"
-                  th:data-phone="${supplier.phone}"
-                  th:data-product="${supplier.suppliedProduct}">
-                <td th:text="${supplier.id}"></td>
-                <td th:text="${supplier.name}"></td>
-                <td th:text="${supplier.phone}"></td>
-                <td th:text="${supplier.suppliedProduct}"></td>
+              <tr th:each="sup : ${suppliers}" th:data-id="${sup.id}">
+                <td th:text="${sup.id}"></td>
+                <td th:text="${sup.name}"></td>
+                <td th:text="${sup.phone}"></td>
+                <td th:text="${sup.suppliedProduct}"></td>
                 <td class="text-center">
                   <button class="btn btn-warning btn-sm me-1"
-                          th:onclick="'prepareEditSupplier(' + ${supplier.id} + ')'">
+                          data-bs-toggle="modal" data-bs-target="#supplierModal"
+                          onclick="prepareEditSupplier(this)">
                     <i class="fas fa-edit"></i>
                   </button>
-                  <form th:action="@{/supplier/delete/{id}(id=${supplier.id})}" method="post" style="display:inline;">
-                    <button type="button" class="btn btn-danger btn-sm"
-                            onclick="confirmDelete(this)">
+                  <form th:action="@{/supplier/delete/{id}(id=${sup.id})}" method="post" style="display:inline;">
+                    <button type="button" class="btn btn-danger btn-sm" onclick="confirmDelete(this)">
                       <i class="fas fa-trash-alt"></i>
                     </button>
                   </form>
@@ -137,12 +129,11 @@
 
 <script>
   let dataTable;
-  const supplierModal = new bootstrap.Modal(document.getElementById('supplierModal'));
 
   function confirmDelete(button) {
     Swal.fire({
       title: '¿Estás seguro?',
-      text: "No podrás revertir esta acción",
+      text: "No podrás revertir esta acción.",
       icon: 'warning',
       showCancelButton: true,
       confirmButtonColor: '#d33',
@@ -159,218 +150,71 @@
   function checkFlashMessages() {
     const successMessage = "[[${success}]]";
     const errorMessage = "[[${error}]]";
-
     if (successMessage && successMessage !== 'null') {
-      Swal.fire({
-        icon: 'success', title: 'Éxito', text: successMessage,
-        timer: 3000, showConfirmButton: false
-      });
+      Swal.fire({ icon: 'success', title: 'Éxito', text: successMessage, timer: 2000, showConfirmButton: false });
     }
     if (errorMessage && errorMessage !== 'null') {
-      Swal.fire({
-        icon: 'error', title: 'Error', text: errorMessage,
-        confirmButtonText: 'Entendido'
-      });
+      Swal.fire({ icon: 'error', title: 'Error', text: errorMessage });
     }
   }
 
   function prepareNewSupplier() {
     document.getElementById('supplierForm').reset();
     document.getElementById('modalTitle').textContent = 'Nuevo Proveedor';
-    document.getElementById('supplierId').value = '';
-    supplierModal.show();
+    document.querySelector('#supplierForm input[name="id"]').value = '';
   }
 
-  function prepareEditSupplier(supplierId) {
+  function prepareEditSupplier(button) {
+    document.getElementById('modalTitle').textContent = 'Editar Proveedor';
+    const supplierId = button.closest('tr').getAttribute('data-id');
+    const form = document.getElementById('supplierForm');
+
     fetch(`/api/suppliers/${supplierId}`)
-      .then(response => {
-          if (!response.ok) throw new Error('Error al cargar proveedor');
+        .then(response => {
+          if (!response.ok) {
+            throw new Error('Error al cargar los datos del proveedor.');
+          }
           return response.json();
-      })
-      .then(supplier => {
-        document.getElementById('modalTitle').textContent = 'Editar Proveedor';
-
-        const form = document.getElementById('supplierForm');
-        form.querySelector('[name="id"]').value = supplier.id;
-        form.querySelector('[name="name"]').value = supplier.name || '';
-        form.querySelector('[name="phone"]').value = supplier.phone || '';
-        form.querySelector('[name="suppliedProduct"]').value = supplier.suppliedProduct || '';
-
-        supplierModal.show();
-      })
-      .catch(err => {
-          console.error('Error:', err);
-          Swal.fire('Error', 'No se pudo cargar los datos del proveedor.', 'error');
-      });
+        })
+        .then(supplier => {
+          form.querySelector('[name="id"]').value = supplier.id;
+          form.querySelector('[name="name"]').value = supplier.name;
+          form.querySelector('[name="phone"]').value = supplier.phone;
+          form.querySelector('[name="suppliedProduct"]').value = supplier.suppliedProduct;
+        })
+        .catch(error => {
+          console.error('Error en fetch:', error);
+          Swal.fire('Error', 'No se pudieron cargar los datos para editar.', 'error');
+        });
   }
 
-function exportToExcel() {
-      try {
-          const today = new Date();
-          const formattedDate = today.toLocaleDateString('es-ES');
-          const title = "Reporte de Proveedores";
-          const generated = `Generado el: ${formattedDate}`;
-
-          const headers = ['ID', 'Nombre', 'Teléfono', 'Producto'];
-          const dataToExport = dataTable.rows({ search: 'applied' }).data().toArray();
-
-          let reportData = [
-              [title],
-              [generated],
-              [],
-              headers
-          ];
-
-          dataToExport.forEach(row => {
-              reportData.push([row[0], row[1], row[2], row[3]]);
-          });
-
-          const wb = XLSX.utils.book_new();
-          const ws = XLSX.utils.aoa_to_sheet(reportData);
-
-          const merge = { s: { r: 0, c: 0 }, e: { r: 0, c: headers.length - 1 } };
-          if (!ws['!merges']) ws['!merges'] = [];
-          ws['!merges'].push(merge);
-
-          const columnWidths = reportData[3].map((_, colIndex) => {
-              let maxLength = 0;
-              for (let rowIndex = 3; rowIndex < reportData.length; rowIndex++) {
-                  const cellValue = reportData[rowIndex][colIndex];
-                  if (cellValue && cellValue.toString().length > maxLength) {
-                      maxLength = cellValue.toString().length;
-                  }
-              }
-              return { wch: maxLength + 2 };
-          });
-          ws['!cols'] = columnWidths;
-
-          XLSX.utils.book_append_sheet(wb, ws, 'Proveedores');
-          const fileDate = `${today.getFullYear()}-${(today.getMonth() + 1).toString().padStart(2, '0')}-${today.getDate().toString().padStart(2, '0')}`;
-          XLSX.writeFile(wb, `Reporte_Proveedores_${fileDate}.xlsx`);
-
-      } catch (error) {
-          console.error("Error al exportar a Excel:", error);
-          Swal.fire('Error', 'No se pudo exportar a Excel.', 'error');
-      }
+  function exportToExcel() {
+     Swal.fire('Función no implementada', 'La exportación a Excel se añadirá pronto.', 'info');
   }
 
   function exportToPDF() {
-      fetch('/assets/img/logoo.png')
-          .then(response => response.blob())
-          .then(blob => {
-              const reader = new FileReader();
-              reader.readAsDataURL(blob);
-              reader.onloadend = function() {
-                  const base64data = reader.result;
-
-                  try {
-                      const { jsPDF } = window.jspdf;
-                      const doc = new jsPDF();
-
-                      const pageWidth = doc.internal.pageSize.width;
-                      const pageHeight = doc.internal.pageSize.height;
-
-                      doc.setFillColor('#FFC107');
-                      doc.rect(0, 0, pageWidth, 10, 'F');
-
-                      const logoSize = 25;
-                      const logoX = 15;
-                      const logoY = 14;
-                      doc.addImage(base64data, 'PNG', logoX, logoY, logoSize, logoSize);
-
-                      doc.setFontSize(22);
-                      doc.setFont('helvetica', 'bold');
-                      doc.setTextColor('#005A9C');
-                      doc.text('Reporte de Proveedores', logoX + logoSize + 5, 28);
-
-                      doc.setFontSize(11);
-                      doc.setFont('helvetica', 'normal');
-                      doc.setTextColor(100);
-                      const today = new Date();
-                      const dateStr = `Generado el: ${today.toLocaleDateString('es-ES')}`;
-                      doc.text(dateStr, logoX + logoSize + 5, 35);
-
-                      doc.autoTable({
-                          html: '#dataTable',
-                          startY: 50,
-                          columns: [0, 1, 2, 3],
-                          headStyles: { fillColor: [0, 90, 156], textColor: [255, 255, 255], fontStyle: 'bold', halign: 'center' },
-                          alternateRowStyles: { fillColor: [245, 245, 245] },
-                          styles: { halign: 'center', valign: 'middle', fontSize: 9 },
-                          didParseCell: function (data) {
-                              if (data.column.index === 0 && data.cell.section === 'body') {
-                                  data.cell.styles.fontStyle = 'bold';
-                              }
-                          },
-                          didDrawPage: function (data) {
-                              doc.setFillColor('#FFC107');
-                              doc.rect(0, pageHeight - 5, pageWidth, 5, 'F');
-                              let footerStr = `Página ${doc.internal.getNumberOfPages()}`;
-                              doc.setFontSize(10);
-                              doc.setTextColor(150);
-                              doc.text(footerStr, data.settings.margin.left, pageHeight - 10);
-                          }
-                      });
-
-                      const formattedDate = `${today.getFullYear()}-${(today.getMonth() + 1).toString().padStart(2, '0')}-${today.getDate().toString().padStart(2, '0')}`;
-                      doc.save(`Reporte_Proveedores_${formattedDate}.pdf`);
-
-                  } catch (error) {
-                      console.error("Error al exportar a PDF:", error);
-                      Swal.fire('Error', 'No se pudo exportar a PDF.', 'error');
-                  }
-              };
-          })
-          .catch(error => {
-              console.error("Error al cargar el logo para el PDF:", error);
-              Swal.fire('Error', 'No se pudo cargar el logo para generar el PDF.', 'error');
-          });
+    Swal.fire('Función no implementada', 'La exportación a PDF se añadirá pronto.', 'info');
   }
 
   $(document).ready(function() {
     dataTable = $('#dataTable').DataTable({
       language: {
-        "sProcessing": "Procesando...",
-        "sLengthMenu": "Mostrar _MENU_ entradas",
-        "sZeroRecords": "No se encontraron resultados",
-        "sEmptyTable": "Ningún proveedor disponible",
-        "sInfo": "Mostrando _START_ a _END_ de _TOTAL_ entradas",
-        "sInfoEmpty": "Mostrando 0 a 0 de 0 entradas",
-        "sInfoFiltered": "(filtrado de _MAX_ entradas totales)",
-        "sSearch": "Buscar:",
+        "sProcessing": "Procesando...", "sLengthMenu": "Mostrar _MENU_ entradas", "sZeroRecords": "No se encontraron resultados",
+        "sEmptyTable": "Ningún proveedor disponible", "sInfo": "Mostrando _START_ a _END_ de _TOTAL_ entradas", "sInfoEmpty": "Mostrando 0 a 0 de 0 entradas",
+        "sInfoFiltered": "(filtrado de _MAX_ entradas totales)", "sSearch": "Buscar:",
         "oPaginate": { "sFirst": "Primero", "sLast": "Último", "sNext": "Siguiente", "sPrevious": "Anterior" }
       },
       dom: '<"row"<"col-sm-12"t>><"row"<"col-sm-12 col-md-5"i><"col-sm-12 col-md-7"p>>',
       responsive: true,
-      columnDefs: [
-        {
-          targets: 2, // Columna de teléfono
-          render: function(data, type, row) {
-            if (type === 'display' && data && data.length === 10) {
-              return data.replace(/(\d{3})(\d{3})(\d{4})/, '$1-$2-$3');
-            }
-            return data;
-          }
-        },
-        {
-          targets: 4, // Columna de acciones
-          orderable: false,
-          searchable: false
-        }
-      ]
+      columnDefs: [{ targets: 4, orderable: false, searchable: false }]
     });
 
-    // Conectar controles personalizados
-    $('#search').on('keyup', function() {
-      dataTable.search(this.value).draw();
-    });
-
-    $('#entries').on('change', function() {
-      dataTable.page.len(this.value).draw();
-    });
+    $('#search').on('keyup', function() { dataTable.search(this.value).draw(); });
+    $('#entries').on('change', function() { dataTable.page.len(this.value).draw(); });
 
     checkFlashMessages();
   });
 </script>
+
 </body>
 </html>

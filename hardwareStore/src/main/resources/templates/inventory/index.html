@@ -229,25 +229,46 @@
     document.getElementById('inventoryForm').reset();
     document.getElementById('modalTitle').textContent = 'Nuevo Producto';
     document.getElementById('inventoryId').value = '';
+    // Mostrar el campo minStock en "Nuevo"
+    document.getElementById('minStockGroup').style.display = 'block';
   }
 
+  // ===== INICIO DE LA MODIFICACIÓN =====
+  // Se reemplaza la lógica de esta función para usar fetch y llamar a la API
   function prepareEditItem(button) {
     document.getElementById('modalTitle').textContent = 'Editar Producto';
-    const row = button.closest('tr');
+    const itemId = button.closest('tr').getAttribute('data-id');
     const form = document.getElementById('inventoryForm');
-    form.querySelector('[name="id"]').value = row.getAttribute('data-id');
-    form.querySelector('[name="name"]').value = row.getAttribute('data-name');
-    form.querySelector('[name="category"]').value = row.getAttribute('data-category');
-    form.querySelector('[name="unit_weight"]').value = row.getAttribute('data-unit_weight');
-    form.querySelector('[name="unit_measure"]').value = row.getAttribute('data-unit_measure');
-    form.querySelector('[name="price"]').value = row.getAttribute('data-price');
-    form.querySelector('[name="stock"]').value = row.getAttribute('data-stock');
-    form.querySelector('[name="minStock"]').value = row.getAttribute('data-minstock');
-    form.querySelector('[name="supplier"]').value = row.getAttribute('data-supplier-id');
 
-    // Ocultar el campo minStock en "Editar"
-    document.getElementById('minStockGroup').style.display = 'none';
+    // Llamada a la API para obtener los datos más recientes del producto
+    fetch(`/api/inventories/${itemId}`)
+        .then(response => {
+          if (!response.ok) {
+            throw new Error('Error al cargar los datos del producto.');
+          }
+          return response.json();
+        })
+        .then(item => {
+          // Llenar el formulario con los datos recibidos de la API
+          form.querySelector('[name="id"]').value = item.id;
+          form.querySelector('[name="name"]').value = item.name;
+          form.querySelector('[name="category"]').value = item.category;
+          form.querySelector('[name="unit_weight"]').value = item.unit_weight;
+          form.querySelector('[name="unit_measure"]').value = item.unit_measure;
+          form.querySelector('[name="price"]').value = item.price;
+          form.querySelector('[name="stock"]').value = item.stock;
+          form.querySelector('[name="minStock"]').value = item.minStock;
+          form.querySelector('[name="supplier"]').value = item.supplier?.id || ''; // Maneja el caso de proveedor nulo
+
+          // Ocultar el campo minStock al editar
+          document.getElementById('minStockGroup').style.display = 'none';
+        })
+        .catch(error => {
+          console.error('Error en fetch:', error);
+          Swal.fire('Error', 'No se pudieron cargar los datos para editar.', 'error');
+        });
   }
+  // ===== FIN DE LA MODIFICACIÓN =====
 
   function exportToExcel() {
       try {
@@ -372,7 +393,6 @@
           });
   }
 
-
   $(document).ready(function() {
     dataTable = $('#dataTable').DataTable({
       language: {
@@ -396,7 +416,6 @@
       columnDefs: [{ targets: 8, orderable: false, searchable: false }]
     });
 
-    // Conexión de los controles personalizados
     $('#search').on('keyup', function() {
       dataTable.search(this.value).draw();
     });
