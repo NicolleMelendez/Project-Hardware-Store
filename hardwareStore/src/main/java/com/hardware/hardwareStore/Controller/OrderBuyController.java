@@ -16,7 +16,7 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import java.util.List;
 
 @Controller
-@RequestMapping("/order-buy")
+@RequestMapping("/orderbuy")
 @AllArgsConstructor
 public class OrderBuyController {
 
@@ -35,22 +35,22 @@ public class OrderBuyController {
     }
 
     @PostMapping
-    public String saveOrderBuy(@ModelAttribute OrderBuy orderBuy,
+    public String saveOrderBuy(@ModelAttribute OrderBuy order,
                                @RequestParam("productIds") List<Long> productIds,
                                @RequestParam("quantities") List<Integer> quantities,
                                @RequestParam("prices") List<Integer> prices,
                                RedirectAttributes redirectAttributes) {
         try {
-            orderBuyService.saveOrderBuyWithDetails(orderBuy, productIds, quantities, prices);
+            orderBuyService.saveOrderBuyWithDetails(order, productIds, quantities, prices);
             redirectAttributes.addFlashAttribute("success", "Pedido guardado exitosamente.");
         } catch (Exception e) {
             redirectAttributes.addFlashAttribute("error", "Error al guardar el pedido: " + e.getMessage());
         }
-        return "redirect:/order-buy";
+        return "redirect:/orderbuy";
     }
 
-    @PostMapping("/update-status")
-    public String updateOrderStatus(@RequestParam("id") Long id,
+    @PostMapping("/update-status/{id}")
+    public String updateOrderStatus(@PathVariable Long id,
                                     @RequestParam("status") String status,
                                     RedirectAttributes redirectAttributes) {
         try {
@@ -59,7 +59,7 @@ public class OrderBuyController {
         } catch (Exception e) {
             redirectAttributes.addFlashAttribute("error", "Error al actualizar el estado: " + e.getMessage());
         }
-        return "redirect:/order-buy";
+        return "redirect:/orderbuy";
     }
 
     @PostMapping("/cancel/{id}")
@@ -70,7 +70,7 @@ public class OrderBuyController {
         } catch (Exception e) {
             redirectAttributes.addFlashAttribute("error", "Error al cancelar el pedido: " + e.getMessage());
         }
-        return "redirect:/order-buy";
+        return "redirect:/orderbuy";
     }
 
     @GetMapping("/api/{id}")
