@@ -233,8 +233,6 @@
     document.getElementById('minStockGroup').style.display = 'block';
   }
 
-  // ===== INICIO DE LA MODIFICACIÓN =====
-  // Se reemplaza la lógica de esta función para usar fetch y llamar a la API
   function prepareEditItem(button) {
     document.getElementById('modalTitle').textContent = 'Editar Producto';
     const itemId = button.closest('tr').getAttribute('data-id');
@@ -268,7 +266,6 @@
           Swal.fire('Error', 'No se pudieron cargar los datos para editar.', 'error');
         });
   }
-  // ===== FIN DE LA MODIFICACIÓN =====
 
   function exportToExcel() {
       try {

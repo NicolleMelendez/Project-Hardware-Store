@@ -180,7 +180,6 @@
   }
 
  function prepareEditIssue(issueId) {
-      // AJUSTE: Cambiamos la URL para que coincida con la del IssueController
       fetch(`/api/issues/` + issueId)
           .then(response => {
               if (!response.ok) throw new Error('Error al cargar los datos');
@@ -189,7 +188,7 @@
           .then(issue => {
               const form = document.getElementById('issueForm');
               form.reset();
-              form.action = '/issue/save'; // Apunta a la ruta unificada
+              form.action = '/issue/save';
 
               document.getElementById('modalTitle').textContent = 'Editar Salida #' + issue.id;
               document.getElementById('issueId').value = issue.id;

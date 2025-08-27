@@ -23,10 +23,6 @@ public class IssueController {
     @Autowired
     private EmployeeService employeeService;
 
-    // ==================================================
-    // Métodos para la VISTA (Thymeleaf)
-    // ==================================================
-
     @GetMapping("/issue") // Ruta completa para la vista
     public String issuePage(Model model) {
         model.addAttribute("issues", issueService.getAllIssues());
@@ -63,11 +59,7 @@ public class IssueController {
         return "redirect:/issue";
     }
 
-    // ==================================================
-    // Métodos para la API (devuelven JSON)
-    // ==================================================
-
-    @GetMapping("/api/issues") // <-- ¡URL deseada para obtener todo!
+    @GetMapping("/api/issues")
     @ResponseBody
     public List<Issue> getAllIssuesApi() {
         return issueService.getAllIssues();

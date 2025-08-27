@@ -28,10 +28,6 @@ public class EntryController {
     @Autowired
     private EmployeeService employeeService;
 
-    // ==================================================
-    // Métodos para la VISTA (Thymeleaf)
-    // ==================================================
-
     @GetMapping("/entry") // Ruta completa para la vista
     public String entryPage(Model model) {
         model.addAttribute("entries", entryService.getAllEntries());
@@ -72,11 +68,7 @@ public class EntryController {
         return "redirect:/entry";
     }
 
-    // ==================================================
-    // Métodos para la API (devuelven JSON)
-    // ==================================================
-
-    @GetMapping("/api/entries") // <-- ¡URL deseada para obtener todo!
+    @GetMapping("/api/entries")
     @ResponseBody
     public List<Entry> getAllEntriesApi() {
         return entryService.getAllEntries();

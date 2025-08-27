@@ -158,10 +158,6 @@
     // Variable global para la instancia de la tabla
     let dataTable;
 
-    /* ==========================================================================
-       Funciones de Interacción (Modales, Alertas, Exportaciones)
-       ========================================================================== */
-
     function confirmDelete(button) {
         Swal.fire({
             title: '¿Estás seguro?',
@@ -178,15 +174,8 @@
             }
         });
     }
-
-/**
- * Exporta los datos a un archivo Excel con un diseño profesional y corregido.
- * Incluye un título combinado y cabeceras en el orden correcto.
- * NOTA: La librería no soporta colores en su versión gratuita.
- */
 function exportToExcel() {
     try {
-        // --- 1. Preparar Título y Datos ---
         const today = new Date();
         const formattedDate = today.toLocaleDateString('es-ES');
         const title = "Reporte de Clientes";
@@ -195,8 +184,6 @@ function exportToExcel() {
         const headers = ['ID', 'Nombre', 'Teléfono', 'Dirección', 'Email', 'Fecha Registro'];
         const dataToExport = dataTable.rows({ search: 'applied' }).data().toArray();
 
-        // --- 2. Construir el Contenido Completo en el Orden Correcto ---
-        // Primero, creamos un array que contendrá todo el reporte.
         let reportData = [
             [title],      // Fila 1: Título
             [generated],  // Fila 2: Fecha
@@ -204,24 +191,18 @@ function exportToExcel() {
             headers       // Fila 4: Cabeceras de la tabla
         ];
 
-        // Ahora, añadimos los datos de los clientes al array.
         dataToExport.forEach(row => {
-            // Creamos una nueva fila, excluyendo la columna de acciones.
             const newRow = [row[0], row[1], row[2], row[3], row[4], row[5]];
             reportData.push(newRow);
         });
 
-        // --- 3. Crear la Hoja de Cálculo ---
         const wb = XLSX.utils.book_new(); // Nuevo libro
         const ws = XLSX.utils.aoa_to_sheet(reportData); // Convertimos el array completo a una hoja
 
-        // --- 4. Combinar Celdas para el Título ---
-        // Esto hace que el título ocupe todo el ancho de la tabla.
         const merge = { s: { r: 0, c: 0 }, e: { r: 0, c: headers.length - 1 } };
         if (!ws['!merges']) ws['!merges'] = [];
         ws['!merges'].push(merge);
 
-        // --- 5. Ajustar Ancho de Columnas ---
         const columnWidths = reportData[3].map((_, colIndex) => {
             let maxLength = 0;
             for (let rowIndex = 3; rowIndex < reportData.length; rowIndex++) {
@@ -234,7 +215,6 @@ function exportToExcel() {
         });
         ws['!cols'] = columnWidths;
 
-        // --- 6. Generar el Archivo ---
         XLSX.utils.book_append_sheet(wb, ws, 'Clientes');
         const date = new Date();
         const fileDate = `${date.getFullYear()}-${(date.getMonth() + 1).toString().padStart(2, '0')}-${date.getDate().toString().padStart(2, '0')}`;
@@ -247,13 +227,6 @@ function exportToExcel() {
     }
 }
 
-/**
- * Exporta los datos de la tabla a un PDF con diseño profesional, incluyendo:
- * - Logo corporativo (cuadrado).
- * - Encabezado y pie de página con colores de la marca.
- * - Tabla con datos centrados para mejor organización.
- * - Nombre de archivo dinámico con la fecha actual.
- */
 function exportToPDF() {
     fetch('/assets/img/logoo.png')
         .then(response => response.blob())
@@ -270,17 +243,16 @@ function exportToPDF() {
                     const pageWidth = doc.internal.pageSize.width;
                     const pageHeight = doc.internal.pageSize.height;
 
-                    // --- 1. Encabezado Personalizado ---
                     doc.setFillColor('#FFC107'); // Franja amarilla
                     doc.rect(0, 0, pageWidth, 10, 'F');
 
-                    // Añadimos el logo cuadrado
+
                     const logoSize = 25;
                     const logoX = 15;
                     const logoY = 14;
                     doc.addImage(base64data, 'PNG', logoX, logoY, logoSize, logoSize);
 
-                    // Títulos
+
                     doc.setFontSize(22);
                     doc.setFont('helvetica', 'bold');
                     doc.setTextColor('#005A9C');
@@ -293,7 +265,7 @@ function exportToPDF() {
                     const dateStr = `Generado el: ${today.toLocaleDateString('es-ES')}`;
                     doc.text(dateStr, logoX + logoSize + 5, 35);
 
-                    // --- 2. Tabla con Estilos y Contenido Centrado ---
+
                     doc.autoTable({
                         html: '#dataTable',
                         startY: 50,
@@ -318,7 +290,7 @@ function exportToPDF() {
                             }
                         },
 
-                        // --- 3. Pie de Página ---
+
                         didDrawPage: function (data) {
                             doc.setFillColor('#FFC107');
                             doc.rect(0, pageHeight - 5, pageWidth, 5, 'F');
@@ -330,7 +302,7 @@ function exportToPDF() {
                         }
                     });
 
-                    // --- 4. Nombre de Archivo Dinámico ---
+
                     const date = new Date();
                     const formattedDate = `${date.getFullYear()}-${(date.getMonth() + 1).toString().padStart(2, '0')}-${date.getDate().toString().padStart(2, '0')}`;
                     const fileName = `Reporte_Clientes_${formattedDate}.pdf`;
@@ -394,12 +366,7 @@ function exportToPDF() {
         }
     }
 
-    /* ==========================================================================
-       Inicialización de la página cuando el documento está listo
-       ========================================================================== */
-
     $(document).ready(function() {
-        // 1. INICIALIZACIÓN DE DATATABLES
         dataTable = $('#dataTable').DataTable({
             // Idioma en español
             language: {
@@ -414,49 +381,36 @@ function exportToPDF() {
                 "oPaginate": { "sFirst": "Primero", "sLast": "Último", "sNext": "Siguiente", "sPrevious": "Anterior" }
             },
 
-            // Definimos la estructura: 't' = tabla, 'i' = info, 'p' = paginación
-            // Esto oculta los controles por defecto de DataTables (búsqueda y selector de entradas)
             dom: '<"row"<"col-sm-12"t>><"row"<"col-sm-12 col-md-5"i><"col-sm-12 col-md-7"p>>',
-
-            // Hacemos que la tabla sea responsive si el ancho de pantalla es pequeño
             responsive: true,
 
-            // Definición de columnas para configurar renderizado
             columnDefs: [
                 {
-                    // Apuntamos a la tercera columna (índice 2, el teléfono)
+
                     targets: 2,
                     render: function(data, type, row) {
-                        // Solo aplicamos el formato para la vista 'display'
                         if (type === 'display' && data && data.length === 10) {
                             return data.replace(/(\d{3})(\d{3})(\d{4})/, '$1-$2-$3');
                         }
-                        // Para cualquier otro caso (ordenar, filtrar, etc.), usamos el dato original
                         return data;
                     }
                 },
                 {
-                    // Ocultamos la columna de acciones al exportar
-                    targets: 6, // Índice de la columna 'Acciones'
+                    targets: 6,
                     visible: true,
                     searchable: false,
                     orderable: false
                 }
             ]
         });
-
-        // 2. CONECTAMOS NUESTROS CONTROLES PERSONALIZADOS CON DATATABLES
-        // Conectar el input de búsqueda personalizado
         $('#search').on('keyup', function() {
             dataTable.search(this.value).draw();
         });
 
-        // Conectar el selector de número de entradas personalizado
         $('#entries').on('change', function() {
             dataTable.page.len(this.value).draw();
         });
 
-        // 3. Revisar si hay mensajes flash para mostrar al cargar la página
         checkFlashMessages();
     });
 </script>

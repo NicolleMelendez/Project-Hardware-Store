@@ -22,10 +22,6 @@ public class InventoryController {
     @Autowired
     private SupplierService supplierService;
 
-    // ==================================================
-    // Métodos para la VISTA (Thymeleaf)
-    // ==================================================
-
     @GetMapping("/inventory")
     public String listInventory(Model model) {
         model.addAttribute("inventoryList", inventoryService.findAll());
@@ -48,9 +44,6 @@ public class InventoryController {
         return "redirect:/inventory";
     }
 
-    // ==================================================
-    // Métodos para la API (devuelven JSON)
-    // ==================================================
 
     @GetMapping("/api/inventories")
     @ResponseBody

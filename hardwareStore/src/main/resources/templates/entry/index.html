@@ -207,7 +207,6 @@
   }
 
    function prepareEditEntry(entryId) {
-      // AJUSTE: Cambiamos la URL para que coincida con la del EntryController
       fetch(`/api/entries/${entryId}`)
           .then(response => {
               if (!response.ok) throw new Error('Error al cargar entrada');

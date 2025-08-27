@@ -17,9 +17,6 @@ public class SupplierController {
     @Autowired
     private SupplierService supplierService;
 
-    // ==================================================
-    // Métodos para la VISTA (Thymeleaf)
-    // ==================================================
 
     @GetMapping("/supplier")
     public String listSuppliers(Model model) {
@@ -55,10 +52,6 @@ public class SupplierController {
         }
         return "redirect:/supplier";
     }
-
-    // ==================================================
-    // Métodos para la API (devuelven JSON)
-    // ==================================================
 
     @GetMapping("/api/suppliers")
     @ResponseBody

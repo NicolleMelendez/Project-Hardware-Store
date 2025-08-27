@@ -303,8 +303,6 @@
       const form = document.getElementById('employeeForm');
 
       document.getElementById('modalTitle').textContent = 'Editar Empleado';
-
-      // Usamos los atributos data-* para obtener los valores originales
       document.getElementById('employeeId').value = row.getAttribute('data-id');
       form.querySelector('[name="name"]').value = row.getAttribute('data-name') || '';
       form.querySelector('[name="position"]').value = row.getAttribute('data-position') || '';

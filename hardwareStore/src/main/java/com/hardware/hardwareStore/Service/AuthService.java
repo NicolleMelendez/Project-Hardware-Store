@@ -40,11 +40,6 @@ public class AuthService {
         return userRepository.save(u);
     }
 
-    /**
-     * ✅ MÉTODO AÑADIDO
-     * Verifica si ya existe un token activo para un email.
-     * Devuelve true si el token existe, false si no.
-     */
     public boolean tokenExistsForEmail(String email) {
         return passwordResetTokenRepository.findByEmail(email).isPresent();
     }
