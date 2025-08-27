@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 <head th:replace="~{fragments/head :: head('Entradas')}">
   <meta charset="UTF-8">
 </head>
@@ -30,6 +30,9 @@
               <i class="fas fa-file-pdf me-1"></i> Descargar PDF
             </button>
           </div>
+        </div>
+
+        <div class="d-flex justify-content-between align-items-center mb-3">
           <div class="d-flex align-items-center">
             <label for="entries" class="me-2 mb-0">Mostrar:</label>
             <select id="entries" class="form-select d-inline-block" style="width: 80px;">
@@ -38,9 +41,13 @@
               <option value="50">50</option>
               <option value="-1">Todos</option>
             </select>
-            <span class="ms-3" id="totalRecords">Total de registros: <span th:text="${entries.size()}"></span></span>
+          </div>
+          <div class="d-flex align-items-center">
+            <label for="search" class="me-2 mb-0">Buscar:</label>
+            <input type="search" id="search" class="form-control d-inline-block w-auto" placeholder="Buscar...">
           </div>
         </div>
+
 
         <div class="modal fade" id="entryModal" tabindex="-1" aria-hidden="true">
           <div class="modal-dialog">
@@ -77,11 +84,12 @@
                   </div>
                   <div class="mb-3">
                     <label class="form-label">Cantidad</label>
-                    <input type="number" class="form-control" name="amount" id="entryAmount" required min="1" step="1">
+                    <input type="number" class="form-control" name="amount" id="entryAmount" required min="1" step="0.01">
                   </div>
                   <div class="mb-3">
                     <label class="form-label">Precio de Compra</label>
-                    <input type="number" class="form-control" name="priceBuy" id="entryPriceBuy" required min="0" step="0.01">
+                    <input type="number" class="form-control" name="priceBuy" id="entryPriceBuy" required min="1" step="1"
+                           oninput="this.value = Math.abs(Math.round(this.value))">
                   </div>
                   <div class="mb-3">
                     <label class="form-label">Empleado</label>
@@ -127,11 +135,11 @@
                 <td th:text="${#dates.format(entry.dateEntry, 'dd/MM/yyyy')}"></td>
                 <td th:text="${entry.employee?.name ?: 'N/A'}"></td>
                 <td class="text-center">
-                  <button class="btn btn-warning btn-sm me-1" th:onclick="'prepareEditEntry(' + ${entry.id} + ')'">
+                  <button sec:authorize="hasRole('ADMIN')" class="btn btn-warning btn-sm me-1" th:onclick="'prepareEditEntry(' + ${entry.id} + ')'">
                     <i class="fas fa-edit"></i>
                   </button>
                   <form th:action="@{/entry/delete/{id}(id=${entry.id})}" method="post" style="display:inline;">
-                    <button type="button" class="btn btn-danger btn-sm" onclick="confirmDelete(this)">
+                    <button sec:authorize="hasRole('ADMIN')" type="button" class="btn btn-danger btn-sm" onclick="confirmDelete(this)">
                       <i class="fas fa-trash-alt"></i>
                     </button>
                   </form>
@@ -178,22 +186,14 @@
   }
 
   function checkFlashMessages() {
-      // Leer mensajes de los atributos data-*
       const flashContainer = document.getElementById('flash-messages');
       const successMessage = flashContainer.getAttribute('data-success');
       const errorMessage = flashContainer.getAttribute('data-error');
-
       if (successMessage) {
-          Swal.fire({
-              icon: 'success', title: 'Éxito', text: successMessage,
-              timer: 3000, showConfirmButton: false
-          });
+          Swal.fire({ icon: 'success', title: 'Éxito', text: successMessage, timer: 3000, showConfirmButton: false });
       }
       if (errorMessage) {
-          Swal.fire({
-              icon: 'error', title: 'Error', text: errorMessage,
-              confirmButtonText: 'Entendido'
-          });
+          Swal.fire({ icon: 'error', title: 'Error', text: errorMessage, confirmButtonText: 'Entendido' });
       }
   }
 
@@ -202,7 +202,6 @@
       document.getElementById('modalTitle').textContent = 'Nueva Entrada';
       document.getElementById('entryId').value = '';
       document.getElementById('entryForm').action = '/entry/save';
-      // Establecer fecha actual en el campo de fecha
       document.getElementById('entryDate').value = new Date().toISOString().split('T')[0];
   }
 
@@ -215,7 +214,6 @@
           .then(entry => {
               document.getElementById('modalTitle').textContent = 'Editar Entrada';
               document.getElementById('entryId').value = entry.id;
-              // Formatear la fecha para el input type="date"
               document.getElementById('entryDate').value = entry.dateEntry.split('T')[0];
               document.getElementById('entryInventory').value = entry.inventory?.id || '';
               document.getElementById('entrySupplier').value = entry.supplier?.id || '';
@@ -223,7 +221,6 @@
               document.getElementById('entryPriceBuy').value = entry.priceBuy;
               document.getElementById('entryEmployee').value = entry.employee?.id || '';
               document.getElementById('entryForm').action = '/entry/save';
-
               const modal = new bootstrap.Modal(document.getElementById('entryModal'));
               modal.show();
           })
@@ -233,138 +230,74 @@
           });
   }
 
-  function exportToExcel() {
-      try {
-          const today = new Date();
-          const formattedDate = today.toLocaleDateString('es-ES');
-          const title = "Reporte de Entradas de Inventario";
-          const generated = `Generado el: ${formattedDate}`;
-          const headers = ['ID', 'Producto', 'Proveedor', 'Cantidad', 'Precio Compra', 'Fecha Entrada', 'Empleado'];
-          const dataToExport = dataTable.rows({ search: 'applied' }).data().toArray();
+      function exportToExcel() {
+          try {
+              const today = new Date();
+              const title = "Reporte de Entradas de Inventario";
+              const headers = ['ID', 'Producto', 'Proveedor', 'Cantidad', 'Precio Compra', 'Fecha Entrada', 'Empleado'];
+              const dataToExport = dataTable.rows({ search: 'applied' }).data().toArray();
 
-          let reportData = [
-              [title], [generated], [], headers
-          ];
-          dataToExport.forEach(row => {
-              reportData.push([row[0], row[1], row[2], row[3], row[4], row[5], row[6]]);
-          });
+              let reportData = [ [title], [`Generado el: ${today.toLocaleDateString('es-ES')}`], [], headers ];
 
-          const wb = XLSX.utils.book_new();
-          const ws = XLSX.utils.aoa_to_sheet(reportData);
-          const merge = { s: { r: 0, c: 0 }, e: { r: 0, c: headers.length - 1 } };
-          if (!ws['!merges']) ws['!merges'] = [];
-          ws['!merges'].push(merge);
+              dataToExport.forEach(row => {
+                  const price = row[4].replace(/[$.]/g, '').replace(',', '.').trim();
+                  reportData.push([row[0], row[1], row[2], row[3], price, row[5], row[6]]);
+              });
 
-          const columnWidths = reportData[3].map((_, colIndex) => {
-              let maxLength = 0;
-              for (let rowIndex = 3; rowIndex < reportData.length; rowIndex++) {
-                  const cellValue = reportData[rowIndex][colIndex];
-                  if (cellValue && cellValue.toString().length > maxLength) {
-                      maxLength = cellValue.toString().length;
-                  }
-              }
-              return { wch: maxLength + 2 };
-          });
-          ws['!cols'] = columnWidths;
-
-          XLSX.utils.book_append_sheet(wb, ws, 'Entradas');
-          const fileDate = `${today.getFullYear()}-${(today.getMonth() + 1).toString().padStart(2, '0')}-${today.getDate().toString().padStart(2, '0')}`;
-          XLSX.writeFile(wb, `Reporte_Entradas_${fileDate}.xlsx`);
-
-      } catch (error) {
-          console.error("Error al exportar a Excel:", error);
-          Swal.fire('Error', 'No se pudo exportar a Excel.', 'error');
+              const wb = XLSX.utils.book_new();
+              const ws = XLSX.utils.aoa_to_sheet(reportData);
+              ws['!merges'] = [{ s: { r: 0, c: 0 }, e: { r: 0, c: headers.length - 1 } }];
+              ws['!cols'] = headers.map(h => ({ wch: 18 }));
+              XLSX.utils.book_append_sheet(wb, ws, 'Entradas');
+              XLSX.writeFile(wb, `Reporte_Entradas_${today.toISOString().split('T')[0]}.xlsx`);
+          } catch (error) {
+              Swal.fire('Error', 'No se pudo exportar a Excel.', 'error');
+          }
       }
-  }
 
-  function exportToPDF() {
-      fetch('/assets/img/logoo.png')
-          .then(response => response.blob())
-          .then(blob => {
-              const reader = new FileReader();
-              reader.readAsDataURL(blob);
-              reader.onloadend = function() {
-                  const base64data = reader.result;
-                  try {
-                      const { jsPDF } = window.jspdf;
-                      const doc = new jsPDF();
-                      const pageWidth = doc.internal.pageSize.width;
-                      const pageHeight = doc.internal.pageSize.height;
+      function exportToPDF() {
+          fetch('/assets/img/logoo.png')
+              .then(res => res.blob())
+              .then(blob => {
+                  const reader = new FileReader();
+                  reader.readAsDataURL(blob);
+                  reader.onloadend = function() {
+                      const base64data = reader.result;
+                      try {
+                          const { jsPDF } = window.jspdf;
+                          const doc = new jsPDF();
+                          const today = new Date();
 
-                      doc.setFillColor('#FFC107');
-                      doc.rect(0, 0, pageWidth, 10, 'F');
-                      const logoSize = 25;
-                      const logoX = 15;
-                      const logoY = 14;
-                      doc.addImage(base64data, 'PNG', logoX, logoY, logoSize, logoSize);
+                          doc.setFillColor('#FFC107');
+                          doc.rect(0, 0, doc.internal.pageSize.width, 10, 'F');
+                          doc.addImage(base64data, 'PNG', 15, 14, 25, 25);
+                          doc.setFontSize(22); doc.setFont('helvetica', 'bold'); doc.setTextColor('#005A9C');
+                          doc.text('Reporte de Entradas', 45, 28);
+                          doc.setFontSize(11); doc.setFont('helvetica', 'normal'); doc.setTextColor(100);
+                          doc.text(`Generado el: ${today.toLocaleDateString('es-ES')}`, 45, 35);
 
-                      doc.setFontSize(22);
-                      doc.setFont('helvetica', 'bold');
-                      doc.setTextColor('#005A9C');
-                      doc.text('Reporte de Entradas', logoX + logoSize + 5, 28);
-
-                      doc.setFontSize(11);
-                      doc.setFont('helvetica', 'normal');
-                      doc.setTextColor(100);
-                      const today = new Date();
-                      const dateStr = `Generado el: ${today.toLocaleDateString('es-ES')}`;
-                      doc.text(dateStr, logoX + logoSize + 5, 35);
-
-                      doc.autoTable({
-                          html: '#dataTable',
-                          startY: 50,
-                          columns: [0, 1, 2, 3, 4, 5, 6],
-                          headStyles: { fillColor: [0, 90, 156], textColor: [255, 255, 255], fontStyle: 'bold', halign: 'center' },
-                          alternateRowStyles: { fillColor: [245, 245, 245] },
-                          styles: { halign: 'center', valign: 'middle', fontSize: 9 },
-                          didParseCell: function (data) {
-                              if (data.column.index === 0 && data.cell.section === 'body') {
-                                  data.cell.styles.fontStyle = 'bold';
+                          doc.autoTable({
+                              html: '#dataTable',
+                              startY: 50,
+                              columns: [0, 1, 2, 3, 4, 5, 6],
+                              headStyles: { fillColor: [0, 90, 156] },
+                              didDrawPage: data => {
+                                  doc.setFillColor('#FFC107');
+                                  doc.rect(0, doc.internal.pageSize.height - 5, doc.internal.pageSize.width, 5, 'F');
                               }
-                          },
-                          didDrawPage: function (data) {
-                              doc.setFillColor('#FFC107');
-                              doc.rect(0, pageHeight - 5, pageWidth, 5, 'F');
-                              let footerStr = `Página ${doc.internal.getNumberOfPages()}`;
-                              doc.setFontSize(10);
-                              doc.setTextColor(150);
-                              doc.text(footerStr, data.settings.margin.left, pageHeight - 10);
-                          }
-                      });
+                          });
 
-                      const formattedDate = `${today.getFullYear()}-${(today.getMonth() + 1).toString().padStart(2, '0')}-${today.getDate().toString().padStart(2, '0')}`;
-                      doc.save(`Reporte_Entradas_${formattedDate}.pdf`);
-
-                  } catch (error) {
-                      console.error("Error al exportar a PDF:", error);
-                      Swal.fire('Error', 'No se pudo exportar a PDF.', 'error');
-                  }
-              };
-          })
-          .catch(error => {
-              console.error("Error al cargar el logo para el PDF:", error);
-              Swal.fire('Error', 'No se pudo cargar el logo para generar el PDF.', 'error');
-          });
-  }
+                          doc.save(`Reporte_Entradas_${today.toISOString().split('T')[0]}.pdf`);
+                      } catch (error) {
+                          Swal.fire('Error', 'No se pudo exportar a PDF.', 'error');
+                      }
+                  };
+              });
+      }
 
   $(document).ready(function() {
       dataTable = $('#dataTable').DataTable({
-          language: {
-              "sProcessing": "Procesando...",
-              "sLengthMenu": "Mostrar _MENU_ entradas",
-              "sZeroRecords": "No se encontraron resultados",
-              "sEmptyTable": "Ninguna entrada disponible",
-              "sInfo": "Mostrando _START_ a _END_ de _TOTAL_ entradas",
-              "sInfoEmpty": "Mostrando 0 a 0 de 0 entradas",
-              "sInfoFiltered": "(filtrado de _MAX_ entradas totales)",
-              "sSearch": "Buscar:",
-              "oPaginate": {
-                  "sFirst": "Primero",
-                  "sLast": "Último",
-                  "sNext": "Siguiente",
-                  "sPrevious": "Anterior"
-              }
-          },
+          language: { "sProcessing": "Procesando...", "sLengthMenu": "Mostrar _MENU_ entradas", "sZeroRecords": "No se encontraron resultados", "sEmptyTable": "Ninguna entrada disponible", "sInfo": "Mostrando _START_ a _END_ de _TOTAL_ entradas", "sInfoEmpty": "Mostrando 0 a 0 de 0 entradas", "sInfoFiltered": "(filtrado de _MAX_ entradas totales)", "sSearch": "Buscar:", "oPaginate": { "sFirst": "Primero", "sLast": "Último", "sNext": "Siguiente", "sPrevious": "Anterior" }},
           dom: '<"row"<"col-sm-12"t>><"row"<"col-sm-12 col-md-5"i><"col-sm-12 col-md-7"p>>',
           responsive: true,
           columnDefs: [{ targets: 7, orderable: false, searchable: false }]
@@ -378,7 +311,6 @@
           dataTable.page.len(this.value).draw();
       });
 
-      // Llamar a la función para mostrar los mensajes
       checkFlashMessages();
   });
 </script>
